@@ -88,12 +88,8 @@
 <li>列名放在热图上方很好解决，直接用Heatmap()的column_names_side &#x3D; “top”。  </li>
 <li>问题是字体竖向排列。</li>
 </ul>
-<h1 id="失败方案"><a href="#失败方案" class="headerlink" title="失败方案"></a>失败方案</h1><ul>
-<li><p>方案1<br>Heatmap(column_names_rot &#x3D; 90)，不行。<br>列名是整体旋转，做不到竖向阅读。<br><img src="https://pic.imgdb.cn/item/643cf6800d2dde577704aee0.jpg" alt="热图1column_names_rot=90">  </p>
-</li>
-<li><p>方案2<br>列名插入换行符，不行。<br>可以竖向阅读，但是列名会和热图区域重叠。<br><img src="https://pic.imgdb.cn/item/643cf6ac0d2dde577704eb57.jpg" alt="热图2列名插入换行符"></p>
-</li>
-</ul>
+<h1 id="失败方案"><a href="#失败方案" class="headerlink" title="失败方案"></a>失败方案</h1><h2 id="方案1"><a href="#方案1" class="headerlink" title="方案1"></a>方案1</h2><p>  Heatmap(column_names_rot &#x3D; 90)，不行。<br>  列名是整体旋转，做不到竖向阅读。<br>  <img src="https://pic.imgdb.cn/item/643cf6800d2dde577704aee0.jpg" alt="热图1column_names_rot=90">  </p>
+<h2 id="方案2"><a href="#方案2" class="headerlink" title="方案2"></a>方案2</h2><p>  列名插入换行符，不行。<br>  可以竖向阅读，但是列名会和热图区域重叠。<br>  <img src="https://pic.imgdb.cn/item/643cf6ac0d2dde577704eb57.jpg" alt="热图2列名插入换行符">  </p>
 <h1 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h1><ul>
 <li><p>列名插入换行符，并用decorate_dimnames()重绘列名组件。  </p>
 </li>

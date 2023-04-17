@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  
+  <meta name="keywords" content="bioinfomatics,生物信息">
+  
+  
+  <meta name="description" content="bioinfomatics 生物信息">
+  
+  <title>
+    热图竖向列名 |
+    
+    A Blog
+  </title>
+  <!-- Icon -->
+  
+    <link rel="shortcut icon" href="/images/K_Letter_White.svg">
+    
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <main class="content">
+    <section class="outer">
+  <article id="post-热图竖向列名" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+      
+  
+  <h1 class="article-title" itemprop="name">
+    热图竖向列名
+  </h1>
+  
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2023/04/17/%E7%83%AD%E5%9B%BE%E7%AB%96%E5%90%91%E5%88%97%E5%90%8D/" class="article-date">
+  <time datetime="2023-04-17T07:22:35.000Z" itemprop="datePublished">2023-04-17</time>
+</a>
+      
+<div class="article-category">
+  <a class="article-category-link" href="/categories/Log/">Log</a>
+</div>
+
+    </div>
+    
+
+    
+    
+<div class="tocbot"></div>
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+      
+        <p>用ComplexHeatmap画热图，列名竖向排列</p>
+<span id="more"></span>
+
+<h1 id="软件版本"><a href="#软件版本" class="headerlink" title="软件版本"></a>软件版本</h1><ul>
+<li>R版本：version 3.6.0  </li>
+<li>R包版本：ComplexHeatmap 2.2.0</li>
+</ul>
+<h1 id="需求说明"><a href="#需求说明" class="headerlink" title="需求说明"></a>需求说明</h1><p>  列名放在热图上方，字体排列是竖向的。  </p>
+<ul>
+<li>列名放在热图上方很好解决，直接用Heatmap()的column_names_side &#x3D; “top”。  </li>
+<li>问题是字体竖向排列。</li>
+</ul>
+<h1 id="失败方案"><a href="#失败方案" class="headerlink" title="失败方案"></a>失败方案</h1><ul>
+<li><p>方案1<br>Heatmap(column_names_rot &#x3D; 90)，不行。<br>列名是整体旋转，做不到竖向阅读。<br><img src="https://pic.imgdb.cn/item/643cf6800d2dde577704aee0.jpg" alt="热图1column_names_rot=90">  </p>
+</li>
+<li><p>方案2<br>列名插入换行符，不行。<br>可以竖向阅读，但是列名会和热图区域重叠。<br><img src="https://pic.imgdb.cn/item/643cf6ac0d2dde577704eb57.jpg" alt="热图2列名插入换行符"></p>
+</li>
+</ul>
+<h1 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h1><ul>
+<li><p>列名插入换行符，并用decorate_dimnames()重绘列名组件。  </p>
+</li>
+<li><p>热图示例<br><img src="https://pic.imgdb.cn/item/643cf6db0d2dde5777053a3a.jpg" alt="热图3完成">  </p>
+</li>
+<li><p>数据示例<br><img src="https://pic.imgdb.cn/item/643cf6f50d2dde5777055a3f.jpg" alt="数据示例">  </p>
+</li>
+<li><p>文本文件的中文编码转换示例<br><code>iconv -c -f GBK -t UTF-8 Input.GBK.tsv -o Output.utf8.tsv</code>  </p>
+</li>
+<li><p>代码  </p>
+<figure class="highlight r"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ComplexHeatmap参考示例</span></span><br><span class="line"><span class="comment"># https://jokergoo.github.io/ComplexHeatmap-reference/book/</span></span><br><span class="line"></span><br><span class="line">library<span class="punctuation">(</span>ComplexHeatmap<span class="punctuation">)</span></span><br><span class="line">library<span class="punctuation">(</span>circlize<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">args <span class="operator">&lt;-</span> commandArgs<span class="punctuation">(</span><span class="built_in">T</span><span class="punctuation">)</span></span><br><span class="line">Input_Table <span class="operator">=</span> args<span class="punctuation">[</span><span class="number">1</span><span class="punctuation">]</span></span><br><span class="line">Output_Dir <span class="operator">=</span> args<span class="punctuation">[</span><span class="number">2</span><span class="punctuation">]</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 如果输出目录不存在，创建它</span></span><br><span class="line"><span class="keyword">if</span> <span class="punctuation">(</span><span class="operator">!</span> dir.exists<span class="punctuation">(</span>Output_Dir<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">&#123;</span></span><br><span class="line">        dir.create<span class="punctuation">(</span>Plot_Result_Dir<span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 输出图片文件路径</span></span><br><span class="line">Output_Pic <span class="operator">=</span> paste<span class="punctuation">(</span>Output_Dir<span class="punctuation">,</span> <span class="string">&quot;/Heatmap.png&quot;</span><span class="punctuation">,</span> sep <span class="operator">=</span> <span class="string">&quot;&quot;</span><span class="punctuation">,</span> collapse <span class="operator">=</span> <span class="string">&quot;&quot;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">########################## 数据处理 ##########################</span></span><br><span class="line"><span class="comment"># 读入数据</span></span><br><span class="line"><span class="comment"># stringsAsFactors=FALSE 不将字符型变量转为因子，否则对其做字符串操作会报错</span></span><br><span class="line"><span class="comment"># check.names=FALSE 不检查列名的命名有效性，否则列名会被修改：如数字开头会在最前面被加上X、空格被变为.、-被变为.等情况</span></span><br><span class="line"><span class="comment"># check.names=FALSE后，列名的空格会被保留，用列名获取数据时，需要用Data_Frame$`Name With Space`这种格式</span></span><br><span class="line">Data <span class="operator">=</span> read.table<span class="punctuation">(</span>Input_Table<span class="punctuation">,</span> head <span class="operator">=</span> <span class="built_in">T</span><span class="punctuation">,</span> sep <span class="operator">=</span> <span class="string">&quot;\t&quot;</span><span class="punctuation">,</span> comment.char <span class="operator">=</span> <span class="string">&quot;#&quot;</span><span class="punctuation">,</span> stringsAsFactors <span class="operator">=</span> <span class="literal">FALSE</span><span class="punctuation">,</span> check.names <span class="operator">=</span> <span class="literal">FALSE</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 函数：字符串的每个字符中间插入换行符</span></span><br><span class="line">wrap_letters <span class="operator">&lt;-</span> <span class="keyword">function</span><span class="punctuation">(</span>x<span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">        sapply<span class="punctuation">(</span>strsplit<span class="punctuation">(</span>x<span class="punctuation">,</span> <span class="string">&#x27;&#x27;</span><span class="punctuation">)</span><span class="punctuation">,</span> paste0<span class="punctuation">,</span> collapse <span class="operator">=</span> <span class="string">&#x27;\n&#x27;</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Data从第2列到最后1列作为画图数据Data_Draw</span></span><br><span class="line">Data_Draw <span class="operator">=</span> Data<span class="punctuation">[</span><span class="punctuation">,</span><span class="number">2</span><span class="operator">:</span>ncol<span class="punctuation">(</span>Data<span class="punctuation">)</span><span class="punctuation">]</span></span><br><span class="line"><span class="comment"># Data的第1列作为画图数据Data_Draw的行名</span></span><br><span class="line">row.names<span class="punctuation">(</span>Data_Draw<span class="punctuation">)</span> <span class="operator">=</span> Data<span class="punctuation">[</span><span class="punctuation">,</span><span class="number">1</span><span class="punctuation">]</span></span><br><span class="line"><span class="comment"># 另存画图数据Data_Draw的列名，并在列名的每个字符中间插入换行符</span></span><br><span class="line">Col_Names <span class="operator">=</span> wrap_letters<span class="punctuation">(</span>colnames<span class="punctuation">(</span>Data_Draw<span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"><span class="comment"># 将Data_Draw的列名替换为空</span></span><br><span class="line"><span class="built_in">names</span><span class="punctuation">(</span>Data_Draw<span class="punctuation">)</span> <span class="operator">=</span> <span class="built_in">rep</span><span class="punctuation">(</span><span class="string">&quot;&quot;</span><span class="punctuation">,</span> ncol<span class="punctuation">(</span>Data_Draw<span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 用于cell显示数值。read.table(colClasses = &quot;character&quot;)数值全部作为字符串读入，避免format()转换的科学计数法。NA转为空字符串。</span></span><br><span class="line">Cell_Number <span class="operator">=</span> read.table<span class="punctuation">(</span>Input_Table<span class="punctuation">,</span> head <span class="operator">=</span> <span class="built_in">T</span><span class="punctuation">,</span> sep <span class="operator">=</span> <span class="string">&quot;\t&quot;</span><span class="punctuation">,</span> comment.char <span class="operator">=</span> <span class="string">&quot;#&quot;</span><span class="punctuation">,</span> stringsAsFactors <span class="operator">=</span> <span class="literal">FALSE</span><span class="punctuation">,</span> check.names <span class="operator">=</span> <span class="literal">FALSE</span><span class="punctuation">,</span> colClasses <span class="operator">=</span> <span class="string">&quot;character&quot;</span><span class="punctuation">,</span> na.strings <span class="operator">=</span> <span class="string">&quot;&quot;</span><span class="punctuation">)</span></span><br><span class="line">Cell_Number <span class="operator">=</span> Cell_Number<span class="punctuation">[</span><span class="punctuation">,</span><span class="number">2</span><span class="operator">:</span>ncol<span class="punctuation">(</span>Cell_Number<span class="punctuation">)</span><span class="punctuation">]</span></span><br><span class="line">Cell_Number<span class="punctuation">[</span><span class="built_in">is.na</span><span class="punctuation">(</span>Cell_Number<span class="punctuation">)</span><span class="punctuation">]</span> <span class="operator">=</span> <span class="string">&quot;&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">########################## 画图 ############################</span></span><br><span class="line"><span class="comment"># 根据画图数据的行数、列数设置图的尺寸</span></span><br><span class="line">base_size <span class="operator">=</span> <span class="number">3</span></span><br><span class="line">hight_factor <span class="operator">=</span> <span class="built_in">ceiling</span><span class="punctuation">(</span>nrow<span class="punctuation">(</span>Data_Draw<span class="punctuation">)</span> <span class="operator">/</span> <span class="number">8</span><span class="punctuation">)</span></span><br><span class="line">width_factor <span class="operator">=</span> <span class="built_in">ceiling</span><span class="punctuation">(</span>ncol<span class="punctuation">(</span>Data_Draw<span class="punctuation">)</span> <span class="operator">/</span> <span class="number">4</span><span class="punctuation">)</span></span><br><span class="line">width_value <span class="operator">=</span> base_size <span class="operator">*</span> width_factor <span class="operator">*</span> <span class="number">0.6</span></span><br><span class="line"><span class="keyword">if</span><span class="punctuation">(</span>width_value <span class="operator">&gt;</span> <span class="number">200</span><span class="punctuation">)</span><span class="punctuation">&#123;</span>width_value <span class="operator">=</span> <span class="number">200</span><span class="punctuation">&#125;</span></span><br><span class="line">height_value<span class="operator">=</span><span class="punctuation">(</span>base_size <span class="operator">+</span> <span class="number">2</span><span class="punctuation">)</span> <span class="operator">*</span> hight_factor <span class="operator">*</span> <span class="number">0.65</span></span><br><span class="line"><span class="keyword">if</span><span class="punctuation">(</span>height_value <span class="operator">&gt;</span> <span class="number">300</span><span class="punctuation">)</span><span class="punctuation">&#123;</span>height_value <span class="operator">=</span> <span class="number">300</span><span class="punctuation">&#125;</span></span><br><span class="line">png<span class="punctuation">(</span>Output_Pic<span class="punctuation">,</span> width <span class="operator">=</span> width_value<span class="punctuation">,</span> height <span class="operator">=</span> height_value<span class="punctuation">,</span> units <span class="operator">=</span> <span class="string">&quot;in&quot;</span><span class="punctuation">,</span> res<span class="operator">=</span><span class="number">300</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 热图大小占图的80%</span></span><br><span class="line">Heatmap_Width <span class="operator">=</span> width_value <span class="operator">*</span> <span class="number">0.8</span></span><br><span class="line">Heatmap_Height <span class="operator">=</span> height_value <span class="operator">*</span> <span class="number">0.8</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 自定义热图颜色</span></span><br><span class="line">Color_Palette <span class="operator">&lt;-</span> colorRamp2<span class="punctuation">(</span><span class="built_in">c</span><span class="punctuation">(</span><span class="number">0</span><span class="punctuation">,</span> <span class="number">25</span><span class="punctuation">,</span> <span class="number">50</span><span class="punctuation">,</span> <span class="number">100</span><span class="punctuation">)</span><span class="punctuation">,</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;white&quot;</span><span class="punctuation">,</span> <span class="string">&quot;green&quot;</span><span class="punctuation">,</span> <span class="string">&quot;yellow&quot;</span><span class="punctuation">,</span> <span class="string">&quot;red&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 热图</span></span><br><span class="line">Darw_Heatmap <span class="operator">=</span> Heatmap<span class="punctuation">(</span></span><br><span class="line">  Data_Draw<span class="punctuation">,</span></span><br><span class="line">  name <span class="operator">=</span> <span class="string">&quot;Darw_Heatmap&quot;</span><span class="punctuation">,</span></span><br><span class="line">  width <span class="operator">=</span> unit<span class="punctuation">(</span>Heatmap_Width<span class="punctuation">,</span> <span class="string">&quot;in&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">  height <span class="operator">=</span> unit<span class="punctuation">(</span>Heatmap_Height<span class="punctuation">,</span> <span class="string">&quot;in&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">  col<span class="operator">=</span>Color_Palette<span class="punctuation">,</span></span><br><span class="line">  <span class="comment"># 行、列聚类</span></span><br><span class="line">  cluster_rows <span class="operator">=</span> <span class="literal">FALSE</span><span class="punctuation">,</span></span><br><span class="line">  cluster_columns <span class="operator">=</span> <span class="literal">FALSE</span><span class="punctuation">,</span></span><br><span class="line">  <span class="comment"># 行名相关参数</span></span><br><span class="line">  show_row_names <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">,</span></span><br><span class="line">  row_names_side <span class="operator">=</span> <span class="string">&quot;right&quot;</span><span class="punctuation">,</span></span><br><span class="line">  row_names_gp <span class="operator">=</span> gpar<span class="punctuation">(</span>fontsize <span class="operator">=</span> <span class="number">12</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">  row_names_max_width <span class="operator">=</span> max_text_width<span class="punctuation">(</span>row.names<span class="punctuation">(</span>Data_Draw<span class="punctuation">)</span><span class="punctuation">,</span> gp <span class="operator">=</span> gpar<span class="punctuation">(</span>fontsize <span class="operator">=</span> <span class="number">12</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">  row_names_rot <span class="operator">=</span> <span class="number">0</span><span class="punctuation">,</span></span><br><span class="line">  <span class="comment"># 列名相关参数</span></span><br><span class="line">  show_column_names <span class="operator">=</span> <span class="literal">TRUE</span><span class="punctuation">,</span></span><br><span class="line">  column_names_side <span class="operator">=</span> <span class="string">&quot;top&quot;</span><span class="punctuation">,</span></span><br><span class="line">  column_names_gp <span class="operator">=</span> gpar<span class="punctuation">(</span>fontsize <span class="operator">=</span> <span class="number">12</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">  column_names_max_height <span class="operator">=</span> max_text_width<span class="punctuation">(</span><span class="built_in">names</span><span class="punctuation">(</span>Data_Draw<span class="punctuation">)</span><span class="punctuation">,</span> gp <span class="operator">=</span> gpar<span class="punctuation">(</span>fontsize <span class="operator">=</span> <span class="number">12</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">  column_names_rot <span class="operator">=</span> <span class="number">0</span><span class="punctuation">,</span></span><br><span class="line">  <span class="comment"># 相当于pheatmap的border_color和border线宽度</span></span><br><span class="line">  rect_gp <span class="operator">=</span> gpar<span class="punctuation">(</span>col <span class="operator">=</span> <span class="string">&quot;grey&quot;</span><span class="punctuation">,</span> lwd <span class="operator">=</span> <span class="number">1</span><span class="punctuation">)</span><span class="punctuation">,</span></span><br><span class="line">  <span class="comment"># 每个cell显示对应数值，相当于pheatmap的display_numbers</span></span><br><span class="line">  cell_fun <span class="operator">=</span> <span class="keyword">function</span><span class="punctuation">(</span>j<span class="punctuation">,</span> i<span class="punctuation">,</span> x<span class="punctuation">,</span> y<span class="punctuation">,</span> width<span class="punctuation">,</span> height<span class="punctuation">,</span> fill<span class="punctuation">)</span> <span class="punctuation">&#123;</span>grid.text<span class="punctuation">(</span>Cell_Number<span class="punctuation">[</span>i<span class="punctuation">,</span>j<span class="punctuation">]</span><span class="punctuation">,</span> x<span class="punctuation">,</span> y<span class="punctuation">,</span> gp <span class="operator">=</span> gpar<span class="punctuation">(</span>fontsize <span class="operator">=</span> <span class="number">9</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="comment"># 空值的cell的颜色</span></span><br><span class="line">  na_col <span class="operator">=</span> <span class="string">&quot;white&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="comment"># 图例相关参数</span></span><br><span class="line">  show_heatmap_legend <span class="operator">=</span> <span class="literal">FALSE</span><span class="punctuation">,</span></span><br><span class="line">  heatmap_legend_param <span class="operator">=</span> <span class="built_in">list</span><span class="punctuation">(</span>title <span class="operator">=</span> <span class="string">&quot;&quot;</span><span class="punctuation">,</span> color_bar <span class="operator">=</span> <span class="string">&quot;continuous&quot;</span><span class="punctuation">)</span></span><br><span class="line"><span class="punctuation">)</span></span><br><span class="line"><span class="comment"># 图例</span></span><br><span class="line">Draw_Legend <span class="operator">=</span> Legend<span class="punctuation">(</span>col <span class="operator">=</span> Color_Palette<span class="punctuation">,</span> title <span class="operator">=</span> <span class="string">&quot;&quot;</span><span class="punctuation">,</span> grid_height <span class="operator">=</span> unit<span class="punctuation">(</span><span class="number">6</span><span class="punctuation">,</span> <span class="string">&quot;mm&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span> grid_width <span class="operator">=</span> unit<span class="punctuation">(</span><span class="number">6</span><span class="punctuation">,</span> <span class="string">&quot;mm&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 设置热图四周的距离，因为有的列名很长，热图上方需要空出更多空间</span></span><br><span class="line">Heatmap_Left_Padding <span class="operator">=</span> <span class="number">2</span></span><br><span class="line">Heatmap_Bottom_Padding <span class="operator">=</span> <span class="number">2</span></span><br><span class="line">Heatmap_Top_Padding <span class="operator">=</span> <span class="number">94</span></span><br><span class="line">Heatmap_Right_Padding <span class="operator">=</span> <span class="number">2</span></span><br><span class="line"><span class="comment"># 绘制热图和图例</span></span><br><span class="line"><span class="comment"># 热图需要padding，图例要移动位置，所以必须用draw()</span></span><br><span class="line">draw<span class="punctuation">(</span>Darw_Heatmap<span class="punctuation">,</span> padding <span class="operator">=</span> unit<span class="punctuation">(</span><span class="built_in">c</span><span class="punctuation">(</span>Heatmap_Bottom_Padding<span class="punctuation">,</span> Heatmap_Left_Padding<span class="punctuation">,</span> Heatmap_Top_Padding<span class="punctuation">,</span> Heatmap_Right_Padding<span class="punctuation">)</span><span class="punctuation">,</span> <span class="string">&quot;mm&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">draw<span class="punctuation">(</span>Draw_Legend<span class="punctuation">,</span> x <span class="operator">=</span> unit<span class="punctuation">(</span><span class="number">0.98</span><span class="punctuation">,</span> <span class="string">&quot;npc&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span> y <span class="operator">=</span> unit<span class="punctuation">(</span><span class="number">0.85</span><span class="punctuation">,</span> <span class="string">&quot;npc&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span> just <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;right&quot;</span><span class="punctuation">,</span> <span class="string">&quot;top&quot;</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 根据热图padding设置第一个列名的位置</span></span><br><span class="line">X_Pos <span class="operator">=</span> unit<span class="punctuation">(</span>Heatmap_Left_Padding<span class="operator">+</span><span class="number">1</span><span class="punctuation">,</span> <span class="string">&quot;mm&quot;</span><span class="punctuation">)</span></span><br><span class="line"><span class="comment"># 每个列名输出后需要移动一定位置，以对齐每个cell。根据热图大小和列数量，计算每个cell的宽度</span></span><br><span class="line">X_Step <span class="operator">=</span> unit<span class="punctuation">(</span>Heatmap_Width<span class="operator">/</span>ncol<span class="punctuation">(</span>Data_Draw<span class="punctuation">)</span><span class="punctuation">,</span> <span class="string">&quot;in&quot;</span><span class="punctuation">)</span></span><br><span class="line"><span class="comment"># decorate_*()系列函数用于绘制热图后，对热图组件做修改 https://jokergoo.github.io/ComplexHeatmap-reference/book/heatmap-decoration.html</span></span><br><span class="line"><span class="comment"># decorate_dimnames(which = &quot;column&quot;)用于修改列名组件</span></span><br><span class="line"><span class="comment"># 注1：decorate_*()必须在热图绘制后才能用。如果Darw_Heatmap = Heatmap(...)后，必须先draw(Darw_Heatmap)；或者不把Heatmap(...)赋给变量和draw()。同理，如果要修改某个组件，该组件必须先被绘制出来；我要修改列名，那必须Heatmap(show_column_names = TRUE)，所以前面要将Data_Draw的列名设为空值，否则Heatmap()和decorate_dimnames()会导致两次的列名重叠。</span></span><br><span class="line"><span class="comment"># 注2：decorate_*()的[heatmap]参数，是name of the heatmap，所以要用Heatmap(name = &quot;xxx&quot;)填的热图名称，而不是Heatmap(...)赋给的变量名</span></span><br><span class="line"><span class="comment"># 注3：这里Col_Names是直接取Data_Draw的列名。如果热图有做列聚类，列名顺序可能改变了，注意修改。</span></span><br><span class="line">decorate_dimnames<span class="punctuation">(</span><span class="string">&quot;Darw_Heatmap&quot;</span><span class="punctuation">,</span> which <span class="operator">=</span> <span class="string">&quot;column&quot;</span><span class="punctuation">,</span> <span class="punctuation">&#123;</span></span><br><span class="line">  <span class="keyword">for</span> <span class="punctuation">(</span>Name <span class="keyword">in</span> Col_Names<span class="punctuation">)</span><span class="punctuation">&#123;</span></span><br><span class="line">    <span class="comment"># 向下对齐，设置横坐标</span></span><br><span class="line">    grid.text<span class="punctuation">(</span>Name<span class="punctuation">,</span> just <span class="operator">=</span> <span class="string">&quot;bottom&quot;</span><span class="punctuation">,</span> x <span class="operator">=</span> X_Pos<span class="punctuation">)</span></span><br><span class="line">    <span class="comment"># 列名输出后移动位置</span></span><br><span class="line">    X_Pos <span class="operator">=</span> X_Pos <span class="operator">+</span> X_Step</span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">dev.off<span class="punctuation">(</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure></li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+<ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ComplexHeatmap/" rel="tag">ComplexHeatmap</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/R/" rel="tag">R</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E7%94%BB%E5%9B%BE/" rel="tag">画图</a></li></ul>
+
+    </footer>
+
+  </div>
+
+  
+  
+<nav class="article-nav">
+  
+  
+  <a href="/2023/04/16/BLAST%E5%8F%8ANT%E5%BA%93%E6%9C%AC%E5%9C%B0%E5%8C%96/" class="article-nav-link">
+    <strong class="article-nav-caption">后一篇</strong>
+    <div class="article-nav-title">BLAST及NT库本地化</div>
+  </a>
+  
+</nav>
+
+  
+
+  
+  
+<div class="vcomments" id="vcomments"></div>
+
+<script src="https://unpkg.com/valine/dist/Valine.min.js"></script>
+
+<script>
+  new Valine({
+    el: '#vcomments',
+    appId: 'AbTah7Q6uUUamYA9gZ0ANnav-9Nh9j0Va',
+    appKey: 'Ue6meFW6ZFZ6VHHH8DIpct5h',
+    notify: 'false',
+    verify: 'true',
+    avatar: 'identicon',
+    pageSize: '10',
+    placeholder: '说点什么'
+  })
+</script>
+
+  
+  
+
+</article>
+</section>
+    <footer class="footer">
+  <div class="outer">
+    <ul class="list-inline">
+      <li>A Blog &copy; 2023</li>
+      
+        <li>
+          
+            <a href="https://beian.miit.gov.cn/" target="_blank"></a>
+            
+        </li>
+      
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>theme  <a target="_blank" rel="noopener" href="https://github.com/zhwangart/hexo-theme-ocean">Ocean</a></li>
+    </ul>
+    <p><ul class="list-inline">
+  
+  <li><i class="fe fe-smile-alt tooltip" data-tooltip="UV"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+  <li><i class="fe fe-bookmark tooltip" data-tooltip="PV"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul></p>
+  </div>
+</footer>
+  </main>
+  <aside class="sidebar">
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/K_Letter.svg" alt="A Blog"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">首页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">关于</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="搜索">
+        <i class="fe fe-search"></i>
+        搜索
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto',
+  });
+</script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+
+</html>

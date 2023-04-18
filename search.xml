@@ -1,6 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>R包安装报错 is not available</title>
+    <url>/2023/04/18/R%E5%8C%85%E5%AE%89%E8%A3%85%E6%8A%A5%E9%94%99-is-not-available/</url>
+    <content><![CDATA[<p>R包安装报错ERROR: dependency is not available</p>
+<span id="more"></span>
+
+
+<h1 id="软件版本"><a href="#软件版本" class="headerlink" title="软件版本"></a>软件版本</h1><ul>
+<li>R版本：version 3.6.0</li>
+</ul>
+<h1 id="简要过程"><a href="#简要过程" class="headerlink" title="简要过程"></a>简要过程</h1><ul>
+<li>安装R包：ComplexHeatmap  </li>
+<li>安装命令：<code>BiocManager::install(&quot;ComplexHeatmap&quot;)</code>  </li>
+<li>报错信息：ERROR: dependency ‘GetoptLong’ is not available for package ‘ComplexHeatmap’  </li>
+<li>原因：ComplexHeatmap依赖的GetoptLong依赖的rjson，要求R版本高于当前版本  </li>
+<li>解决：先安装旧版本的rjson，再安装ComplexHeatmap</li>
+</ul>
+<h1 id="具体过程"><a href="#具体过程" class="headerlink" title="具体过程"></a>具体过程</h1><h2 id="1"><a href="#1" class="headerlink" title="1"></a>1</h2><p>在github有查到报错信息：  </p>
+<ul>
+<li><a href="https://github.com/jokergoo/ComplexHeatmap/issues/514">找到个相关Issue</a>  </li>
+<li>按这个Issue说的，安装更旧版本的GetoptLong。<br><code>install.packages(&quot;https://cran.r-project.org/src/contrib/Archive/GetoptLong/GetoptLong_0.1.8.tar.gz&quot;, repo = NULL)</code></li>
+</ul>
+<h2 id="2"><a href="#2" class="headerlink" title="2"></a>2</h2><p>尝试安装更旧版本的GetoptLong时，会报另外一个包的错：  </p>
+<ul>
+<li>ERROR: dependency ‘rjson’ is not available for package ‘GetoptLong’  </li>
+<li>在CRAN上查<a href="https://cran.r-project.org/web/packages/rjson/index.html">rjson</a>，当前这个包的版本是 0.2.21，Depends的R版本要≥ 4.0.0。  </li>
+<li><strong>就是这个原因导致ComplexHeatmap安装不上，其实一开始GetoptLong的报错往上翻一点就会看见rjson的报错。</strong><br><img src="https://pic.imgdb.cn/item/643e8fe40d2dde5777cdc74f.jpg" alt="rjson_Depends"></li>
+</ul>
+<h2 id="3"><a href="#3" class="headerlink" title="3"></a>3</h2><ul>
+<li>到Old sources找旧版本，从新往旧，一个个安装试试。0.2.20版本就装得上。<br><code>install.packages(&quot;https://cran.r-project.org/src/contrib/Archive/rjson/rjson_0.2.20.tar.gz&quot;, repo = NULL)</code><br><img src="https://pic.imgdb.cn/item/643e90040d2dde5777cdf9f2.jpg" alt="Old_sources"></li>
+</ul>
+<h2 id="4"><a href="#4" class="headerlink" title="4"></a>4</h2><ul>
+<li>rjson安装成功后，重新安装ComplexHeatmap。  </li>
+<li><code>BiocManager::install(&quot;ComplexHeatmap&quot;)</code>安装成功。</li>
+</ul>
+]]></content>
+      <categories>
+        <category>Bug</category>
+      </categories>
+      <tags>
+        <tag>R</tag>
+        <tag>ComplexHeatmap</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>热图竖向列名</title>
     <url>/2023/04/17/%E7%83%AD%E5%9B%BE%E7%AB%96%E5%90%91%E5%88%97%E5%90%8D/</url>
     <content><![CDATA[<p>用ComplexHeatmap画热图，列名竖向排列</p>

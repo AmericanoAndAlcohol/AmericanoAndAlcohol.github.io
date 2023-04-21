@@ -12,7 +12,7 @@
   <meta name="description" content="bioinfomatics 生物信息">
   
   <title>
-    VEP报错 |
+    Xlsx转MySQL报错 |
     
     A Blog
   </title>
@@ -36,7 +36,7 @@
 <body>
   <main class="content">
     <section class="outer">
-  <article id="post-VEP报错" class="article article-type-post" itemscope
+  <article id="post-Xlsx转MySQL报错" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -45,7 +45,7 @@
       
   
   <h1 class="article-title" itemprop="name">
-    VEP报错
+    Xlsx转MySQL报错
   </h1>
   
   
@@ -55,8 +55,8 @@
 
     
     <div class="article-meta">
-      <a href="/2023/04/19/VEP%E6%8A%A5%E9%94%99/" class="article-date">
-  <time datetime="2023-04-19T14:52:51.000Z" itemprop="datePublished">2023-04-19</time>
+      <a href="/2023/04/21/Xlsx%E8%BD%ACMySQL%E6%8A%A5%E9%94%99/" class="article-date">
+  <time datetime="2023-04-21T03:00:30.000Z" itemprop="datePublished">2023-04-21</time>
 </a>
       
 <div class="article-category">
@@ -76,29 +76,32 @@
       
       
       
-        <p>一些VEP使用过程中的报错信息</p>
+        <p>写Xlsx转MySQL脚本过程中的一些报错信息</p>
 <span id="more"></span>
 
-<h1 id="Existing-variation全部为"><a href="#Existing-variation全部为" class="headerlink" title="Existing_variation全部为-"></a>Existing_variation全部为-</h1><h2 id="问题及警告信息"><a href="#问题及警告信息" class="headerlink" title="问题及警告信息"></a>问题及警告信息</h2><ul>
-<li>问题：VEP注释结果中Existing_variation全部为-。  </li>
-<li>警告信息：  WARNING: 6742 : Use of uninitialized value in subtraction (-) at ***&#x2F;ensembl-vep&#x2F;modules&#x2F;Bio&#x2F;EnsEMBL&#x2F;VEP&#x2F;AnnotationSource&#x2F;Cache&#x2F;VariationTabix.pm line 184, <VARS> line 1.</VARS></li>
-</ul>
-<h2 id="问题定位"><a href="#问题定位" class="headerlink" title="问题定位"></a>问题定位</h2><p>VariationTabix.pm是用于判断当前突变是否数据库中的已知突变，其中$existing-&gt;{start}和$existing-&gt;{end}未定义，是由于脚本中第172行调用tabix，open VARS, “$TABIX_BIN -f $file $region_string 2&gt;&amp;1 报错：[tabix] failed to load the index file。<br>查看tabix版本，是0.2.5，且帮助文档中没有csi格式index的说明。<br>所以可能是tabix版本太旧，无法识别vep数据库中的.csi格式index导致。  </p>
-<h2 id="解决方法"><a href="#解决方法" class="headerlink" title="解决方法"></a>解决方法</h2><ul>
-<li>简要过程<br>  更新tabix，替换~&#x2F;.bashrc中调用的tabix。  </li>
-<li>具体过程<br>  tabix独立的安装包只更新到0.2.6，更新的版本只包含于HTSLIB。<br>  一般生信服务器里都已经有装samtools，应该可以直接用samtools路径里的tabix。<br>  这台服务器里已经安装的samtools的版本是1.12，路径下找到了htslib-1.12目录，但是里面没tabix，应该是没有make。    <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">cd htslib-1.12</span><br><span class="line">make</span><br><span class="line">make install</span><br></pre></td></tr></table></figure>
-  以上命令make后，在samtools-1.12&#x2F;bin能看到1.12版本的tabix和bgzip。<br>  修改~&#x2F;.bashrc的tabix路径，然后source ~&#x2F;.bashrc，重新开终端，再测试VEP。</li>
-</ul>
-<h2 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h2><p>成功，Existing_variation列有rs编号和COSV编号</p>
-<h1 id="dbNSFP插件警告"><a href="#dbNSFP插件警告" class="headerlink" title="dbNSFP插件警告"></a>dbNSFP插件警告</h1><h2 id="警告信息"><a href="#警告信息" class="headerlink" title="警告信息"></a>警告信息</h2><p>Use of uninitialized value $readme_file in concatenation (.) or string at ***&#x2F;vep_data&#x2F;Plugins&#x2F;dbNSFP.pm line 279.  </p>
-<h2 id="问题定位-1"><a href="#问题定位-1" class="headerlink" title="问题定位"></a>问题定位</h2><p>dbNSFP.pm第276行，需要dbnsfp.*readme.txt在数据库dbNSFP4.3a_grch37.gz文件同一目录下。  </p>
-<h2 id="解决方法-1"><a href="#解决方法-1" class="headerlink" title="解决方法"></a>解决方法</h2><p>解压dbNSFP4.3a.zip，得到dbNSFP4.3a.readme.txt，软链接为dbNSFP4.3a_grch37.readme.txt，放在dbNSFP4.3a_grch37.gz文件同一目录下。  </p>
+
+<h1 id="1"><a href="#1" class="headerlink" title="1"></a>1</h1><h2 id="相关脚本"><a href="#相关脚本" class="headerlink" title="相关脚本"></a>相关脚本</h2><p>Cursor.execute(“create database if not exists “ + Database)  </p>
+<h2 id="报错信息"><a href="#报错信息" class="headerlink" title="报错信息"></a>报错信息</h2><p>MySQLdb.OperationalError: (1044, “Access denied for user ‘***‘@’localhost’ to database ‘***’”)</p>
+<h2 id="报错原因"><a href="#报错原因" class="headerlink" title="报错原因"></a>报错原因</h2><p>用这个用户进mysql创建数据库，也是这个错误，应该是这个用户没有权限创建数据库。<br>用以下两种方式可以查看<a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/5.7/en/privileges-provided.html">用户权限</a>。  </p>
+<ol>
+<li><code>show grants for &#39;***&#39;@&#39;localhost&#39;;</code><br>看到结果只有1个权限<code>GRANT USAGE ON *.* TO &#39;***&#39;@&#39;localhost&#39;</code>。<br>USAGE权限只能用于数据库登录，不能执行任何操作，所以报错是正常的。  </li>
+<li><code>select * from mysql.user where user=&#39;***&#39;;</code><br>看到结果是所有*_priv全部都是N，即所有权限都没有。</li>
+</ol>
+<h2 id="解决方法"><a href="#解决方法" class="headerlink" title="解决方法"></a>解决方法</h2><p>更换一个有权限的用户连接数据库，或者赋予相应权限给当前用户。  </p>
+<h1 id="2"><a href="#2" class="headerlink" title="2"></a>2</h1><h2 id="相关脚本-1"><a href="#相关脚本-1" class="headerlink" title="相关脚本"></a>相关脚本</h2><p>Cursor.execute(“insert into “ + Sheet + “ (“ + Header + “) values(“ + Value + “)”)  </p>
+<h2 id="报错信息-1"><a href="#报错信息-1" class="headerlink" title="报错信息"></a>报错信息</h2><p>MySQLdb.ProgrammingError: (1064, “You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near ‘**********’ at line 1”)  </p>
+<h2 id="报错原因-1"><a href="#报错原因-1" class="headerlink" title="报错原因"></a>报错原因</h2><p>values里有特殊符号或MySQL的关键词？</p>
+<h2 id="解决方法-1"><a href="#解决方法-1" class="headerlink" title="解决方法"></a>解决方法</h2><p>List_Value的字符串两侧加双引号</p>
+<h1 id="3"><a href="#3" class="headerlink" title="3"></a>3</h1><h2 id="相关脚本-2"><a href="#相关脚本-2" class="headerlink" title="相关脚本"></a>相关脚本</h2><p>Cursor.execute(“create table if not exists “ + Sheet + “ (“ + Table_Header + “)”)  </p>
+<h2 id="报错信息-2"><a href="#报错信息-2" class="headerlink" title="报错信息"></a>报错信息</h2><p>MySQLdb.ProgrammingError: (1064, “You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near ‘****)’ at line 1”)  </p>
+<h2 id="报错原因-2"><a href="#报错原因-2" class="headerlink" title="报错原因"></a>报错原因</h2><p>报错信息里的***字符串是表头的一部分，前边是一个列名Check。Check是MySQL的<a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/5.7/en/keywords.html">关键词</a>，有冲突，不能直接使用。  </p>
+<h2 id="解决方法-2"><a href="#解决方法-2" class="headerlink" title="解决方法"></a>解决方法</h2><p>列名两侧加&#96;号（1左边的~按键）    </p>
 
       
     </div>
     <footer class="article-footer">
       
-<ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Perl/" rel="tag">Perl</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/VEP/" rel="tag">VEP</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%B3%A8%E9%87%8A/" rel="tag">注释</a></li></ul>
+<ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Excel/" rel="tag">Excel</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Python/" rel="tag">Python</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" rel="tag">数据库</a></li></ul>
 
     </footer>
 
@@ -108,19 +111,10 @@
   
 <nav class="article-nav">
   
+  
   <a href="/2023/04/21/Xlsx%E8%BD%ACMySQL/" class="article-nav-link">
-    <strong class="article-nav-caption">前一篇</strong>
-    <div class="article-nav-title">
-      
-      Xlsx转MySQL
-      
-    </div>
-  </a>
-  
-  
-  <a href="/2023/04/19/VEP%E5%AE%89%E8%A3%85/" class="article-nav-link">
     <strong class="article-nav-caption">后一篇</strong>
-    <div class="article-nav-title">VEP安装</div>
+    <div class="article-nav-title">Xlsx转MySQL</div>
   </a>
   
 </nav>

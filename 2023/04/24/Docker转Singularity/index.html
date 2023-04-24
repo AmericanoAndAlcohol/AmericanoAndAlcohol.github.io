@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  
+  <meta name="keywords" content="bioinfomatics,生物信息">
+  
+  
+  <meta name="description" content="bioinfomatics 生物信息">
+  
+  <title>
+    Docker转Singularity |
+    
+    A Blog
+  </title>
+  <!-- Icon -->
+  
+    <link rel="shortcut icon" href="/images/K_Letter_White.svg">
+    
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <main class="content">
+    <section class="outer">
+  <article id="post-Docker转Singularity" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+      
+  
+  <h1 class="article-title" itemprop="name">
+    Docker转Singularity
+  </h1>
+  
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2023/04/24/Docker%E8%BD%ACSingularity/" class="article-date">
+  <time datetime="2023-04-24T14:15:23.000Z" itemprop="datePublished">2023-04-24</time>
+</a>
+      
+<div class="article-category">
+  <a class="article-category-link" href="/categories/Log/">Log</a>
+</div>
+
+    </div>
+    
+
+    
+    
+<div class="tocbot"></div>
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+      
+        <p>Docker镜像转换为Singularity的sif格式镜像文件</p>
+<span id="more"></span>
+
+<h1 id="需求"><a href="#需求" class="headerlink" title="需求"></a>需求</h1><p>本地搭建了一些docker镜像，已有的方案用Cromwell投递WDL项目时用的是Singularity镜像，所以需要转为Singularity的sif格式镜像文件。  </p>
+<h1 id="错误方案"><a href="#错误方案" class="headerlink" title="错误方案"></a>错误方案</h1><p>同事之前已经写了一个将docker hub的镜像pull下来并转为sif格式的脚本，想改成用singularity build去处理本地docker镜像。<br>但是发现生成的sif文件名称没有sha256后面的验证码。<br>正常生成的sif名称类似：***_varscan2_sha256_b235818***************595db587df.sif，但是singularity build生成的的会类似***<em>varscan2_sha256</em>.sif。<br>原因是sha256验证码取的是docker镜像的RepoDigests，此信息只有当镜像被上传到docker hub后才会有。<br>本地搭建的，未上传到docker hub的镜像，使用docker images –digests查看会见到该镜像的DIGEST列的值为&lt;none&gt;。所以其实是sha256码本身就不存在，所以无法生成对应的文件名。<br>其实没有sha256的Singularity的sif格式镜像文件也可以用于Cromwell投递WDL项目，需要Cromwell配置文件设置参数。[这里挖一个坑，写好填上]  </p>
+<p>已有的用于Docker转换为Singularity的脚本：  </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">#! /bin/bash</span><br><span class="line"></span><br><span class="line">docker=$1</span><br><span class="line"></span><br><span class="line">export SINGULARITY_CACHEDIR=[存放Singularity镜像的目录]</span><br><span class="line">CACHE_DIR=$SINGULARITY_CACHEDIR</span><br><span class="line">DOCKER_NAME=$(echo $docker | cut -d&quot;:&quot; -f 1 | sed -e &#x27;s/\//_/&#x27;)</span><br><span class="line">SHA_NAME=$(docker inspect --format=&#x27;&#123;&#123;index .RepoDigests 0&#125;&#125;&#x27; $&#123;docker&#125; | cut -d&quot;:&quot; -f 2)</span><br><span class="line">SHA_TAG=&quot;sha256_$&#123;SHA_NAME&#125;&quot;</span><br><span class="line">IMAGE=$CACHE_DIR/$&#123;DOCKER_NAME&#125;_$&#123;SHA_TAG&#125;.sif</span><br><span class="line">if [ ! -f $IMAGE ]; then</span><br><span class="line">    singularity pull $IMAGE docker://$&#123;docker&#125;</span><br><span class="line">fi</span><br></pre></td></tr></table></figure>
+
+<h1 id="正确方案"><a href="#正确方案" class="headerlink" title="正确方案"></a>正确方案</h1><p>先将本地的docker image上传到docker hub上（<a target="_blank" rel="noopener" href="https://blog.csdn.net/u013258415/article/details/80050956/">参考</a>），生成Docker镜像的RepoDigests后，再跑一下上面的shell脚本。  </p>
+<ol>
+<li>注册docker hub账户，<code>https://hub.docker.com/</code>。  </li>
+<li>在服务器上登录docker hub，命令行docker login，输账号密码。  </li>
+<li>检查镜像的REPOSITORY命名方式，必须是“注册用户名&#x2F;镜像名”。不符合的可以用docker tag <old_REPOSITORY> <new_REPOSITORY>修改。修改后可以docker rmi 把旧的删掉。  </new_REPOSITORY></old_REPOSITORY></li>
+<li>上传镜像到docker hub，命令行docker push REPOSITORY:TAG，等待上传完毕即可。无需重新pull镜像，上传完本地的镜像就会有RepoDigests，可以通过docker images –digests查看。  </li>
+<li>退出当前docker hub账号，命令行docker logout。  </li>
+<li>使用上面的shell脚本将docker容器转为sif格式，传入参数是docker image的REPOSITORY:TAG。</li>
+</ol>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+<ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Docker/" rel="tag">Docker</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Singularity/" rel="tag">Singularity</a></li></ul>
+
+    </footer>
+
+  </div>
+
+  
+  
+<nav class="article-nav">
+  
+  
+  <a href="/2023/04/21/Xlsx%E8%BD%ACMySQL%E6%8A%A5%E9%94%99/" class="article-nav-link">
+    <strong class="article-nav-caption">后一篇</strong>
+    <div class="article-nav-title">Xlsx转MySQL报错</div>
+  </a>
+  
+</nav>
+
+  
+
+  
+  
+<div class="vcomments" id="vcomments"></div>
+
+<script src="https://unpkg.com/valine/dist/Valine.min.js"></script>
+
+<script>
+  new Valine({
+    el: '#vcomments',
+    appId: 'AbTah7Q6uUUamYA9gZ0ANnav-9Nh9j0Va',
+    appKey: 'Ue6meFW6ZFZ6VHHH8DIpct5h',
+    notify: 'false',
+    verify: 'true',
+    avatar: 'identicon',
+    pageSize: '10',
+    placeholder: '说点什么'
+  })
+</script>
+
+  
+  
+
+</article>
+</section>
+    <footer class="footer">
+  <div class="outer">
+    <ul class="list-inline">
+      <li>A Blog &copy; 2023</li>
+      
+        <li>
+          
+            <a href="https://beian.miit.gov.cn/" target="_blank"></a>
+            
+        </li>
+      
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>theme  <a target="_blank" rel="noopener" href="https://github.com/zhwangart/hexo-theme-ocean">Ocean</a></li>
+    </ul>
+    <p><ul class="list-inline">
+  
+  <li><i class="fe fe-smile-alt tooltip" data-tooltip="UV"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+  <li><i class="fe fe-bookmark tooltip" data-tooltip="PV"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul></p>
+  </div>
+</footer>
+  </main>
+  <aside class="sidebar">
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/K_Letter.svg" alt="A Blog"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">首页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">关于</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="搜索">
+        <i class="fe fe-search"></i>
+        搜索
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto',
+  });
+</script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+
+</html>

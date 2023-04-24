@@ -1,6 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>R包安装报错 is not available</title>
+    <url>/2023/04/18/R%E5%8C%85%E5%AE%89%E8%A3%85%E6%8A%A5%E9%94%99-is-not-available/</url>
+    <content><![CDATA[<p>R包安装报错ERROR: dependency is not available</p>
+<span id="more"></span>
+
+
+<h1 id="软件版本"><a href="#软件版本" class="headerlink" title="软件版本"></a>软件版本</h1><ul>
+<li>R版本：version 3.6.0</li>
+</ul>
+<h1 id="简要过程"><a href="#简要过程" class="headerlink" title="简要过程"></a>简要过程</h1><ul>
+<li>安装R包：ComplexHeatmap  </li>
+<li>安装命令：<code>BiocManager::install(&quot;ComplexHeatmap&quot;)</code>  </li>
+<li>报错信息：ERROR: dependency ‘GetoptLong’ is not available for package ‘ComplexHeatmap’  </li>
+<li>原因：ComplexHeatmap依赖的GetoptLong依赖的rjson，要求R版本高于当前版本  </li>
+<li>解决：先安装旧版本的rjson，再安装ComplexHeatmap</li>
+</ul>
+<h1 id="具体过程"><a href="#具体过程" class="headerlink" title="具体过程"></a>具体过程</h1><h2 id="1"><a href="#1" class="headerlink" title="1"></a>1</h2><p>在github有查到报错信息：  </p>
+<ul>
+<li><a href="https://github.com/jokergoo/ComplexHeatmap/issues/514">找到个相关Issue</a>  </li>
+<li>按这个Issue说的，安装更旧版本的GetoptLong。<br><code>install.packages(&quot;https://cran.r-project.org/src/contrib/Archive/GetoptLong/GetoptLong_0.1.8.tar.gz&quot;, repo = NULL)</code></li>
+</ul>
+<h2 id="2"><a href="#2" class="headerlink" title="2"></a>2</h2><p>尝试安装更旧版本的GetoptLong时，会报另外一个包的错：  </p>
+<ul>
+<li>ERROR: dependency ‘rjson’ is not available for package ‘GetoptLong’  </li>
+<li>在CRAN上查<a href="https://cran.r-project.org/web/packages/rjson/index.html">rjson</a>，当前这个包的版本是 0.2.21，Depends的R版本要≥ 4.0.0。  </li>
+<li><strong>就是这个原因导致ComplexHeatmap安装不上，其实一开始GetoptLong的报错往上翻一点就会看见rjson的报错。</strong><br><img src="https://pic.imgdb.cn/item/643e8fe40d2dde5777cdc74f.jpg" alt="rjson_Depends"></li>
+</ul>
+<h2 id="3"><a href="#3" class="headerlink" title="3"></a>3</h2><ul>
+<li>到Old sources找旧版本，从新往旧，一个个安装试试。0.2.20版本就装得上。<br><code>install.packages(&quot;https://cran.r-project.org/src/contrib/Archive/rjson/rjson_0.2.20.tar.gz&quot;, repo = NULL)</code><br><img src="https://pic.imgdb.cn/item/643e90040d2dde5777cdf9f2.jpg" alt="Old_sources"></li>
+</ul>
+<h2 id="4"><a href="#4" class="headerlink" title="4"></a>4</h2><ul>
+<li>rjson安装成功后，重新安装ComplexHeatmap。  </li>
+<li><code>BiocManager::install(&quot;ComplexHeatmap&quot;)</code>安装成功。</li>
+</ul>
+]]></content>
+      <categories>
+        <category>Bug</category>
+      </categories>
+      <tags>
+        <tag>R</tag>
+        <tag>ComplexHeatmap</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>BLAST及NT库本地化</title>
     <url>/2023/04/16/BLAST%E5%8F%8ANT%E5%BA%93%E6%9C%AC%E5%9C%B0%E5%8C%96/</url>
     <content><![CDATA[<p>下载NCBI的NT数据库到服务器本地<br>Blast比对结果中输出物种信息<br>用TaxonKit、blastdbcmd、makeblastdb建立子库  </p>
@@ -61,47 +105,62 @@
       </tags>
   </entry>
   <entry>
-    <title>R包安装报错 is not available</title>
-    <url>/2023/04/18/R%E5%8C%85%E5%AE%89%E8%A3%85%E6%8A%A5%E9%94%99-is-not-available/</url>
-    <content><![CDATA[<p>R包安装报错ERROR: dependency is not available</p>
+    <title>Docker转Singularity</title>
+    <url>/2023/04/24/Docker%E8%BD%ACSingularity/</url>
+    <content><![CDATA[<p>Docker镜像转换为Singularity的sif格式镜像文件</p>
 <span id="more"></span>
 
+<h1 id="需求"><a href="#需求" class="headerlink" title="需求"></a>需求</h1><p>本地搭建了一些docker镜像，已有的方案用Cromwell投递WDL项目时用的是Singularity镜像，所以需要转为Singularity的sif格式镜像文件。  </p>
+<h1 id="错误方案"><a href="#错误方案" class="headerlink" title="错误方案"></a>错误方案</h1><p>同事之前已经写了一个将docker hub的镜像pull下来并转为sif格式的脚本，想改成用singularity build去处理本地docker镜像。<br>但是发现生成的sif文件名称没有sha256后面的验证码。<br>正常生成的sif名称类似：***_varscan2_sha256_b235818***************595db587df.sif，但是singularity build生成的的会类似***<em>varscan2_sha256</em>.sif。<br>原因是sha256验证码取的是docker镜像的RepoDigests，此信息只有当镜像被上传到docker hub后才会有。<br>本地搭建的，未上传到docker hub的镜像，使用docker images –digests查看会见到该镜像的DIGEST列的值为&lt;none&gt;。所以其实是sha256码本身就不存在，所以无法生成对应的文件名。<br>其实没有sha256的Singularity的sif格式镜像文件也可以用于Cromwell投递WDL项目，需要Cromwell配置文件设置参数。[这里挖一个坑，写好填上]  </p>
+<p>已有的用于Docker转换为Singularity的脚本：  </p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#! /bin/bash</span><br><span class="line"></span><br><span class="line">docker=$1</span><br><span class="line"></span><br><span class="line">export SINGULARITY_CACHEDIR=[存放Singularity镜像的目录]</span><br><span class="line">CACHE_DIR=$SINGULARITY_CACHEDIR</span><br><span class="line">DOCKER_NAME=$(echo $docker | cut -d&quot;:&quot; -f 1 | sed -e &#x27;s/\//_/&#x27;)</span><br><span class="line">SHA_NAME=$(docker inspect --format=&#x27;&#123;&#123;index .RepoDigests 0&#125;&#125;&#x27; $&#123;docker&#125; | cut -d&quot;:&quot; -f 2)</span><br><span class="line">SHA_TAG=&quot;sha256_$&#123;SHA_NAME&#125;&quot;</span><br><span class="line">IMAGE=$CACHE_DIR/$&#123;DOCKER_NAME&#125;_$&#123;SHA_TAG&#125;.sif</span><br><span class="line">if [ ! -f $IMAGE ]; then</span><br><span class="line">    singularity pull $IMAGE docker://$&#123;docker&#125;</span><br><span class="line">fi</span><br></pre></td></tr></table></figure>
 
-<h1 id="软件版本"><a href="#软件版本" class="headerlink" title="软件版本"></a>软件版本</h1><ul>
-<li>R版本：version 3.6.0</li>
+<h1 id="正确方案"><a href="#正确方案" class="headerlink" title="正确方案"></a>正确方案</h1><p>先将本地的docker image上传到docker hub上（<a href="https://blog.csdn.net/u013258415/article/details/80050956/">参考</a>），生成Docker镜像的RepoDigests后，再跑一下上面的shell脚本。  </p>
+<ol>
+<li>注册docker hub账户，<code>https://hub.docker.com/</code>。  </li>
+<li>在服务器上登录docker hub，命令行docker login，输账号密码。  </li>
+<li>检查镜像的REPOSITORY命名方式，必须是“注册用户名&#x2F;镜像名”。不符合的可以用docker tag <old_REPOSITORY> <new_REPOSITORY>修改。修改后可以docker rmi 把旧的删掉。  </new_REPOSITORY></old_REPOSITORY></li>
+<li>上传镜像到docker hub，命令行docker push REPOSITORY:TAG，等待上传完毕即可。无需重新pull镜像，上传完本地的镜像就会有RepoDigests，可以通过docker images –digests查看。  </li>
+<li>退出当前docker hub账号，命令行docker logout。  </li>
+<li>使用上面的shell脚本将docker容器转为sif格式，传入参数是docker image的REPOSITORY:TAG。</li>
+</ol>
+]]></content>
+      <categories>
+        <category>Log</category>
+      </categories>
+      <tags>
+        <tag>Docker</tag>
+        <tag>Singularity</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>VEP报错</title>
+    <url>/2023/04/19/VEP%E6%8A%A5%E9%94%99/</url>
+    <content><![CDATA[<p>一些VEP使用过程中的报错信息</p>
+<span id="more"></span>
+
+<h1 id="Existing-variation全部为"><a href="#Existing-variation全部为" class="headerlink" title="Existing_variation全部为-"></a>Existing_variation全部为-</h1><h2 id="问题及警告信息"><a href="#问题及警告信息" class="headerlink" title="问题及警告信息"></a>问题及警告信息</h2><ul>
+<li>问题：VEP注释结果中Existing_variation全部为-。  </li>
+<li>警告信息：  WARNING: 6742 : Use of uninitialized value in subtraction (-) at ***&#x2F;ensembl-vep&#x2F;modules&#x2F;Bio&#x2F;EnsEMBL&#x2F;VEP&#x2F;AnnotationSource&#x2F;Cache&#x2F;VariationTabix.pm line 184, <VARS> line 1.</VARS></li>
 </ul>
-<h1 id="简要过程"><a href="#简要过程" class="headerlink" title="简要过程"></a>简要过程</h1><ul>
-<li>安装R包：ComplexHeatmap  </li>
-<li>安装命令：<code>BiocManager::install(&quot;ComplexHeatmap&quot;)</code>  </li>
-<li>报错信息：ERROR: dependency ‘GetoptLong’ is not available for package ‘ComplexHeatmap’  </li>
-<li>原因：ComplexHeatmap依赖的GetoptLong依赖的rjson，要求R版本高于当前版本  </li>
-<li>解决：先安装旧版本的rjson，再安装ComplexHeatmap</li>
+<h2 id="问题定位"><a href="#问题定位" class="headerlink" title="问题定位"></a>问题定位</h2><p>VariationTabix.pm是用于判断当前突变是否数据库中的已知突变，其中$existing-&gt;{start}和$existing-&gt;{end}未定义，是由于脚本中第172行调用tabix，open VARS, “$TABIX_BIN -f $file $region_string 2&gt;&amp;1 报错：[tabix] failed to load the index file。<br>查看tabix版本，是0.2.5，且帮助文档中没有csi格式index的说明。<br>所以可能是tabix版本太旧，无法识别vep数据库中的.csi格式index导致。  </p>
+<h2 id="解决方法"><a href="#解决方法" class="headerlink" title="解决方法"></a>解决方法</h2><ul>
+<li>简要过程<br>  更新tabix，替换~&#x2F;.bashrc中调用的tabix。  </li>
+<li>具体过程<br>  tabix独立的安装包只更新到0.2.6，更新的版本只包含于HTSLIB。<br>  一般生信服务器里都已经有装samtools，应该可以直接用samtools路径里的tabix。<br>  这台服务器里已经安装的samtools的版本是1.12，路径下找到了htslib-1.12目录，但是里面没tabix，应该是没有make。    <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cd htslib-1.12</span><br><span class="line">make</span><br><span class="line">make install</span><br></pre></td></tr></table></figure>
+  以上命令make后，在samtools-1.12&#x2F;bin能看到1.12版本的tabix和bgzip。<br>  修改~&#x2F;.bashrc的tabix路径，然后source ~&#x2F;.bashrc，重新开终端，再测试VEP。</li>
 </ul>
-<h1 id="具体过程"><a href="#具体过程" class="headerlink" title="具体过程"></a>具体过程</h1><h2 id="1"><a href="#1" class="headerlink" title="1"></a>1</h2><p>在github有查到报错信息：  </p>
-<ul>
-<li><a href="https://github.com/jokergoo/ComplexHeatmap/issues/514">找到个相关Issue</a>  </li>
-<li>按这个Issue说的，安装更旧版本的GetoptLong。<br><code>install.packages(&quot;https://cran.r-project.org/src/contrib/Archive/GetoptLong/GetoptLong_0.1.8.tar.gz&quot;, repo = NULL)</code></li>
-</ul>
-<h2 id="2"><a href="#2" class="headerlink" title="2"></a>2</h2><p>尝试安装更旧版本的GetoptLong时，会报另外一个包的错：  </p>
-<ul>
-<li>ERROR: dependency ‘rjson’ is not available for package ‘GetoptLong’  </li>
-<li>在CRAN上查<a href="https://cran.r-project.org/web/packages/rjson/index.html">rjson</a>，当前这个包的版本是 0.2.21，Depends的R版本要≥ 4.0.0。  </li>
-<li><strong>就是这个原因导致ComplexHeatmap安装不上，其实一开始GetoptLong的报错往上翻一点就会看见rjson的报错。</strong><br><img src="https://pic.imgdb.cn/item/643e8fe40d2dde5777cdc74f.jpg" alt="rjson_Depends"></li>
-</ul>
-<h2 id="3"><a href="#3" class="headerlink" title="3"></a>3</h2><ul>
-<li>到Old sources找旧版本，从新往旧，一个个安装试试。0.2.20版本就装得上。<br><code>install.packages(&quot;https://cran.r-project.org/src/contrib/Archive/rjson/rjson_0.2.20.tar.gz&quot;, repo = NULL)</code><br><img src="https://pic.imgdb.cn/item/643e90040d2dde5777cdf9f2.jpg" alt="Old_sources"></li>
-</ul>
-<h2 id="4"><a href="#4" class="headerlink" title="4"></a>4</h2><ul>
-<li>rjson安装成功后，重新安装ComplexHeatmap。  </li>
-<li><code>BiocManager::install(&quot;ComplexHeatmap&quot;)</code>安装成功。</li>
-</ul>
+<h2 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h2><p>成功，Existing_variation列有rs编号和COSV编号</p>
+<h1 id="dbNSFP插件警告"><a href="#dbNSFP插件警告" class="headerlink" title="dbNSFP插件警告"></a>dbNSFP插件警告</h1><h2 id="警告信息"><a href="#警告信息" class="headerlink" title="警告信息"></a>警告信息</h2><p>Use of uninitialized value $readme_file in concatenation (.) or string at ***&#x2F;vep_data&#x2F;Plugins&#x2F;dbNSFP.pm line 279.  </p>
+<h2 id="问题定位-1"><a href="#问题定位-1" class="headerlink" title="问题定位"></a>问题定位</h2><p>dbNSFP.pm第276行，需要dbnsfp.*readme.txt在数据库dbNSFP4.3a_grch37.gz文件同一目录下。  </p>
+<h2 id="解决方法-1"><a href="#解决方法-1" class="headerlink" title="解决方法"></a>解决方法</h2><p>解压dbNSFP4.3a.zip，得到dbNSFP4.3a.readme.txt，软链接为dbNSFP4.3a_grch37.readme.txt，放在dbNSFP4.3a_grch37.gz文件同一目录下。  </p>
 ]]></content>
       <categories>
         <category>Bug</category>
       </categories>
       <tags>
-        <tag>R</tag>
-        <tag>ComplexHeatmap</tag>
+        <tag>VEP</tag>
+        <tag>注释</tag>
+        <tag>Perl</tag>
       </tags>
   </entry>
   <entry>
@@ -129,36 +188,6 @@ cpan -i autodie
 ]]></content>
       <categories>
         <category>Log</category>
-      </categories>
-      <tags>
-        <tag>VEP</tag>
-        <tag>注释</tag>
-        <tag>Perl</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>VEP报错</title>
-    <url>/2023/04/19/VEP%E6%8A%A5%E9%94%99/</url>
-    <content><![CDATA[<p>一些VEP使用过程中的报错信息</p>
-<span id="more"></span>
-
-<h1 id="Existing-variation全部为"><a href="#Existing-variation全部为" class="headerlink" title="Existing_variation全部为-"></a>Existing_variation全部为-</h1><h2 id="问题及警告信息"><a href="#问题及警告信息" class="headerlink" title="问题及警告信息"></a>问题及警告信息</h2><ul>
-<li>问题：VEP注释结果中Existing_variation全部为-。  </li>
-<li>警告信息：  WARNING: 6742 : Use of uninitialized value in subtraction (-) at ***&#x2F;ensembl-vep&#x2F;modules&#x2F;Bio&#x2F;EnsEMBL&#x2F;VEP&#x2F;AnnotationSource&#x2F;Cache&#x2F;VariationTabix.pm line 184, <VARS> line 1.</VARS></li>
-</ul>
-<h2 id="问题定位"><a href="#问题定位" class="headerlink" title="问题定位"></a>问题定位</h2><p>VariationTabix.pm是用于判断当前突变是否数据库中的已知突变，其中$existing-&gt;{start}和$existing-&gt;{end}未定义，是由于脚本中第172行调用tabix，open VARS, “$TABIX_BIN -f $file $region_string 2&gt;&amp;1 报错：[tabix] failed to load the index file。<br>查看tabix版本，是0.2.5，且帮助文档中没有csi格式index的说明。<br>所以可能是tabix版本太旧，无法识别vep数据库中的.csi格式index导致。  </p>
-<h2 id="解决方法"><a href="#解决方法" class="headerlink" title="解决方法"></a>解决方法</h2><ul>
-<li>简要过程<br>  更新tabix，替换~&#x2F;.bashrc中调用的tabix。  </li>
-<li>具体过程<br>  tabix独立的安装包只更新到0.2.6，更新的版本只包含于HTSLIB。<br>  一般生信服务器里都已经有装samtools，应该可以直接用samtools路径里的tabix。<br>  这台服务器里已经安装的samtools的版本是1.12，路径下找到了htslib-1.12目录，但是里面没tabix，应该是没有make。    <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cd htslib-1.12</span><br><span class="line">make</span><br><span class="line">make install</span><br></pre></td></tr></table></figure>
-  以上命令make后，在samtools-1.12&#x2F;bin能看到1.12版本的tabix和bgzip。<br>  修改~&#x2F;.bashrc的tabix路径，然后source ~&#x2F;.bashrc，重新开终端，再测试VEP。</li>
-</ul>
-<h2 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h2><p>成功，Existing_variation列有rs编号和COSV编号</p>
-<h1 id="dbNSFP插件警告"><a href="#dbNSFP插件警告" class="headerlink" title="dbNSFP插件警告"></a>dbNSFP插件警告</h1><h2 id="警告信息"><a href="#警告信息" class="headerlink" title="警告信息"></a>警告信息</h2><p>Use of uninitialized value $readme_file in concatenation (.) or string at ***&#x2F;vep_data&#x2F;Plugins&#x2F;dbNSFP.pm line 279.  </p>
-<h2 id="问题定位-1"><a href="#问题定位-1" class="headerlink" title="问题定位"></a>问题定位</h2><p>dbNSFP.pm第276行，需要dbnsfp.*readme.txt在数据库dbNSFP4.3a_grch37.gz文件同一目录下。  </p>
-<h2 id="解决方法-1"><a href="#解决方法-1" class="headerlink" title="解决方法"></a>解决方法</h2><p>解压dbNSFP4.3a.zip，得到dbNSFP4.3a.readme.txt，软链接为dbNSFP4.3a_grch37.readme.txt，放在dbNSFP4.3a_grch37.gz文件同一目录下。  </p>
-]]></content>
-      <categories>
-        <category>Bug</category>
       </categories>
       <tags>
         <tag>VEP</tag>

@@ -1,50 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>R包安装报错 is not available</title>
-    <url>/2023/04/18/R%E5%8C%85%E5%AE%89%E8%A3%85%E6%8A%A5%E9%94%99-is-not-available/</url>
-    <content><![CDATA[<p>R包安装报错ERROR: dependency is not available</p>
-<span id="more"></span>
-
-
-<h1 id="软件版本"><a href="#软件版本" class="headerlink" title="软件版本"></a>软件版本</h1><ul>
-<li>R版本：version 3.6.0</li>
-</ul>
-<h1 id="简要过程"><a href="#简要过程" class="headerlink" title="简要过程"></a>简要过程</h1><ul>
-<li>安装R包：ComplexHeatmap  </li>
-<li>安装命令：<code>BiocManager::install(&quot;ComplexHeatmap&quot;)</code>  </li>
-<li>报错信息：ERROR: dependency ‘GetoptLong’ is not available for package ‘ComplexHeatmap’  </li>
-<li>原因：ComplexHeatmap依赖的GetoptLong依赖的rjson，要求R版本高于当前版本  </li>
-<li>解决：先安装旧版本的rjson，再安装ComplexHeatmap</li>
-</ul>
-<h1 id="具体过程"><a href="#具体过程" class="headerlink" title="具体过程"></a>具体过程</h1><h2 id="1"><a href="#1" class="headerlink" title="1"></a>1</h2><p>在github有查到报错信息：  </p>
-<ul>
-<li><a href="https://github.com/jokergoo/ComplexHeatmap/issues/514">找到个相关Issue</a>  </li>
-<li>按这个Issue说的，安装更旧版本的GetoptLong。<br><code>install.packages(&quot;https://cran.r-project.org/src/contrib/Archive/GetoptLong/GetoptLong_0.1.8.tar.gz&quot;, repo = NULL)</code></li>
-</ul>
-<h2 id="2"><a href="#2" class="headerlink" title="2"></a>2</h2><p>尝试安装更旧版本的GetoptLong时，会报另外一个包的错：  </p>
-<ul>
-<li>ERROR: dependency ‘rjson’ is not available for package ‘GetoptLong’  </li>
-<li>在CRAN上查<a href="https://cran.r-project.org/web/packages/rjson/index.html">rjson</a>，当前这个包的版本是 0.2.21，Depends的R版本要≥ 4.0.0。  </li>
-<li><strong>就是这个原因导致ComplexHeatmap安装不上，其实一开始GetoptLong的报错往上翻一点就会看见rjson的报错。</strong><br><img src="https://pic.imgdb.cn/item/643e8fe40d2dde5777cdc74f.jpg" alt="rjson_Depends"></li>
-</ul>
-<h2 id="3"><a href="#3" class="headerlink" title="3"></a>3</h2><ul>
-<li>到Old sources找旧版本，从新往旧，一个个安装试试。0.2.20版本就装得上。<br><code>install.packages(&quot;https://cran.r-project.org/src/contrib/Archive/rjson/rjson_0.2.20.tar.gz&quot;, repo = NULL)</code><br><img src="https://pic.imgdb.cn/item/643e90040d2dde5777cdf9f2.jpg" alt="Old_sources"></li>
-</ul>
-<h2 id="4"><a href="#4" class="headerlink" title="4"></a>4</h2><ul>
-<li>rjson安装成功后，重新安装ComplexHeatmap。  </li>
-<li><code>BiocManager::install(&quot;ComplexHeatmap&quot;)</code>安装成功。</li>
-</ul>
-]]></content>
-      <categories>
-        <category>Bug</category>
-      </categories>
-      <tags>
-        <tag>R</tag>
-        <tag>ComplexHeatmap</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>BLAST及NT库本地化</title>
     <url>/2023/04/16/BLAST%E5%8F%8ANT%E5%BA%93%E6%9C%AC%E5%9C%B0%E5%8C%96/</url>
     <content><![CDATA[<p>下载NCBI的NT数据库到服务器本地<br>Blast比对结果中输出物种信息<br>用TaxonKit、blastdbcmd、makeblastdb建立子库  </p>
@@ -131,6 +87,84 @@
       <tags>
         <tag>Docker</tag>
         <tag>Singularity</tag>
+        <tag>WDL</tag>
+        <tag>Cromwell</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>R包安装报错 is not available</title>
+    <url>/2023/04/18/R%E5%8C%85%E5%AE%89%E8%A3%85%E6%8A%A5%E9%94%99-is-not-available/</url>
+    <content><![CDATA[<p>R包安装报错ERROR: dependency is not available</p>
+<span id="more"></span>
+
+
+<h1 id="软件版本"><a href="#软件版本" class="headerlink" title="软件版本"></a>软件版本</h1><ul>
+<li>R版本：version 3.6.0</li>
+</ul>
+<h1 id="简要过程"><a href="#简要过程" class="headerlink" title="简要过程"></a>简要过程</h1><ul>
+<li>安装R包：ComplexHeatmap  </li>
+<li>安装命令：<code>BiocManager::install(&quot;ComplexHeatmap&quot;)</code>  </li>
+<li>报错信息：ERROR: dependency ‘GetoptLong’ is not available for package ‘ComplexHeatmap’  </li>
+<li>原因：ComplexHeatmap依赖的GetoptLong依赖的rjson，要求R版本高于当前版本  </li>
+<li>解决：先安装旧版本的rjson，再安装ComplexHeatmap</li>
+</ul>
+<h1 id="具体过程"><a href="#具体过程" class="headerlink" title="具体过程"></a>具体过程</h1><h2 id="1"><a href="#1" class="headerlink" title="1"></a>1</h2><p>在github有查到报错信息：  </p>
+<ul>
+<li><a href="https://github.com/jokergoo/ComplexHeatmap/issues/514">找到个相关Issue</a>  </li>
+<li>按这个Issue说的，安装更旧版本的GetoptLong。<br><code>install.packages(&quot;https://cran.r-project.org/src/contrib/Archive/GetoptLong/GetoptLong_0.1.8.tar.gz&quot;, repo = NULL)</code></li>
+</ul>
+<h2 id="2"><a href="#2" class="headerlink" title="2"></a>2</h2><p>尝试安装更旧版本的GetoptLong时，会报另外一个包的错：  </p>
+<ul>
+<li>ERROR: dependency ‘rjson’ is not available for package ‘GetoptLong’  </li>
+<li>在CRAN上查<a href="https://cran.r-project.org/web/packages/rjson/index.html">rjson</a>，当前这个包的版本是 0.2.21，Depends的R版本要≥ 4.0.0。  </li>
+<li><strong>就是这个原因导致ComplexHeatmap安装不上，其实一开始GetoptLong的报错往上翻一点就会看见rjson的报错。</strong><br><img src="https://pic.imgdb.cn/item/643e8fe40d2dde5777cdc74f.jpg" alt="rjson_Depends"></li>
+</ul>
+<h2 id="3"><a href="#3" class="headerlink" title="3"></a>3</h2><ul>
+<li>到Old sources找旧版本，从新往旧，一个个安装试试。0.2.20版本就装得上。<br><code>install.packages(&quot;https://cran.r-project.org/src/contrib/Archive/rjson/rjson_0.2.20.tar.gz&quot;, repo = NULL)</code><br><img src="https://pic.imgdb.cn/item/643e90040d2dde5777cdf9f2.jpg" alt="Old_sources"></li>
+</ul>
+<h2 id="4"><a href="#4" class="headerlink" title="4"></a>4</h2><ul>
+<li>rjson安装成功后，重新安装ComplexHeatmap。  </li>
+<li><code>BiocManager::install(&quot;ComplexHeatmap&quot;)</code>安装成功。</li>
+</ul>
+]]></content>
+      <categories>
+        <category>Bug</category>
+      </categories>
+      <tags>
+        <tag>R</tag>
+        <tag>ComplexHeatmap</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>VEP安装</title>
+    <url>/2023/04/19/VEP%E5%AE%89%E8%A3%85/</url>
+    <content><![CDATA[<p>VEP安装过程</p>
+<span id="more"></span>
+
+
+<h1 id="安装依赖"><a href="#安装依赖" class="headerlink" title="安装依赖"></a>安装依赖</h1><pre><code>yum install -y unzip git bgzip tabix
+yum install -y &quot;perl(DBD::mysql)&quot;
+cpan -i Archive::Zip
+cpan -i Devel::CheckLib
+cpan -i DBI
+cpan -i Module::Metadata
+cpan -i LWP::Simple
+cpan -i HTTP::Tiny
+cpan -i autodie
+</code></pre>
+<h1 id="安装VEP"><a href="#安装VEP" class="headerlink" title="安装VEP"></a>安装VEP</h1><p><a href="https://grch37.ensembl.org/info/docs/tools/vep/script/vep_download.html">官方安装说明</a></p>
+<h2 id="克隆项目"><a href="#克隆项目" class="headerlink" title="克隆项目"></a>克隆项目</h2><p><code>git clone https://github.com/Ensembl/ensembl-vep.git</code>    </p>
+<h2 id="下载API"><a href="#下载API" class="headerlink" title="下载API"></a>下载API</h2><p>注：–NO_HTSLIB选择不安装Bio::DB::HTS&#x2F;htslib。<br><code>perl [VEP路径]/VEP/ensembl-vep/INSTALL.pl --NO_HTSLIB --NO_UPDATE --AUTO a --CACHEDIR [数据库路径]</code>  </p>
+<h2 id="下载数据库"><a href="#下载数据库" class="headerlink" title="下载数据库"></a>下载数据库</h2><p>注：人的注释数据库提供2种版本，通过–ASSEMBLY参数选择：GRCh37（hg19）和GRCh38（hg38）。<br><code>perl [VEP路径]/VEP/ensembl-vep/INSTALL.pl --NO_HTSLIB --NO_UPDATE --AUTO cf --ASSEMBLY GRCh37 --SPECIES homo_sapiens_merged --CACHEDIR [数据库路径]</code>  </p>
+<h2 id="下载插件"><a href="#下载插件" class="headerlink" title="下载插件"></a>下载插件</h2><p>可选，某些数据库需要通过插件才能注释，如dbNSFP。<br><a href="https://grch37.ensembl.org/info/docs/tools/vep/script/vep_plugins.html">插件说明信息</a><br>注：<br>    查看INSTALL.pl可以看到下载Plugin的其实是从<code>raw.githubusercontent.com</code>下载，但是这玩意很久之前就被墙了。<br>    所以下载Plugin不是用官方说明提供的命令下载的，是从<code>https://github.com/Ensembl/VEP_plugins</code>下载项目压缩包，再解压到CACHEDIR&#x2F;Plugins的。<br>    VEP首次调用这些插件时，可能会报错误或警告，需要按提示信息下载数据库文件，或者安装依赖模块&#x2F;软件即可。也可以调用前直接看*.pm文件中的DESCRIPTION下载依赖。<br><code>perl [VEP路径]/VEP/ensembl-vep/INSTALL.pl --NO_HTSLIB --NO_UPDATE --AUTO p --ASSEMBLY GRCh37 --SPECIES homo_sapiens_merged --PLUGINS dbNSFP,DisGeNET,ExAC,CADD --CACHEDIR [数据库路径]</code>  </p>
+]]></content>
+      <categories>
+        <category>Log</category>
+      </categories>
+      <tags>
+        <tag>VEP</tag>
+        <tag>注释</tag>
+        <tag>Perl</tag>
       </tags>
   </entry>
   <entry>
@@ -164,35 +198,26 @@
       </tags>
   </entry>
   <entry>
-    <title>VEP安装</title>
-    <url>/2023/04/19/VEP%E5%AE%89%E8%A3%85/</url>
-    <content><![CDATA[<p>VEP安装过程</p>
+    <title>WDL使用目录作为参数</title>
+    <url>/2023/04/26/WDL%E4%BD%BF%E7%94%A8%E7%9B%AE%E5%BD%95%E4%BD%9C%E4%B8%BA%E5%8F%82%E6%95%B0/</url>
+    <content><![CDATA[<p>写WDL时，调用目录作为参数传入</p>
 <span id="more"></span>
 
-
-<h1 id="安装依赖"><a href="#安装依赖" class="headerlink" title="安装依赖"></a>安装依赖</h1><pre><code>yum install -y unzip git bgzip tabix
-yum install -y &quot;perl(DBD::mysql)&quot;
-cpan -i Archive::Zip
-cpan -i Devel::CheckLib
-cpan -i DBI
-cpan -i Module::Metadata
-cpan -i LWP::Simple
-cpan -i HTTP::Tiny
-cpan -i autodie
-</code></pre>
-<h1 id="安装VEP"><a href="#安装VEP" class="headerlink" title="安装VEP"></a>安装VEP</h1><p><a href="https://grch37.ensembl.org/info/docs/tools/vep/script/vep_download.html">官方安装说明</a></p>
-<h2 id="克隆项目"><a href="#克隆项目" class="headerlink" title="克隆项目"></a>克隆项目</h2><p><code>git clone https://github.com/Ensembl/ensembl-vep.git</code>    </p>
-<h2 id="下载API"><a href="#下载API" class="headerlink" title="下载API"></a>下载API</h2><p>注：–NO_HTSLIB选择不安装Bio::DB::HTS&#x2F;htslib。<br><code>perl [VEP路径]/VEP/ensembl-vep/INSTALL.pl --NO_HTSLIB --NO_UPDATE --AUTO a --CACHEDIR [数据库路径]</code>  </p>
-<h2 id="下载数据库"><a href="#下载数据库" class="headerlink" title="下载数据库"></a>下载数据库</h2><p>注：人的注释数据库提供2种版本，通过–ASSEMBLY参数选择：GRCh37（hg19）和GRCh38（hg38）。<br><code>perl [VEP路径]/VEP/ensembl-vep/INSTALL.pl --NO_HTSLIB --NO_UPDATE --AUTO cf --ASSEMBLY GRCh37 --SPECIES homo_sapiens_merged --CACHEDIR [数据库路径]</code>  </p>
-<h2 id="下载插件"><a href="#下载插件" class="headerlink" title="下载插件"></a>下载插件</h2><p>可选，某些数据库需要通过插件才能注释，如dbNSFP。<br><a href="https://grch37.ensembl.org/info/docs/tools/vep/script/vep_plugins.html">插件说明信息</a><br>注：<br>    查看INSTALL.pl可以看到下载Plugin的其实是从<code>raw.githubusercontent.com</code>下载，但是这玩意很久之前就被墙了。<br>    所以下载Plugin不是用官方说明提供的命令下载的，是从<code>https://github.com/Ensembl/VEP_plugins</code>下载项目压缩包，再解压到CACHEDIR&#x2F;Plugins的。<br>    VEP首次调用这些插件时，可能会报错误或警告，需要按提示信息下载数据库文件，或者安装依赖模块&#x2F;软件即可。也可以调用前直接看*.pm文件中的DESCRIPTION下载依赖。<br><code>perl [VEP路径]/VEP/ensembl-vep/INSTALL.pl --NO_HTSLIB --NO_UPDATE --AUTO p --ASSEMBLY GRCh37 --SPECIES homo_sapiens_merged --PLUGINS dbNSFP,DisGeNET,ExAC,CADD --CACHEDIR [数据库路径]</code>  </p>
+<h1 id="需求"><a href="#需求" class="headerlink" title="需求"></a>需求</h1><p>WDL里用到了kraken2，其中有个参数--db需要数据库目录作为参数。  </p>
+<ul>
+<li>无法直接传目录。<br>WDL的数据类型只有File，没有Directory。<a href="https://github.com/openwdl/wdl/blob/main/versions/development/SPEC.md">WDL Version 1.1有Directory类型</a>，但目前的Cromwell版本目前不支持WDL Version 1.1。</li>
+<li>目录路径每次分析都会改变。<br>数据库没有放在镜像内，所以每次Cromwell投递都会将WDL中列出的一堆数据库文件硬链接到call-task中inputs的随机命名的目录，如86***2571-f*7b-476c-b3be-0bf***fe6cfe&#x2F;call-Kraken2&#x2F;inputs&#x2F;-159***78150。</li>
+</ul>
+<h1 id="错误方案"><a href="#错误方案" class="headerlink" title="错误方案"></a>错误方案</h1><p>Task中声明kraken2_db变量，然后通过<code>command&lt;&lt;&lt;`dirname 原数据库路径`&gt;&gt;&gt;</code>，再赋值kraken2_db变量。<br>不行，kraken2_db没有被修改，还是一开始声明的值。  </p>
+<h1 id="正确方案"><a href="#正确方案" class="headerlink" title="正确方案"></a>正确方案</h1><p>--db传参时，直接用<code>dirname</code>传入。  </p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># WDL</span><br><span class="line"></span><br><span class="line">task Kraken2&#123;</span><br><span class="line"></span><br><span class="line">	input &#123;</span><br><span class="line">		String Sample</span><br><span class="line">		File Read1</span><br><span class="line">		File Read2</span><br><span class="line">		Int Threads = 1</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	File kraken2_db_hash = &quot;/***/Database/Kraken2/hash.k2d&quot;</span><br><span class="line">	File kraken2_db_inspect = &quot;/***/Database/Kraken2/inspect.txt&quot;</span><br><span class="line">	File kraken2_db_opts = &quot;/***/Database/Kraken2/opts.k2d&quot;</span><br><span class="line">	File kraken2_db_seqid2taxid = &quot;/***/Database/Kraken2/seqid2taxid.map&quot;</span><br><span class="line">	File kraken2_db_taxo = &quot;/***/Database/Kraken2/taxo.k2d&quot;</span><br><span class="line">	File kraken2_db_kmer_distrib = &quot;/***/Database/Kraken2/database150mers.kmer_distrib&quot;</span><br><span class="line">	</span><br><span class="line">	command &lt;&lt;&lt;</span><br><span class="line">		kraken2 \</span><br><span class="line">			--threads ~&#123;Threads&#125; \</span><br><span class="line">			--confidence 0.8 \</span><br><span class="line">			--minimum-base-quality 20 \</span><br><span class="line">			--db `dirname ~&#123;kraken2_db_hash&#125;` \</span><br><span class="line">			--output ~&#123;Sample&#125;.output \</span><br><span class="line">			--report ~&#123;Sample&#125;.report \</span><br><span class="line">			--paired \</span><br><span class="line">			~&#123;Read1&#125; \</span><br><span class="line">			~&#123;Read2&#125;</span><br><span class="line"></span><br><span class="line">		bracken \</span><br><span class="line">			-r 150 \</span><br><span class="line">			-l S \</span><br><span class="line">			-t ~&#123;Threads&#125; \</span><br><span class="line">			-d `dirname ~&#123;kraken2_db_hash&#125;` \</span><br><span class="line">			-i ~&#123;Sample&#125;.report \</span><br><span class="line">			-o ~&#123;Sample&#125;.bracken</span><br><span class="line">	&gt;&gt;&gt;</span><br><span class="line">	</span><br><span class="line">	output &#123;</span><br><span class="line">		File k2_output = &quot;~&#123;Sample&#125;.output&quot;</span><br><span class="line">		File k2_report = &quot;~&#123;Sample&#125;.report&quot;</span><br><span class="line">		File bracken = &quot;~&#123;Sample&#125;.report&quot;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	runtime &#123;</span><br><span class="line">		docker: &quot;***/kraken2:v2.1.2&quot;</span><br><span class="line">		cpus: threads</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 ]]></content>
       <categories>
         <category>Log</category>
       </categories>
       <tags>
-        <tag>VEP</tag>
-        <tag>注释</tag>
-        <tag>Perl</tag>
+        <tag>WDL</tag>
+        <tag>Cromwell</tag>
       </tags>
   </entry>
   <entry>

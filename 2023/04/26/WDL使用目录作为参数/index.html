@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  
+  <meta name="keywords" content="bioinfomatics,生物信息">
+  
+  
+  <meta name="description" content="bioinfomatics 生物信息">
+  
+  <title>
+    WDL使用目录作为参数 |
+    
+    A Blog
+  </title>
+  <!-- Icon -->
+  
+    <link rel="shortcut icon" href="/images/K_Letter_White.svg">
+    
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <main class="content">
+    <section class="outer">
+  <article id="post-WDL使用目录作为参数" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+      
+  
+  <h1 class="article-title" itemprop="name">
+    WDL使用目录作为参数
+  </h1>
+  
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2023/04/26/WDL%E4%BD%BF%E7%94%A8%E7%9B%AE%E5%BD%95%E4%BD%9C%E4%B8%BA%E5%8F%82%E6%95%B0/" class="article-date">
+  <time datetime="2023-04-26T12:07:30.000Z" itemprop="datePublished">2023-04-26</time>
+</a>
+      
+<div class="article-category">
+  <a class="article-category-link" href="/categories/Log/">Log</a>
+</div>
+
+    </div>
+    
+
+    
+    
+<div class="tocbot"></div>
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+      
+        <p>写WDL时，调用目录作为参数传入</p>
+<span id="more"></span>
+
+<h1 id="需求"><a href="#需求" class="headerlink" title="需求"></a>需求</h1><p>WDL里用到了kraken2，其中有个参数--db需要数据库目录作为参数。  </p>
+<ul>
+<li>无法直接传目录。<br>WDL的数据类型只有File，没有Directory。<a target="_blank" rel="noopener" href="https://github.com/openwdl/wdl/blob/main/versions/development/SPEC.md">WDL Version 1.1有Directory类型</a>，但目前的Cromwell版本目前不支持WDL Version 1.1。</li>
+<li>目录路径每次分析都会改变。<br>数据库没有放在镜像内，所以每次Cromwell投递都会将WDL中列出的一堆数据库文件硬链接到call-task中inputs的随机命名的目录，如86***2571-f*7b-476c-b3be-0bf***fe6cfe&#x2F;call-Kraken2&#x2F;inputs&#x2F;-159***78150。</li>
+</ul>
+<h1 id="错误方案"><a href="#错误方案" class="headerlink" title="错误方案"></a>错误方案</h1><p>Task中声明kraken2_db变量，然后通过<code>command&lt;&lt;&lt;`dirname 原数据库路径`&gt;&gt;&gt;</code>，再赋值kraken2_db变量。<br>不行，kraken2_db没有被修改，还是一开始声明的值。  </p>
+<h1 id="正确方案"><a href="#正确方案" class="headerlink" title="正确方案"></a>正确方案</h1><p>--db传参时，直接用<code>dirname</code>传入。  </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line"># WDL</span><br><span class="line"></span><br><span class="line">task Kraken2&#123;</span><br><span class="line"></span><br><span class="line">	input &#123;</span><br><span class="line">		String Sample</span><br><span class="line">		File Read1</span><br><span class="line">		File Read2</span><br><span class="line">		Int Threads = 1</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	File kraken2_db_hash = &quot;/***/Database/Kraken2/hash.k2d&quot;</span><br><span class="line">	File kraken2_db_inspect = &quot;/***/Database/Kraken2/inspect.txt&quot;</span><br><span class="line">	File kraken2_db_opts = &quot;/***/Database/Kraken2/opts.k2d&quot;</span><br><span class="line">	File kraken2_db_seqid2taxid = &quot;/***/Database/Kraken2/seqid2taxid.map&quot;</span><br><span class="line">	File kraken2_db_taxo = &quot;/***/Database/Kraken2/taxo.k2d&quot;</span><br><span class="line">	File kraken2_db_kmer_distrib = &quot;/***/Database/Kraken2/database150mers.kmer_distrib&quot;</span><br><span class="line">	</span><br><span class="line">	command &lt;&lt;&lt;</span><br><span class="line">		kraken2 \</span><br><span class="line">			--threads ~&#123;Threads&#125; \</span><br><span class="line">			--confidence 0.8 \</span><br><span class="line">			--minimum-base-quality 20 \</span><br><span class="line">			--db `dirname ~&#123;kraken2_db_hash&#125;` \</span><br><span class="line">			--output ~&#123;Sample&#125;.output \</span><br><span class="line">			--report ~&#123;Sample&#125;.report \</span><br><span class="line">			--paired \</span><br><span class="line">			~&#123;Read1&#125; \</span><br><span class="line">			~&#123;Read2&#125;</span><br><span class="line"></span><br><span class="line">		bracken \</span><br><span class="line">			-r 150 \</span><br><span class="line">			-l S \</span><br><span class="line">			-t ~&#123;Threads&#125; \</span><br><span class="line">			-d `dirname ~&#123;kraken2_db_hash&#125;` \</span><br><span class="line">			-i ~&#123;Sample&#125;.report \</span><br><span class="line">			-o ~&#123;Sample&#125;.bracken</span><br><span class="line">	&gt;&gt;&gt;</span><br><span class="line">	</span><br><span class="line">	output &#123;</span><br><span class="line">		File k2_output = &quot;~&#123;Sample&#125;.output&quot;</span><br><span class="line">		File k2_report = &quot;~&#123;Sample&#125;.report&quot;</span><br><span class="line">		File bracken = &quot;~&#123;Sample&#125;.report&quot;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	runtime &#123;</span><br><span class="line">		docker: &quot;***/kraken2:v2.1.2&quot;</span><br><span class="line">		cpus: threads</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+<ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Cromwell/" rel="tag">Cromwell</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/WDL/" rel="tag">WDL</a></li></ul>
+
+    </footer>
+
+  </div>
+
+  
+  
+<nav class="article-nav">
+  
+  
+  <a href="/2023/04/24/Docker%E8%BD%ACSingularity/" class="article-nav-link">
+    <strong class="article-nav-caption">后一篇</strong>
+    <div class="article-nav-title">Docker转Singularity</div>
+  </a>
+  
+</nav>
+
+  
+
+  
+  
+<div class="vcomments" id="vcomments"></div>
+
+<script src="https://unpkg.com/valine/dist/Valine.min.js"></script>
+
+<script>
+  new Valine({
+    el: '#vcomments',
+    appId: 'AbTah7Q6uUUamYA9gZ0ANnav-9Nh9j0Va',
+    appKey: 'Ue6meFW6ZFZ6VHHH8DIpct5h',
+    notify: 'false',
+    verify: 'true',
+    avatar: 'identicon',
+    pageSize: '10',
+    placeholder: '说点什么'
+  })
+</script>
+
+  
+  
+
+</article>
+</section>
+    <footer class="footer">
+  <div class="outer">
+    <ul class="list-inline">
+      <li>A Blog &copy; 2023</li>
+      
+        <li>
+          
+            <a href="https://beian.miit.gov.cn/" target="_blank"></a>
+            
+        </li>
+      
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>theme  <a target="_blank" rel="noopener" href="https://github.com/zhwangart/hexo-theme-ocean">Ocean</a></li>
+    </ul>
+    <p><ul class="list-inline">
+  
+  <li><i class="fe fe-smile-alt tooltip" data-tooltip="UV"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+  <li><i class="fe fe-bookmark tooltip" data-tooltip="PV"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul></p>
+  </div>
+</footer>
+  </main>
+  <aside class="sidebar">
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/K_Letter.svg" alt="A Blog"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">首页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">关于</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="搜索">
+        <i class="fe fe-search"></i>
+        搜索
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto',
+  });
+</script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+
+</html>

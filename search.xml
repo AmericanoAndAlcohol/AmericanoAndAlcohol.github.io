@@ -136,35 +136,45 @@
       </tags>
   </entry>
   <entry>
-    <title>VEP安装</title>
-    <url>/2023/04/19/VEP%E5%AE%89%E8%A3%85/</url>
-    <content><![CDATA[<p>VEP安装过程</p>
+    <title>Linux配置Samba</title>
+    <url>/2023/05/01/Linux%E9%85%8D%E7%BD%AESamba/</url>
+    <content><![CDATA[<p>Linux系统配置Samba服务，Windows系统设置网络映射，实现共享目录</p>
 <span id="more"></span>
 
+<p><a href="https://blog.51cto.com/aby028/1830125">参考文档</a></p>
+<h1 id="安装Samba"><a href="#安装Samba" class="headerlink" title="安装Samba"></a>安装Samba</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">yum install samba</span><br></pre></td></tr></table></figure>
+<p>这个服务器之前已经安装过了，所以截图里是yum list，看看版本<br><img src="https://pic2.imgdb.cn/item/644f98820d2dde57774b9feb.png" alt="安装Samba"></p>
+<h1 id="修改配置文件"><a href="#修改配置文件" class="headerlink" title="修改配置文件"></a>修改配置文件</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 备份旧的配置文件</span><br><span class="line">cp /etc/samba/smb.conf /etc/samba/smb.conf.bak</span><br><span class="line"># 修改配置文件，添加一段映射目录的设置信息，如下图</span><br><span class="line">vi /etc/samba/smb.conf</span><br></pre></td></tr></table></figure>
+<p><img src="https://pic2.imgdb.cn/item/644f98750d2dde57774b9724.png" alt="Samba配置文件">  </p>
+<ul>
+<li>[blast]是windows系统设置网络映射时要填的目录名称</li>
+<li>comment是注释信息</li>
+<li>path是Linux本地要映射出去的实际路径</li>
+<li>public和browseable是路径是否公共&#x2F;可见？具体区别不太清楚</li>
+<li>writeable是可写权限</li>
+<li>write list是设置可写用户，用“@用户组名”可以设置可写用户组</li>
+<li>creat mask是设置上传的文件读写权限</li>
+<li>directory mask是设置上传的文件夹读写权限</li>
+</ul>
+<h1 id="testparm测试配置文件是否错误"><a href="#testparm测试配置文件是否错误" class="headerlink" title="testparm测试配置文件是否错误"></a>testparm测试配置文件是否错误</h1><p>testparm专门用于测试 &#x2F;etc&#x2F;samba&#x2F;smb.conf 文件格式是否正确<br>命令行输testparm ，回车即可<br><img src="https://pic2.imgdb.cn/item/644f98620d2dde57774b8854.png" alt="testparm测试"></p>
+<h1 id="修改Linux要映射的目录权限"><a href="#修改Linux要映射的目录权限" class="headerlink" title="修改Linux要映射的目录权限"></a>修改Linux要映射的目录权限</h1><p>可能不改权限，也能正常写入文件？  </p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">chmod 777 /xxx/data/xxx_BLAST  </span><br></pre></td></tr></table></figure>
 
-<h1 id="安装依赖"><a href="#安装依赖" class="headerlink" title="安装依赖"></a>安装依赖</h1><pre><code>yum install -y unzip git bgzip tabix
-yum install -y &quot;perl(DBD::mysql)&quot;
-cpan -i Archive::Zip
-cpan -i Devel::CheckLib
-cpan -i DBI
-cpan -i Module::Metadata
-cpan -i LWP::Simple
-cpan -i HTTP::Tiny
-cpan -i autodie
-</code></pre>
-<h1 id="安装VEP"><a href="#安装VEP" class="headerlink" title="安装VEP"></a>安装VEP</h1><p><a href="https://grch37.ensembl.org/info/docs/tools/vep/script/vep_download.html">官方安装说明</a></p>
-<h2 id="克隆项目"><a href="#克隆项目" class="headerlink" title="克隆项目"></a>克隆项目</h2><p><code>git clone https://github.com/Ensembl/ensembl-vep.git</code>    </p>
-<h2 id="下载API"><a href="#下载API" class="headerlink" title="下载API"></a>下载API</h2><p>注：–NO_HTSLIB选择不安装Bio::DB::HTS&#x2F;htslib。<br><code>perl [VEP路径]/VEP/ensembl-vep/INSTALL.pl --NO_HTSLIB --NO_UPDATE --AUTO a --CACHEDIR [数据库路径]</code>  </p>
-<h2 id="下载数据库"><a href="#下载数据库" class="headerlink" title="下载数据库"></a>下载数据库</h2><p>注：人的注释数据库提供2种版本，通过–ASSEMBLY参数选择：GRCh37（hg19）和GRCh38（hg38）。<br><code>perl [VEP路径]/VEP/ensembl-vep/INSTALL.pl --NO_HTSLIB --NO_UPDATE --AUTO cf --ASSEMBLY GRCh37 --SPECIES homo_sapiens_merged --CACHEDIR [数据库路径]</code>  </p>
-<h2 id="下载插件"><a href="#下载插件" class="headerlink" title="下载插件"></a>下载插件</h2><p>可选，某些数据库需要通过插件才能注释，如dbNSFP。<br><a href="https://grch37.ensembl.org/info/docs/tools/vep/script/vep_plugins.html">插件说明信息</a><br>注：<br>    查看INSTALL.pl可以看到下载Plugin的其实是从<code>raw.githubusercontent.com</code>下载，但是这玩意很久之前就被墙了。<br>    所以下载Plugin不是用官方说明提供的命令下载的，是从<code>https://github.com/Ensembl/VEP_plugins</code>下载项目压缩包，再解压到CACHEDIR&#x2F;Plugins的。<br>    VEP首次调用这些插件时，可能会报错误或警告，需要按提示信息下载数据库文件，或者安装依赖模块&#x2F;软件即可。也可以调用前直接看*.pm文件中的DESCRIPTION下载依赖。<br><code>perl [VEP路径]/VEP/ensembl-vep/INSTALL.pl --NO_HTSLIB --NO_UPDATE --AUTO p --ASSEMBLY GRCh37 --SPECIES homo_sapiens_merged --PLUGINS dbNSFP,DisGeNET,ExAC,CADD --CACHEDIR [数据库路径]</code>  </p>
+<h1 id="关闭防火墙和SElinux"><a href="#关闭防火墙和SElinux" class="headerlink" title="关闭防火墙和SElinux"></a>关闭防火墙和SElinux</h1><p>这个服务器本来就关了，所以下面这2条命令没有测试过<br>不确定是不是不关也可以正常映射  </p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 关闭防火墙的ip包过滤服务？</span><br><span class="line">service iptables stop</span><br><span class="line"># 也可以直接修改/etc/sysconfig/selinux文件</span><br><span class="line">setenforce  0</span><br></pre></td></tr></table></figure>
+
+<h1 id="设置访问用户信息"><a href="#设置访问用户信息" class="headerlink" title="设置访问用户信息"></a>设置访问用户信息</h1><p>samba的访问用户是Linux系统中已存在的用户，只需设置该用户的samba服务密码即可<br>注意该用户名或该用户组，在Samba配置时是不是在write list里  </p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># [user]是用户名，回车后，输2次密码，完成设置</span><br><span class="line">smbpasswd -a [user]</span><br><span class="line"># 重启samba服务</span><br><span class="line">service smb restart</span><br></pre></td></tr></table></figure>
+
+<h1 id="Windows设置网络映射"><a href="#Windows设置网络映射" class="headerlink" title="Windows设置网络映射"></a>Windows设置网络映射</h1><p>我的电脑，右键，映射网络驱动器<br>驱动器随便选一个盘符，映射成功之后，我的电脑里会出现这个盘<br>文件夹格式：\\[服务器ip]\[Samba配置文件设置的目录名称，如上面的blast]<br><img src="https://pic2.imgdb.cn/item/644f98320d2dde57774b61ec.jpg" alt="设置网络映射1"><br>输入samba访问用户和密码，点击确定，完成映射<br><img src="https://pic2.imgdb.cn/item/644f98520d2dde57774b78e1.png" alt="设置网络映射2"></p>
 ]]></content>
       <categories>
         <category>Log</category>
       </categories>
       <tags>
-        <tag>VEP</tag>
-        <tag>注释</tag>
-        <tag>Perl</tag>
+        <tag>Samba</tag>
+        <tag>网络映射</tag>
+        <tag>共享目录</tag>
       </tags>
   </entry>
   <entry>
@@ -190,6 +200,38 @@ cpan -i autodie
 ]]></content>
       <categories>
         <category>Bug</category>
+      </categories>
+      <tags>
+        <tag>VEP</tag>
+        <tag>注释</tag>
+        <tag>Perl</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>VEP安装</title>
+    <url>/2023/04/19/VEP%E5%AE%89%E8%A3%85/</url>
+    <content><![CDATA[<p>VEP安装过程</p>
+<span id="more"></span>
+
+
+<h1 id="安装依赖"><a href="#安装依赖" class="headerlink" title="安装依赖"></a>安装依赖</h1><pre><code>yum install -y unzip git bgzip tabix
+yum install -y &quot;perl(DBD::mysql)&quot;
+cpan -i Archive::Zip
+cpan -i Devel::CheckLib
+cpan -i DBI
+cpan -i Module::Metadata
+cpan -i LWP::Simple
+cpan -i HTTP::Tiny
+cpan -i autodie
+</code></pre>
+<h1 id="安装VEP"><a href="#安装VEP" class="headerlink" title="安装VEP"></a>安装VEP</h1><p><a href="https://grch37.ensembl.org/info/docs/tools/vep/script/vep_download.html">官方安装说明</a></p>
+<h2 id="克隆项目"><a href="#克隆项目" class="headerlink" title="克隆项目"></a>克隆项目</h2><p><code>git clone https://github.com/Ensembl/ensembl-vep.git</code>    </p>
+<h2 id="下载API"><a href="#下载API" class="headerlink" title="下载API"></a>下载API</h2><p>注：–NO_HTSLIB选择不安装Bio::DB::HTS&#x2F;htslib。<br><code>perl [VEP路径]/VEP/ensembl-vep/INSTALL.pl --NO_HTSLIB --NO_UPDATE --AUTO a --CACHEDIR [数据库路径]</code>  </p>
+<h2 id="下载数据库"><a href="#下载数据库" class="headerlink" title="下载数据库"></a>下载数据库</h2><p>注：人的注释数据库提供2种版本，通过–ASSEMBLY参数选择：GRCh37（hg19）和GRCh38（hg38）。<br><code>perl [VEP路径]/VEP/ensembl-vep/INSTALL.pl --NO_HTSLIB --NO_UPDATE --AUTO cf --ASSEMBLY GRCh37 --SPECIES homo_sapiens_merged --CACHEDIR [数据库路径]</code>  </p>
+<h2 id="下载插件"><a href="#下载插件" class="headerlink" title="下载插件"></a>下载插件</h2><p>可选，某些数据库需要通过插件才能注释，如dbNSFP。<br><a href="https://grch37.ensembl.org/info/docs/tools/vep/script/vep_plugins.html">插件说明信息</a><br>注：<br>    查看INSTALL.pl可以看到下载Plugin的其实是从<code>raw.githubusercontent.com</code>下载，但是这玩意很久之前就被墙了。<br>    所以下载Plugin不是用官方说明提供的命令下载的，是从<code>https://github.com/Ensembl/VEP_plugins</code>下载项目压缩包，再解压到CACHEDIR&#x2F;Plugins的。<br>    VEP首次调用这些插件时，可能会报错误或警告，需要按提示信息下载数据库文件，或者安装依赖模块&#x2F;软件即可。也可以调用前直接看*.pm文件中的DESCRIPTION下载依赖。<br><code>perl [VEP路径]/VEP/ensembl-vep/INSTALL.pl --NO_HTSLIB --NO_UPDATE --AUTO p --ASSEMBLY GRCh37 --SPECIES homo_sapiens_merged --PLUGINS dbNSFP,DisGeNET,ExAC,CADD --CACHEDIR [数据库路径]</code>  </p>
+]]></content>
+      <categories>
+        <category>Log</category>
       </categories>
       <tags>
         <tag>VEP</tag>

@@ -92,47 +92,31 @@
       </tags>
   </entry>
   <entry>
-    <title>R包安装报错 is not available</title>
-    <url>/2023/04/18/R%E5%8C%85%E5%AE%89%E8%A3%85%E6%8A%A5%E9%94%99-is-not-available/</url>
-    <content><![CDATA[<p>R包安装报错ERROR: dependency is not available</p>
+    <title>IGV自定义参考基因组</title>
+    <url>/2023/05/03/IGV%E8%87%AA%E5%AE%9A%E4%B9%89%E5%8F%82%E8%80%83%E5%9F%BA%E5%9B%A0%E7%BB%84/</url>
+    <content><![CDATA[<p>IGV 2.11.0版本以上，自定义参考基因组的方法</p>
 <span id="more"></span>
 
-
-<h1 id="软件版本"><a href="#软件版本" class="headerlink" title="软件版本"></a>软件版本</h1><ul>
-<li>R版本：version 3.6.0</li>
-</ul>
-<h1 id="简要过程"><a href="#简要过程" class="headerlink" title="简要过程"></a>简要过程</h1><ul>
-<li>安装R包：ComplexHeatmap  </li>
-<li>安装命令：<code>BiocManager::install(&quot;ComplexHeatmap&quot;)</code>  </li>
-<li>报错信息：ERROR: dependency ‘GetoptLong’ is not available for package ‘ComplexHeatmap’  </li>
-<li>原因：ComplexHeatmap依赖的GetoptLong依赖的rjson，要求R版本高于当前版本  </li>
-<li>解决：先安装旧版本的rjson，再安装ComplexHeatmap</li>
-</ul>
-<h1 id="具体过程"><a href="#具体过程" class="headerlink" title="具体过程"></a>具体过程</h1><h2 id="1"><a href="#1" class="headerlink" title="1"></a>1</h2><p>在github有查到报错信息：  </p>
+<h1 id="软件版本"><a href="#软件版本" class="headerlink" title="软件版本"></a>软件版本</h1><p>IGV版本：2.13.0  </p>
+<h1 id="需求说明"><a href="#需求说明" class="headerlink" title="需求说明"></a>需求说明</h1><p>对b37的参考基因组fasta文件做了一些修改，需要在IGV中浏览它，而且需要有Refseq的基因注释信息的Track。  </p>
+<h1 id="信息说明"><a href="#信息说明" class="headerlink" title="信息说明"></a>信息说明</h1><h2 id="版本差异"><a href="#版本差异" class="headerlink" title="版本差异"></a>版本差异</h2><p>IGV 2.11.0版本以上，是用一个JSON文件去指定和加载参考基因组的。<br>同时弃用了之前版本的.genome格式；通过选项Genomes -&gt; Greate .genome File…的加载方式也取消了。  </p>
+<h2 id="官方文档"><a href="#官方文档" class="headerlink" title="官方文档"></a>官方文档</h2><p><a href="https://github.com/igvteam/igv/wiki/JSON-Genome-Format">格式说明</a> <code>https://github.com/igvteam/igv/wiki/JSON-Genome-Format</code><br><a href="https://github.com/igvteam/igv.js/wiki/Reference-Genome">属性说明</a> <code>https://github.com/igvteam/igv.js/wiki/Reference-Genome</code>  </p>
+<h2 id="参数说明"><a href="#参数说明" class="headerlink" title="参数说明"></a>参数说明</h2><p>IGV 2.11.0版本以上自定义参考基因组JSON文件，只有是fastaURL必填，其他都是可选。<br>所有URL都可以是在线资源或本地路径。  </p>
 <ul>
-<li><a href="https://github.com/jokergoo/ComplexHeatmap/issues/514">找到个相关Issue</a>  </li>
-<li>按这个Issue说的，安装更旧版本的GetoptLong。<br><code>install.packages(&quot;https://cran.r-project.org/src/contrib/Archive/GetoptLong/GetoptLong_0.1.8.tar.gz&quot;, repo = NULL)</code></li>
+<li>id：该参考基因组的名称，可选。就是在Genome下拉框里显示的基因组名称。</li>
+<li>name：描述信息，可选。</li>
+<li>fastaURL：参考基因组Fasta的URL，必填。可以是线上的，如UCSC等数据库中的fasta文件；也可以是本地的，如服务器上的fasta文件路径。</li>
+<li>indexURL：参考基因组Fasta的索引（.fai）文件，可选。但如果不提供.fai文件，会一次性加载整个fasta文件。</li>
+<li>cytobandURL：UCSC格式的cytoBand文件的URL，可选。是用于画染色体示意图的，可以在UCSC的goldenPath找到cytoBand.txt.gz，例如<a href="https://hgdownload.cse.ucsc.edu/goldenPath/hg19/database/">hg19</a>的。UCSC上有<a href="https://genome.ucsc.edu/cgi-bin/hgTables?db=hg38&hgta_group=map&hgta_track=cytoBand&hgta_table=cytoBand&hgta_doSchema=describe+table+schema">cytoBand文件格式说明</a>。</li>
+<li>tracks：加载参考基因组时，同时加载的一系列Tracks，例如默认的hg19基因组的RefSeq Gene描述信息，可选。IGV的Github有<a href="https://github.com/igvteam/igv.js/wiki/Tracks-2.0">tracks格式说明</a>。</li>
 </ul>
-<h2 id="2"><a href="#2" class="headerlink" title="2"></a>2</h2><p>尝试安装更旧版本的GetoptLong时，会报另外一个包的错：  </p>
-<ul>
-<li>ERROR: dependency ‘rjson’ is not available for package ‘GetoptLong’  </li>
-<li>在CRAN上查<a href="https://cran.r-project.org/web/packages/rjson/index.html">rjson</a>，当前这个包的版本是 0.2.21，Depends的R版本要≥ 4.0.0。  </li>
-<li><strong>就是这个原因导致ComplexHeatmap安装不上，其实一开始GetoptLong的报错往上翻一点就会看见rjson的报错。</strong><br><img src="https://pic.imgdb.cn/item/643e8fe40d2dde5777cdc74f.jpg" alt="rjson_Depends"></li>
-</ul>
-<h2 id="3"><a href="#3" class="headerlink" title="3"></a>3</h2><ul>
-<li>到Old sources找旧版本，从新往旧，一个个安装试试。0.2.20版本就装得上。<br><code>install.packages(&quot;https://cran.r-project.org/src/contrib/Archive/rjson/rjson_0.2.20.tar.gz&quot;, repo = NULL)</code><br><img src="https://pic.imgdb.cn/item/643e90040d2dde5777cdf9f2.jpg" alt="Old_sources"></li>
-</ul>
-<h2 id="4"><a href="#4" class="headerlink" title="4"></a>4</h2><ul>
-<li>rjson安装成功后，重新安装ComplexHeatmap。  </li>
-<li><code>BiocManager::install(&quot;ComplexHeatmap&quot;)</code>安装成功。</li>
-</ul>
-]]></content>
+<h2 id="加载方法"><a href="#加载方法" class="headerlink" title="加载方法"></a>加载方法</h2><p>写完JSON文件后，在软件中加载自定义参考基因组的方法：Genomes -&gt; Load Genome from File… -&gt; 选择参考基因组json文件</p>
+<h1 id="JSON示例"><a href="#JSON示例" class="headerlink" title="JSON示例"></a>JSON示例</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  &quot;id&quot;: &quot;b37chr&quot;,</span><br><span class="line">  &quot;name&quot;: &quot;Human (b37 with chr)&quot;,</span><br><span class="line">  &quot;fastaURL&quot;: &quot;/xxx/database/b37chr/human_g1k_v37_decoy_chr.fasta&quot;,</span><br><span class="line">  &quot;indexURL&quot;: &quot;/xxx/database/b37chr/human_g1k_v37_decoy_chr.fasta.fai&quot;,</span><br><span class="line">  &quot;cytobandURL&quot;: &quot;/xxx/database/b37chr/cytoBand.txt&quot;,</span><br><span class="line">  &quot;tracks&quot;: [</span><br><span class="line">    &#123;</span><br><span class="line">      &quot;name&quot;: &quot;Refseq Genes&quot;,</span><br><span class="line">      &quot;format&quot;: &quot;refgene&quot;,</span><br><span class="line">      &quot;url&quot;: &quot;/xxx/database/b37chr/ncbiRefSeq.sorted.txt.gz&quot;,</span><br><span class="line">      &quot;indexURL&quot;: &quot;/xxx/database/b37chr/ncbiRefSeq.sorted.txt.gz.tbi&quot;</span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      &quot;name&quot;: &quot;Target 1&quot;,</span><br><span class="line">      &quot;format&quot;: &quot;bed&quot;,</span><br><span class="line">      &quot;url&quot;: &quot;/xxx/database/b37chr/bed/Target_1.bed&quot;</span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      &quot;name&quot;: &quot;Target 2&quot;,</span><br><span class="line">      &quot;format&quot;: &quot;bed&quot;,</span><br><span class="line">      &quot;url&quot;: &quot;/xxx/database/b37chr/bed/Target_2.bed&quot;</span><br><span class="line">    &#125;</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>]]></content>
       <categories>
-        <category>Bug</category>
+        <category>Log</category>
       </categories>
       <tags>
-        <tag>R</tag>
-        <tag>ComplexHeatmap</tag>
+        <tag>IGV</tag>
       </tags>
   </entry>
   <entry>
@@ -178,33 +162,47 @@
       </tags>
   </entry>
   <entry>
-    <title>VEP报错</title>
-    <url>/2023/04/19/VEP%E6%8A%A5%E9%94%99/</url>
-    <content><![CDATA[<p>一些VEP使用过程中的报错信息</p>
+    <title>R包安装报错 is not available</title>
+    <url>/2023/04/18/R%E5%8C%85%E5%AE%89%E8%A3%85%E6%8A%A5%E9%94%99-is-not-available/</url>
+    <content><![CDATA[<p>R包安装报错ERROR: dependency is not available</p>
 <span id="more"></span>
 
-<h1 id="Existing-variation全部为"><a href="#Existing-variation全部为" class="headerlink" title="Existing_variation全部为-"></a>Existing_variation全部为-</h1><h2 id="问题及警告信息"><a href="#问题及警告信息" class="headerlink" title="问题及警告信息"></a>问题及警告信息</h2><ul>
-<li>问题：VEP注释结果中Existing_variation全部为-。  </li>
-<li>警告信息：  WARNING: 6742 : Use of uninitialized value in subtraction (-) at ***&#x2F;ensembl-vep&#x2F;modules&#x2F;Bio&#x2F;EnsEMBL&#x2F;VEP&#x2F;AnnotationSource&#x2F;Cache&#x2F;VariationTabix.pm line 184, <VARS> line 1.</VARS></li>
+
+<h1 id="软件版本"><a href="#软件版本" class="headerlink" title="软件版本"></a>软件版本</h1><ul>
+<li>R版本：version 3.6.0</li>
 </ul>
-<h2 id="问题定位"><a href="#问题定位" class="headerlink" title="问题定位"></a>问题定位</h2><p>VariationTabix.pm是用于判断当前突变是否数据库中的已知突变，其中$existing-&gt;{start}和$existing-&gt;{end}未定义，是由于脚本中第172行调用tabix，open VARS, “$TABIX_BIN -f $file $region_string 2&gt;&amp;1 报错：[tabix] failed to load the index file。<br>查看tabix版本，是0.2.5，且帮助文档中没有csi格式index的说明。<br>所以可能是tabix版本太旧，无法识别vep数据库中的.csi格式index导致。  </p>
-<h2 id="解决方法"><a href="#解决方法" class="headerlink" title="解决方法"></a>解决方法</h2><ul>
-<li>简要过程<br>  更新tabix，替换~&#x2F;.bashrc中调用的tabix。  </li>
-<li>具体过程<br>  tabix独立的安装包只更新到0.2.6，更新的版本只包含于HTSLIB。<br>  一般生信服务器里都已经有装samtools，应该可以直接用samtools路径里的tabix。<br>  这台服务器里已经安装的samtools的版本是1.12，路径下找到了htslib-1.12目录，但是里面没tabix，应该是没有make。    <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cd htslib-1.12</span><br><span class="line">make</span><br><span class="line">make install</span><br></pre></td></tr></table></figure>
-  以上命令make后，在samtools-1.12&#x2F;bin能看到1.12版本的tabix和bgzip。<br>  修改~&#x2F;.bashrc的tabix路径，然后source ~&#x2F;.bashrc，重新开终端，再测试VEP。</li>
+<h1 id="简要过程"><a href="#简要过程" class="headerlink" title="简要过程"></a>简要过程</h1><ul>
+<li>安装R包：ComplexHeatmap  </li>
+<li>安装命令：<code>BiocManager::install(&quot;ComplexHeatmap&quot;)</code>  </li>
+<li>报错信息：ERROR: dependency ‘GetoptLong’ is not available for package ‘ComplexHeatmap’  </li>
+<li>原因：ComplexHeatmap依赖的GetoptLong依赖的rjson，要求R版本高于当前版本  </li>
+<li>解决：先安装旧版本的rjson，再安装ComplexHeatmap</li>
 </ul>
-<h2 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h2><p>成功，Existing_variation列有rs编号和COSV编号</p>
-<h1 id="dbNSFP插件警告"><a href="#dbNSFP插件警告" class="headerlink" title="dbNSFP插件警告"></a>dbNSFP插件警告</h1><h2 id="警告信息"><a href="#警告信息" class="headerlink" title="警告信息"></a>警告信息</h2><p>Use of uninitialized value $readme_file in concatenation (.) or string at ***&#x2F;vep_data&#x2F;Plugins&#x2F;dbNSFP.pm line 279.  </p>
-<h2 id="问题定位-1"><a href="#问题定位-1" class="headerlink" title="问题定位"></a>问题定位</h2><p>dbNSFP.pm第276行，需要dbnsfp.*readme.txt在数据库dbNSFP4.3a_grch37.gz文件同一目录下。  </p>
-<h2 id="解决方法-1"><a href="#解决方法-1" class="headerlink" title="解决方法"></a>解决方法</h2><p>解压dbNSFP4.3a.zip，得到dbNSFP4.3a.readme.txt，软链接为dbNSFP4.3a_grch37.readme.txt，放在dbNSFP4.3a_grch37.gz文件同一目录下。  </p>
+<h1 id="具体过程"><a href="#具体过程" class="headerlink" title="具体过程"></a>具体过程</h1><h2 id="1"><a href="#1" class="headerlink" title="1"></a>1</h2><p>在github有查到报错信息：  </p>
+<ul>
+<li><a href="https://github.com/jokergoo/ComplexHeatmap/issues/514">找到个相关Issue</a>  </li>
+<li>按这个Issue说的，安装更旧版本的GetoptLong。<br><code>install.packages(&quot;https://cran.r-project.org/src/contrib/Archive/GetoptLong/GetoptLong_0.1.8.tar.gz&quot;, repo = NULL)</code></li>
+</ul>
+<h2 id="2"><a href="#2" class="headerlink" title="2"></a>2</h2><p>尝试安装更旧版本的GetoptLong时，会报另外一个包的错：  </p>
+<ul>
+<li>ERROR: dependency ‘rjson’ is not available for package ‘GetoptLong’  </li>
+<li>在CRAN上查<a href="https://cran.r-project.org/web/packages/rjson/index.html">rjson</a>，当前这个包的版本是 0.2.21，Depends的R版本要≥ 4.0.0。  </li>
+<li><strong>就是这个原因导致ComplexHeatmap安装不上，其实一开始GetoptLong的报错往上翻一点就会看见rjson的报错。</strong><br><img src="https://pic.imgdb.cn/item/643e8fe40d2dde5777cdc74f.jpg" alt="rjson_Depends"></li>
+</ul>
+<h2 id="3"><a href="#3" class="headerlink" title="3"></a>3</h2><ul>
+<li>到Old sources找旧版本，从新往旧，一个个安装试试。0.2.20版本就装得上。<br><code>install.packages(&quot;https://cran.r-project.org/src/contrib/Archive/rjson/rjson_0.2.20.tar.gz&quot;, repo = NULL)</code><br><img src="https://pic.imgdb.cn/item/643e90040d2dde5777cdf9f2.jpg" alt="Old_sources"></li>
+</ul>
+<h2 id="4"><a href="#4" class="headerlink" title="4"></a>4</h2><ul>
+<li>rjson安装成功后，重新安装ComplexHeatmap。  </li>
+<li><code>BiocManager::install(&quot;ComplexHeatmap&quot;)</code>安装成功。</li>
+</ul>
 ]]></content>
       <categories>
         <category>Bug</category>
       </categories>
       <tags>
-        <tag>VEP</tag>
-        <tag>注释</tag>
-        <tag>Perl</tag>
+        <tag>R</tag>
+        <tag>ComplexHeatmap</tag>
       </tags>
   </entry>
   <entry>
@@ -232,6 +230,36 @@ cpan -i autodie
 ]]></content>
       <categories>
         <category>Log</category>
+      </categories>
+      <tags>
+        <tag>VEP</tag>
+        <tag>注释</tag>
+        <tag>Perl</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>VEP报错</title>
+    <url>/2023/04/19/VEP%E6%8A%A5%E9%94%99/</url>
+    <content><![CDATA[<p>一些VEP使用过程中的报错信息</p>
+<span id="more"></span>
+
+<h1 id="Existing-variation全部为"><a href="#Existing-variation全部为" class="headerlink" title="Existing_variation全部为-"></a>Existing_variation全部为-</h1><h2 id="问题及警告信息"><a href="#问题及警告信息" class="headerlink" title="问题及警告信息"></a>问题及警告信息</h2><ul>
+<li>问题：VEP注释结果中Existing_variation全部为-。  </li>
+<li>警告信息：  WARNING: 6742 : Use of uninitialized value in subtraction (-) at ***&#x2F;ensembl-vep&#x2F;modules&#x2F;Bio&#x2F;EnsEMBL&#x2F;VEP&#x2F;AnnotationSource&#x2F;Cache&#x2F;VariationTabix.pm line 184, <VARS> line 1.</VARS></li>
+</ul>
+<h2 id="问题定位"><a href="#问题定位" class="headerlink" title="问题定位"></a>问题定位</h2><p>VariationTabix.pm是用于判断当前突变是否数据库中的已知突变，其中$existing-&gt;{start}和$existing-&gt;{end}未定义，是由于脚本中第172行调用tabix，open VARS, “$TABIX_BIN -f $file $region_string 2&gt;&amp;1 报错：[tabix] failed to load the index file。<br>查看tabix版本，是0.2.5，且帮助文档中没有csi格式index的说明。<br>所以可能是tabix版本太旧，无法识别vep数据库中的.csi格式index导致。  </p>
+<h2 id="解决方法"><a href="#解决方法" class="headerlink" title="解决方法"></a>解决方法</h2><ul>
+<li>简要过程<br>  更新tabix，替换~&#x2F;.bashrc中调用的tabix。  </li>
+<li>具体过程<br>  tabix独立的安装包只更新到0.2.6，更新的版本只包含于HTSLIB。<br>  一般生信服务器里都已经有装samtools，应该可以直接用samtools路径里的tabix。<br>  这台服务器里已经安装的samtools的版本是1.12，路径下找到了htslib-1.12目录，但是里面没tabix，应该是没有make。    <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cd htslib-1.12</span><br><span class="line">make</span><br><span class="line">make install</span><br></pre></td></tr></table></figure>
+  以上命令make后，在samtools-1.12&#x2F;bin能看到1.12版本的tabix和bgzip。<br>  修改~&#x2F;.bashrc的tabix路径，然后source ~&#x2F;.bashrc，重新开终端，再测试VEP。</li>
+</ul>
+<h2 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h2><p>成功，Existing_variation列有rs编号和COSV编号</p>
+<h1 id="dbNSFP插件警告"><a href="#dbNSFP插件警告" class="headerlink" title="dbNSFP插件警告"></a>dbNSFP插件警告</h1><h2 id="警告信息"><a href="#警告信息" class="headerlink" title="警告信息"></a>警告信息</h2><p>Use of uninitialized value $readme_file in concatenation (.) or string at ***&#x2F;vep_data&#x2F;Plugins&#x2F;dbNSFP.pm line 279.  </p>
+<h2 id="问题定位-1"><a href="#问题定位-1" class="headerlink" title="问题定位"></a>问题定位</h2><p>dbNSFP.pm第276行，需要dbnsfp.*readme.txt在数据库dbNSFP4.3a_grch37.gz文件同一目录下。  </p>
+<h2 id="解决方法-1"><a href="#解决方法-1" class="headerlink" title="解决方法"></a>解决方法</h2><p>解压dbNSFP4.3a.zip，得到dbNSFP4.3a.readme.txt，软链接为dbNSFP4.3a_grch37.readme.txt，放在dbNSFP4.3a_grch37.gz文件同一目录下。  </p>
+]]></content>
+      <categories>
+        <category>Bug</category>
       </categories>
       <tags>
         <tag>VEP</tag>

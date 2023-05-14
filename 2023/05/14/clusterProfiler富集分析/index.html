@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  
+  <meta name="keywords" content="bioinfomatics,生物信息">
+  
+  
+  <meta name="description" content="bioinfomatics 生物信息">
+  
+  <title>
+    clusterProfiler富集分析 |
+    
+    A Blog
+  </title>
+  <!-- Icon -->
+  
+    <link rel="shortcut icon" href="/images/K_Letter_White.svg">
+    
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <main class="content">
+    <section class="outer">
+  <article id="post-clusterProfiler富集分析" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+      
+  
+  <h1 class="article-title" itemprop="name">
+    clusterProfiler富集分析
+  </h1>
+  
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2023/05/14/clusterProfiler%E5%AF%8C%E9%9B%86%E5%88%86%E6%9E%90/" class="article-date">
+  <time datetime="2023-05-14T14:10:13.000Z" itemprop="datePublished">2023-05-14</time>
+</a>
+      
+<div class="article-category">
+  <a class="article-category-link" href="/categories/Log/">Log</a>
+</div>
+
+    </div>
+    
+
+    
+    
+<div class="tocbot"></div>
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+      
+        <p>clusterProfiler 做 GO 和 KEGG 的富集分析</p>
+<span id="more"></span>
+
+<h1 id="软件版本"><a href="#软件版本" class="headerlink" title="软件版本"></a>软件版本</h1><ul>
+<li>R版本：4.1.0</li>
+<li>R包版本：clusterProfiler 4.0.5</li>
+</ul>
+<h1 id="R包安装"><a href="#R包安装" class="headerlink" title="R包安装"></a>R包安装</h1><p>如果你的R版本比较新，可以先试试直接安装clusterProfiler。<br>当前在用的服务器上的R版本是3.6.0，算比较旧的，装R包经常报错。<br>然后虽然<a target="_blank" rel="noopener" href="https://bioconductor.org/packages/release/bioc/html/clusterProfiler.html">Bioconductor的clusterProfiler</a>写着依赖R &gt;&#x3D; 3.5.0，但是很多依赖包都会要求更高的R版本，我都懒得逐个包查哪个版本适配了，所以直接搭个最新版本的R的docker容器算了。  </p>
+<ol>
+<li>从docker registry获取r-base作为基础镜像<br><code>docker pull r-base</code><br>如需指定4.1.0版本则用<code>docker pull r-base:4.1.0</code>  </li>
+<li>搭建clusterProfiler的容器  <ol>
+<li>容器搭建   <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"># Shell</span><br><span class="line"></span><br><span class="line">#!/bin/sh</span><br><span class="line">local_path=/xxx/clusterProfiler</span><br><span class="line"># 需要--privileged参数，否则后面安装clusterProfiler包会报错</span><br><span class="line">docker run -tid --privileged --name clusterProfiler_Test --restart=always -v $local_path:/Test r-base:4.1.0 /bin/bash</span><br></pre></td></tr></table></figure></li>
+<li>进入容器 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"># 命令行</span><br><span class="line"></span><br><span class="line">docker exec -ti clusterProfiler_Test /bin/bash</span><br></pre></td></tr></table></figure></li>
+<li>容器内安装clusterProfiler <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"># 命令行，安装依赖</span><br><span class="line">apt-get update</span><br><span class="line">apt install curl libcurl4-openssl-dev libssl-dev libxml2-dev</span><br><span class="line"></span><br><span class="line"># 命令行，进入R</span><br><span class="line">R</span><br><span class="line"></span><br><span class="line"># 进入R后，安装包</span><br><span class="line"># org.Hs.eg.db是人的基因注释数据库；如果是别的物种，这里下载和后面调用的数据库名称，以及物种名称是hsa的，都要换成对应物种的</span><br><span class="line"># OrgDb的19个物种数据库：http://bioconductor.org/packages/release/BiocViews.html#___OrgDb</span><br><span class="line"># pathview、enrichplot、ggplot2都是用来画图的</span><br><span class="line">if (!requireNamespace(&quot;BiocManager&quot;, quietly = TRUE))</span><br><span class="line">    install.packages(&quot;BiocManager&quot;)</span><br><span class="line">BiocManager::install(&quot;clusterProfiler&quot;)</span><br><span class="line">BiocManager::install(&quot;org.Hs.eg.db&quot;)</span><br><span class="line">BiocManager::install(&quot;pathview&quot;)</span><br><span class="line">BiocManager::install(&quot;enrichplot&quot;)</span><br><span class="line">BiocManager::install(&quot;ggplot2&quot;)</span><br></pre></td></tr></table></figure></li>
+<li>GO、KEGG富集分析 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">见后面的[分析脚本]部分</span><br></pre></td></tr></table></figure></li>
+<li>退出容器 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># 键盘操作</span><br><span class="line"># Ctrl + p + q</span><br></pre></td></tr></table></figure></li>
+<li>容器的后续处理</li>
+</ol>
+<ul>
+<li>搭建容器时用了–restart&#x3D;always，容器会保持启动状态，随时可以进入容器分析</li>
+<li>如果暂时不需要用了，可以先将容器导出成镜像文件，再删除容器 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"># 命令行，导出镜像文件</span><br><span class="line">docker export clusterProfiler_Test -o clusterProfiler.tar</span><br><span class="line"></span><br><span class="line"># 命令行，停止和删除容器</span><br><span class="line">docker stop clusterProfiler_Test</span><br><span class="line">docker rm clusterProfiler_Test</span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+</ol>
+<h1 id="分析脚本"><a href="#分析脚本" class="headerlink" title="分析脚本"></a>分析脚本</h1><p>脚本参考clusterProfiler官方文档中Part II: Enrichment analysis的<a target="_blank" rel="noopener" href="https://yulab-smu.top/biomedical-knowledge-mining-book/clusterprofiler-go.html">6 GO enrichment analysis</a>和<a target="_blank" rel="noopener" href="https://yulab-smu.top/biomedical-knowledge-mining-book/clusterprofiler-kegg.html">7 KEGG enrichment analysis</a>。<br>Over Representation Analysis (ORA, 过表达分析)和Gene Set Enrichment Analysis (GSEA, 基因富集分析)两种分析方法，分别写了两个脚本。<br>GO和KEGG都在同一个脚本里，有哪部分不需要的话，直接注释就行。  </p>
+<h2 id="Shell调用Rscript"><a href="#Shell调用Rscript" class="headerlink" title="Shell调用Rscript"></a>Shell调用Rscript</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"># ORA</span><br><span class="line">Rscript clusterProfiler_ORA.R ORA.list ORA ORA_Result</span><br><span class="line"></span><br><span class="line"># GSEA</span><br><span class="line">Rscript clusterProfiler_GSEA.R GSEA.list GSEA GSEA_Result</span><br></pre></td></tr></table></figure>
+
+<h2 id="ORA脚本"><a href="#ORA脚本" class="headerlink" title="ORA脚本"></a>ORA脚本</h2><h3 id="clusterProfiler-ORA-R"><a href="#clusterProfiler-ORA-R" class="headerlink" title="clusterProfiler_ORA.R"></a>clusterProfiler_ORA.R</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br></pre></td><td class="code"><pre><span class="line">library(&quot;clusterProfiler&quot;)</span><br><span class="line">library(&quot;org.Hs.eg.db&quot;)</span><br><span class="line">library(&quot;pathview&quot;)</span><br><span class="line">library(&quot;ggplot2&quot;)</span><br><span class="line"></span><br><span class="line">args &lt;- commandArgs(T)</span><br><span class="line"># 输入文件，每行1个基因名称（Gene Symbol）</span><br><span class="line">gene_list = args[1]</span><br><span class="line"># 样本名称，会作为输出文件前缀</span><br><span class="line">sample = args[2]</span><br><span class="line"># 输出目录路径</span><br><span class="line">out_dir = args[3]</span><br><span class="line"></span><br><span class="line">GO_output_dir = paste(out_dir, &quot;/GO&quot;, sep=&quot;&quot;, collapse=&quot;&quot;)</span><br><span class="line">KEGG_output_dir = paste(out_dir, &quot;/KEGG&quot;, sep=&quot;&quot;, collapse=&quot;&quot;)</span><br><span class="line">if (! file.exists(out_dir))&#123;dir.create(out_dir)&#125;</span><br><span class="line">if (! file.exists(GO_output_dir))&#123;dir.create(GO_output_dir)&#125;</span><br><span class="line">if (! file.exists(KEGG_output_dir))&#123;dir.create(KEGG_output_dir)&#125;</span><br><span class="line"></span><br><span class="line">data = read.table(gene_list, head=F, sep=&quot;\t&quot;, comment.char=&quot;#&quot;, colClasses=&quot;character&quot;)</span><br><span class="line">data = as.vector(data[,1])</span><br><span class="line"></span><br><span class="line">p_cutoff = 0.05</span><br><span class="line">q_cutoff = 0.05</span><br><span class="line"></span><br><span class="line"># GO </span><br><span class="line">ontology &lt;- list(&quot;MF&quot;,&quot;CC&quot;,&quot;BP&quot;)</span><br><span class="line">for (item in ontology)&#123;</span><br><span class="line">	output_file = paste(GO_output_dir, &quot;/&quot;, sample, &quot;.&quot;, item, &quot;.xls&quot;, sep=&quot;&quot;, collapse=&quot;&quot;)</span><br><span class="line">	output_pic = paste(GO_output_dir, &quot;/&quot;, sample, &quot;.&quot;, item, &quot;.png&quot;, sep=&quot;&quot;, collapse=&quot;&quot;)</span><br><span class="line">	# GO enrichment result</span><br><span class="line">	# pvalueCutoff is adjusted pvalue cutoff</span><br><span class="line">	ego &lt;- enrichGO(gene = data, keyType = &quot;SYMBOL&quot;, OrgDb = org.Hs.eg.db, ont = item, pAdjustMethod = &quot;BH&quot;, pvalueCutoff = p_cutoff, qvalueCutoff = q_cutoff)</span><br><span class="line">	if ( (nrow(subset(ego@result, p.adjust&lt;=p_cutoff))==0) | (nrow(subset(ego@result, qvalue&lt;=q_cutoff))==0) )&#123;</span><br><span class="line">		warnning_msg = paste(&quot;Warning: &quot;, item, &quot;&#x27;s enrichGO() has NO result after pvalue.adjust and qvalue cutoff! Won&#x27;t output result of &quot;, item, &quot;!&quot;, sep=&quot;&quot;, collapse=&quot;&quot;)</span><br><span class="line">		write(warnning_msg, stderr())</span><br><span class="line">		next</span><br><span class="line">	&#125;</span><br><span class="line">	write.table(ego, file=output_file, quote=FALSE, col.names=TRUE, row.names=FALSE, sep=&quot;\t&quot;)</span><br><span class="line">	# GO directed acyclic graph</span><br><span class="line">	picture &lt;- goplot(ego, showCategory=10, color=&quot;p.adjust&quot;, layout=&quot;sugiyama&quot;, geom=&quot;text&quot;)</span><br><span class="line">	ggsave(file=output_pic, width=250, height=500, unit=&quot;mm&quot;, dpi=300)</span><br><span class="line">	# Bar plot</span><br><span class="line">	output_pic = paste(GO_output_dir, &quot;/&quot;, sample, &quot;.&quot;, item, &quot;.bar.png&quot;, sep=&quot;&quot;, collapse=&quot;&quot;)</span><br><span class="line">	picture &lt;- barplot(ego, showCategory=10)</span><br><span class="line">	ggsave(file=output_pic, width=150, height=250, unit=&quot;mm&quot;, dpi=300)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"># KEGG</span><br><span class="line">output_file = paste(KEGG_output_dir, &quot;/&quot;, sample, &quot;.KEGG.xls&quot;, sep=&quot;&quot;, collapse=&quot;&quot;)</span><br><span class="line"># Translate Gene Symbol to ENTREZ ID</span><br><span class="line">SYMBOL_ENTREZID &lt;- bitr(data, fromType=&quot;SYMBOL&quot;, toType=&quot;ENTREZID&quot;, OrgDb=org.Hs.eg.db)</span><br><span class="line">if (nrow(SYMBOL_ENTREZID) == 0)&#123;</span><br><span class="line">	error_msg = &quot;Error: All gene symbol in input file can&#x27;t map to Entrezid ID! Stop analyysis!&quot;</span><br><span class="line">	write(error_msg, stderr())</span><br><span class="line">	q()</span><br><span class="line">&#125;</span><br><span class="line">data_ENTREZID = as.vector(SYMBOL_ENTREZID[,2])</span><br><span class="line"># KEGG enrichment result</span><br><span class="line"># pvalueCutoff is adjusted pvalue cutoff</span><br><span class="line">kk &lt;- enrichKEGG(gene=data_ENTREZID, organism=&quot;hsa&quot;, keyType=&quot;kegg&quot;, pAdjustMethod=&quot;BH&quot;, pvalueCutoff=p_cutoff, qvalueCutoff=q_cutoff)</span><br><span class="line">if ( (nrow(subset(kk@result, p.adjust&lt;=p_cutoff))==0) | (nrow(subset(kk@result, qvalue&lt;=q_cutoff))==0) )&#123;</span><br><span class="line">	warnning_msg = &quot;Warning: KEGG&#x27;s enrichKEGG() has NO result after pvalue.adjust and qvalue cutoff! Won&#x27;t output result of KEGG!&quot;</span><br><span class="line">	write(warnning_msg, stderr())</span><br><span class="line">	q()</span><br><span class="line">&#125;</span><br><span class="line">pass_path_id = subset(kk@result, p.adjust&lt;=p_cutoff &amp; qvalue&lt;=q_cutoff, select=ID)</span><br><span class="line">for (path_id in pass_path_id$ID)&#123;</span><br><span class="line">	ENTREZID_Gene &lt;- kk@result$geneID[which(kk@result==path_id)]</span><br><span class="line">	ENTREZID_Gene_List &lt;- strsplit(ENTREZID_Gene, split=&quot;/&quot;)</span><br><span class="line">	ENTREZID_Gene_List &lt;- unlist(ENTREZID_Gene_List)</span><br><span class="line">	Output_Symbol_List &lt;- c()</span><br><span class="line">	n=1</span><br><span class="line">	for (id in ENTREZID_Gene_List)&#123;</span><br><span class="line">		Output_Symbol_List[n] &lt;- SYMBOL_ENTREZID$SYMBOL[which(SYMBOL_ENTREZID$ENTREZID==id)]</span><br><span class="line">		n &lt;- n+1</span><br><span class="line">	&#125;</span><br><span class="line">	Output_Symbol &lt;- paste(Output_Symbol_List, sep=&quot;&quot;, collapse=&quot;/&quot;)</span><br><span class="line">	kk@result$geneID[which(kk@result==path_id)] &lt;- Output_Symbol</span><br><span class="line">&#125;</span><br><span class="line">write.table(kk, file=output_file, quote=FALSE, col.names=TRUE, row.names=FALSE, sep=&quot;\t&quot;)</span><br><span class="line"># Dot plot</span><br><span class="line">output_pic = paste(KEGG_output_dir, &quot;/&quot;, sample, &quot;.KEGG.png&quot;, sep=&quot;&quot;, collapse=&quot;&quot;)</span><br><span class="line">picture &lt;- dotplot(kk, showCategory=20)</span><br><span class="line">ggsave(file=output_pic, width=150, height=250, unit=&quot;mm&quot;, dpi=300)</span><br><span class="line"># KEGG pathway view</span><br><span class="line">for (path_id in pass_path_id$ID)&#123;</span><br><span class="line">	output_pic = paste(KEGG_output_dir, &quot;/&quot;, sample, &quot;.&quot;, path_id, &quot;.png&quot;, sep=&quot;&quot;, collapse=&quot;&quot;)</span><br><span class="line">	pathview(gene.data=data_ENTREZID, pathway.id=path_id, species=&quot;hsa&quot;, min.nnodes=3)</span><br><span class="line">	rm_command = paste(&quot;rm -f ./&quot;, path_id, &quot;.png &quot;, &quot;./&quot;, path_id, &quot;.xml&quot;, sep=&quot;&quot;, collapse=&quot;&quot;)</span><br><span class="line">	mv_command = paste(&quot;mv ./&quot;, path_id, &quot;.pathview.png &quot;, output_pic, sep=&quot;&quot;, collapse=&quot;&quot;)</span><br><span class="line">	system(rm_command)</span><br><span class="line">	system(mv_command)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="ORA-list"><a href="#ORA-list" class="headerlink" title="ORA.list"></a>ORA.list</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">AP5Z1</span><br><span class="line">ZNF592</span><br><span class="line">FOXRED1</span><br><span class="line">NUBPL</span><br><span class="line">HFE</span><br><span class="line">WDR35</span><br><span class="line">ABHD12</span><br><span class="line">ZNF513</span><br></pre></td></tr></table></figure>
+
+<h3 id="ORA-Result"><a href="#ORA-Result" class="headerlink" title="ORA_Result"></a>ORA_Result</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">ORA_Result</span><br><span class="line">├── GO</span><br><span class="line">│   ├── ORA.BP.bar.png</span><br><span class="line">│   ├── ORA.BP.png</span><br><span class="line">│   ├── ORA.BP.xls</span><br><span class="line">│   ├── ORA.CC.bar.png</span><br><span class="line">│   ├── ORA.CC.png</span><br><span class="line">│   ├── ORA.CC.xls</span><br><span class="line">│   ├── ORA.MF.bar.png</span><br><span class="line">│   ├── ORA.MF.png</span><br><span class="line">│   └── ORA.MF.xls</span><br><span class="line">└── KEGG</span><br><span class="line">    ├── ORA.hsa00010.png</span><br><span class="line">    ├── ORA.hsa00531.png</span><br><span class="line">    ├── ORA.hsa01230.png</span><br><span class="line">    ├── ORA.hsa04142.png</span><br><span class="line">    ├── ORA.hsa04610.png</span><br><span class="line">    ├── ORA.hsa04977.png</span><br><span class="line">    ├── ORA.KEGG.png</span><br><span class="line">    └── ORA.KEGG.xls</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>GO</p>
+<ul>
+<li>ORA.BP.bar.png<br><img src="https://pic2.imgdb.cn/item/6460ecaa0d2dde57775f71ae.png" alt="ORA.BP.bar.png"></li>
+<li>ORA.BP.png<br><img src="https://pic2.imgdb.cn/item/6460ecd60d2dde57775fb89c.png" alt="ORA.BP.png"></li>
+<li>ORA.BP.xls<br><img src="https://pic2.imgdb.cn/item/6460ecfb0d2dde57775ff98e.jpg" alt="ORA.BP.xls"></li>
+</ul>
+</li>
+<li><p>KEGG</p>
+<ul>
+<li>ORA.hsa00531.png<br><img src="https://pic2.imgdb.cn/item/6460ed210d2dde57776034d7.png" alt="ORA.hsa00531.png"></li>
+<li>ORA.KEGG.png<br><img src="https://pic2.imgdb.cn/item/6460ed620d2dde577760a98b.png" alt="ORA.KEGG.png"></li>
+<li>ORA.KEGG.xls<br><img src="https://pic2.imgdb.cn/item/6460edb00d2dde5777613270.jpg" alt="ORA.KEGG.xls"></li>
+</ul>
+</li>
+</ul>
+<h2 id="GSEA脚本"><a href="#GSEA脚本" class="headerlink" title="GSEA脚本"></a>GSEA脚本</h2><h3 id="clusterProfiler-GSEA-R"><a href="#clusterProfiler-GSEA-R" class="headerlink" title="clusterProfiler_GSEA.R"></a>clusterProfiler_GSEA.R</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br></pre></td><td class="code"><pre><span class="line">library(&quot;clusterProfiler&quot;)</span><br><span class="line">library(&quot;org.Hs.eg.db&quot;)</span><br><span class="line">library(&quot;enrichplot&quot;)</span><br><span class="line">library(&quot;ggplot2&quot;)</span><br><span class="line"></span><br><span class="line">args &lt;- commandArgs(T)</span><br><span class="line"># 输入文件，每行两列，第一列是基因名称（Gene Symbol），第二列是Fold Change</span><br><span class="line">gene_list = args[1]</span><br><span class="line"># 样本名称，会作为输出文件前缀</span><br><span class="line">sample = args[2]</span><br><span class="line"># 输出目录路径</span><br><span class="line">out_dir = args[3]</span><br><span class="line"></span><br><span class="line">GO_output_dir = paste(out_dir, &quot;/GO&quot;, sep=&quot;&quot;, collapse=&quot;&quot;)</span><br><span class="line">KEGG_output_dir = paste(out_dir, &quot;/KEGG&quot;, sep=&quot;&quot;, collapse=&quot;&quot;)</span><br><span class="line">if (! file.exists(out_dir))&#123;dir.create(out_dir)&#125;</span><br><span class="line">if (! file.exists(GO_output_dir))&#123;dir.create(GO_output_dir)&#125;</span><br><span class="line">if (! file.exists(KEGG_output_dir))&#123;dir.create(KEGG_output_dir)&#125;</span><br><span class="line"></span><br><span class="line"># 1st column is Symmbol, 2nd column is FC</span><br><span class="line">data = read.table(gene_list, head=F, sep=&quot;\t&quot;, comment.char=&quot;#&quot;, colClasses=&quot;character&quot;)</span><br><span class="line">geneList = as.numeric(data[,2])</span><br><span class="line">names(geneList) = as.character(data[,1])</span><br><span class="line">geneList = sort(geneList,decreasing=TRUE)</span><br><span class="line"></span><br><span class="line"># Check if any duplicate gene</span><br><span class="line">if (length(names(geneList[duplicated(names(geneList))])) &gt; 0)&#123;</span><br><span class="line">	error_msg = &quot;Error: There are duplicate gene in input file! Stop analyysis!&quot;</span><br><span class="line">	write(error_msg, stderr())</span><br><span class="line">	q()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">p_cutoff = 0.05</span><br><span class="line">q_cutoff = 0.05</span><br><span class="line"></span><br><span class="line"># GO</span><br><span class="line">ontology &lt;- list(&quot;MF&quot;,&quot;CC&quot;,&quot;BP&quot;)</span><br><span class="line">for (item in ontology)&#123;</span><br><span class="line">	output_file = paste(GO_output_dir, &quot;/&quot;, sample, &quot;.&quot;, item, &quot;.xls&quot;, sep=&quot;&quot;, collapse=&quot;&quot;)</span><br><span class="line">	# GO GSEA result</span><br><span class="line">	# pvalueCutoff is adjusted pvalue cutoff</span><br><span class="line">	ego &lt;- gseGO(gene=geneList, keyType=&quot;SYMBOL&quot;, OrgDb=org.Hs.eg.db, ont=item, pAdjustMethod=&quot;BH&quot;, pvalueCutoff=p_cutoff)</span><br><span class="line">	if (nrow(ego)==0)&#123;</span><br><span class="line">		wornning_msg = paste(&quot;Warning: &quot;, item, &quot;&#x27;s gseGO() has NO result after pvalue.adjust cutoff! Won&#x27;t output result of &quot;, item, &quot;!&quot;, sep=&quot;&quot;, collapse=&quot;&quot;)</span><br><span class="line">		write(wornning_msg, stderr())</span><br><span class="line">		next</span><br><span class="line">	&#125;</span><br><span class="line">	write.table(ego, file=output_file, quote=FALSE, col.names=TRUE, row.names=FALSE, sep=&quot;\t&quot;)</span><br><span class="line">	# GO GSEA Plot</span><br><span class="line">	for ( n in (1:length(ego$ID)) )&#123;</span><br><span class="line">		GO_id &lt;- gsub(&quot;:&quot;, &quot;_&quot;, ego$ID[n])</span><br><span class="line">		output_pic = paste(GO_output_dir, &quot;/&quot;, sample, &quot;.&quot;, item, &quot;.&quot;, GO_id, &quot;.png&quot;, sep=&quot;&quot;, collapse=&quot;&quot;)</span><br><span class="line">		picture &lt;- gseaplot2(ego, geneSetID=n, pvalue_table=TRUE, title=ego$Description[n])</span><br><span class="line">		#picture &lt;- gseaplot2(ego, geneSetID=n, title=ego$Description[n])</span><br><span class="line">		ggsave(file=output_pic, width=260, height=180, unit=&quot;mm&quot;, dpi=300)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"># KEGG</span><br><span class="line">output_file = paste(KEGG_output_dir, &quot;/&quot;, sample, &quot;.KEGG.xls&quot;, sep=&quot;&quot;, collapse=&quot;&quot;)</span><br><span class="line"># Translate Gene Symbol to ENTREZ ID</span><br><span class="line">SYMBOL_ENTREZID &lt;- bitr(names(geneList), fromType=&quot;SYMBOL&quot;, toType=&quot;ENTREZID&quot;, OrgDb=org.Hs.eg.db)</span><br><span class="line">if (nrow(SYMBOL_ENTREZID)==0)&#123;</span><br><span class="line">        error_msg = &quot;Error: All gene symbol in input file can&#x27;t map to Entrezid ID! Stop analyysis!&quot;</span><br><span class="line">        write(error_msg, stderr())</span><br><span class="line">        q()</span><br><span class="line">&#125;</span><br><span class="line">names(geneList) = as.character(SYMBOL_ENTREZID[,2])</span><br><span class="line"># Some gene without ENTREZID will become duplicated name &lt;NA&gt;, remove them</span><br><span class="line">geneList &lt;- geneList[!duplicated(names(geneList))]</span><br><span class="line"># KEGG GSEA result</span><br><span class="line"># pvalueCutoff is adjusted pvalue cutoff</span><br><span class="line">kk &lt;- gseKEGG(gene=geneList, organism=&quot;hsa&quot;, keyType=&quot;kegg&quot;, pAdjustMethod=&quot;BH&quot;, pvalueCutoff=p_cutoff)</span><br><span class="line">if (nrow(kk)==0)&#123;</span><br><span class="line">	wornning_msg = &quot;Warning: KEGG&#x27;s gseKEGG() has NO result after pvalue.adjust cutoff! Won&#x27;t output result of KEGG!&quot;</span><br><span class="line">	write(wornning_msg, stderr())</span><br><span class="line">	q()</span><br><span class="line">&#125;</span><br><span class="line">for ( n in (1:length(kk$ID)) )&#123;</span><br><span class="line">	# KEGG GSEA Plot</span><br><span class="line">	output_pic = paste(KEGG_output_dir, &quot;/&quot;, sample, &quot;.&quot;, kk$ID[n], &quot;.png&quot;, sep=&quot;&quot;, collapse=&quot;&quot;)</span><br><span class="line">	picture &lt;- gseaplot2(kk, geneSetID=n, pvalue_table=TRUE, title=kk$Description[n])</span><br><span class="line">	#picture &lt;- gseaplot2(kk, geneSetID=n, title=kk$Description[n])</span><br><span class="line">	ggsave(file=output_pic, width=260, height=180, unit=&quot;mm&quot;, dpi=300)</span><br><span class="line">	# ENTREZ ID to Gene Symbol</span><br><span class="line">	ENTREZID_Gene &lt;- kk$core_enrichment[n]</span><br><span class="line">	ENTREZID_Gene_List &lt;- strsplit(ENTREZID_Gene, split=&quot;/&quot;)</span><br><span class="line">	ENTREZID_Gene_List &lt;- unlist(ENTREZID_Gene_List)</span><br><span class="line">	Output_Symbol_List &lt;- c()</span><br><span class="line">	i=1</span><br><span class="line">	for (id in ENTREZID_Gene_List)&#123;</span><br><span class="line">		Output_Symbol_List[i] &lt;- SYMBOL_ENTREZID$SYMBOL[which(SYMBOL_ENTREZID$ENTREZID==id)]</span><br><span class="line">		i &lt;- i + 1</span><br><span class="line">	&#125;</span><br><span class="line">	Output_Symbol &lt;- paste(Output_Symbol_List, sep=&quot;&quot;, collapse=&quot;/&quot;)</span><br><span class="line">	kk@result$core_enrichment[n] &lt;- Output_Symbol</span><br><span class="line">&#125;</span><br><span class="line">write.table(kk, file=output_file, quote=FALSE, col.names=TRUE, row.names=FALSE, sep=&quot;\t&quot;)</span><br></pre></td></tr></table></figure>
+
+<h3 id="GSEA-list"><a href="#GSEA-list" class="headerlink" title="GSEA.list"></a>GSEA.list</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">S100A11	0.695631395</span><br><span class="line">RBPMS2	0.540877695</span><br><span class="line">KRTCAP3	0.558604609</span><br><span class="line">SELE	0.521754428</span><br><span class="line">RNF39	2.770884868</span><br><span class="line">C15orf39	1.372097355</span><br></pre></td></tr></table></figure>
+
+<h3 id="GSEA-Result"><a href="#GSEA-Result" class="headerlink" title="GSEA_Result"></a>GSEA_Result</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">GSEA_Result</span><br><span class="line">├── GO</span><br><span class="line">│   ├── GSEA.BP.GO_0000003.png</span><br><span class="line">│   ├── GSEA.BP.GO_1901990.png</span><br><span class="line">│   ├── GSEA.BP.xls</span><br><span class="line">│   ├── GSEA.CC.GO_1903046.png</span><br><span class="line">│   ├── GSEA.CC.GO_1903047.png</span><br><span class="line">│   ├── GSEA.CC.GO_2000026.png</span><br><span class="line">│   ├── GSEA.CC.xls</span><br><span class="line">│   ├── GSEA.MF.GO_0000775.png</span><br><span class="line">│   ├── GSEA.MF.GO_0005694.png</span><br><span class="line">│   ├── GSEA.MF.GO_1902494.png</span><br><span class="line">│   └── GSEA.MF.xls</span><br><span class="line">└── KEGG</span><br><span class="line">    ├── GSEA.hsa04068.png</span><br><span class="line">    ├── GSEA.hsa04141.png</span><br><span class="line">    ├── GSEA.hsa05170.png</span><br><span class="line">    └── GSEA.KEGG.xls</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>GO</p>
+<ul>
+<li>GSEA.CC.GO_1902494.png<br><img src="https://pic2.imgdb.cn/item/6460edff0d2dde577761b487.png" alt="GSEA.CC.GO_1902494.png"></li>
+<li>GSEA.CC.xls<br><img src="https://pic2.imgdb.cn/item/6460ee330d2dde5777621903.jpg" alt="GSEA.CC.xls"></li>
+</ul>
+</li>
+<li><p>KEGG</p>
+<ul>
+<li>GSEA.hsa05170.png<br><img src="https://pic2.imgdb.cn/item/6460ee690d2dde577762687a.png" alt="GSEA.hsa05170.png"></li>
+<li>GSEA.KEGG.xls<br><img src="https://pic2.imgdb.cn/item/6460ee840d2dde5777629ca2.png" alt="GSEA.KEGG.xls"></li>
+</ul>
+</li>
+</ul>
+<h1 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h1><ol>
+<li>clusterProfiler Github <a target="_blank" rel="noopener" href="https://github.com/YuLab-SMU/clusterProfiler">https://github.com/YuLab-SMU/clusterProfiler</a></li>
+<li>clusterProfiler 官方文档 <a target="_blank" rel="noopener" href="https://yulab-smu.top/biomedical-knowledge-mining-book/index.html">https://yulab-smu.top/biomedical-knowledge-mining-book/index.html</a></li>
+<li>富集分析：（一）概述 <a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/534016487">https://zhuanlan.zhihu.com/p/534016487</a></li>
+</ol>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+<ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/GO/" rel="tag">GO</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/KEGG/" rel="tag">KEGG</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/R/" rel="tag">R</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/clusterProfiler/" rel="tag">clusterProfiler</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E7%94%BB%E5%9B%BE/" rel="tag">画图</a></li></ul>
+
+    </footer>
+
+  </div>
+
+  
+  
+<nav class="article-nav">
+  
+  
+  <a href="/2023/05/03/IGV%E8%87%AA%E5%AE%9A%E4%B9%89%E5%8F%82%E8%80%83%E5%9F%BA%E5%9B%A0%E7%BB%84/" class="article-nav-link">
+    <strong class="article-nav-caption">后一篇</strong>
+    <div class="article-nav-title">IGV自定义参考基因组</div>
+  </a>
+  
+</nav>
+
+  
+
+  
+  
+<div class="vcomments" id="vcomments"></div>
+
+<script src="https://unpkg.com/valine/dist/Valine.min.js"></script>
+
+<script>
+  new Valine({
+    el: '#vcomments',
+    appId: 'AbTah7Q6uUUamYA9gZ0ANnav-9Nh9j0Va',
+    appKey: 'Ue6meFW6ZFZ6VHHH8DIpct5h',
+    notify: 'false',
+    verify: 'true',
+    avatar: 'identicon',
+    pageSize: '10',
+    placeholder: '说点什么'
+  })
+</script>
+
+  
+  
+
+</article>
+</section>
+    <footer class="footer">
+  <div class="outer">
+    <ul class="list-inline">
+      <li>A Blog &copy; 2023</li>
+      
+        <li>
+          
+            <a href="https://beian.miit.gov.cn/" target="_blank"></a>
+            
+        </li>
+      
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>theme  <a target="_blank" rel="noopener" href="https://github.com/zhwangart/hexo-theme-ocean">Ocean</a></li>
+    </ul>
+    <p><ul class="list-inline">
+  
+  <li><i class="fe fe-smile-alt tooltip" data-tooltip="UV"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+  <li><i class="fe fe-bookmark tooltip" data-tooltip="PV"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul></p>
+  </div>
+</footer>
+  </main>
+  <aside class="sidebar">
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/K_Letter.svg" alt="A Blog"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">首页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">关于</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="搜索">
+        <i class="fe fe-search"></i>
+        搜索
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto',
+  });
+</script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+
+</html>

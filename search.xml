@@ -92,45 +92,60 @@
       </tags>
   </entry>
   <entry>
-    <title>Linux配置Samba</title>
-    <url>/2023/05/01/Linux%E9%85%8D%E7%BD%AESamba/</url>
-    <content><![CDATA[<p>Linux系统配置Samba服务，Windows系统设置网络映射，实现共享目录</p>
+    <title>IGV自定义参考基因组</title>
+    <url>/2023/05/03/IGV%E8%87%AA%E5%AE%9A%E4%B9%89%E5%8F%82%E8%80%83%E5%9F%BA%E5%9B%A0%E7%BB%84/</url>
+    <content><![CDATA[<p>IGV 2.11.0版本以上，自定义参考基因组的方法</p>
 <span id="more"></span>
 
-<p><a href="https://blog.51cto.com/aby028/1830125">参考文档</a></p>
-<h1 id="安装Samba"><a href="#安装Samba" class="headerlink" title="安装Samba"></a>安装Samba</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">yum install samba</span><br></pre></td></tr></table></figure>
-<p>这个服务器之前已经安装过了，所以截图里是yum list，看看版本<br><img src="https://pic2.imgdb.cn/item/644f98820d2dde57774b9feb.png" alt="安装Samba"></p>
-<h1 id="修改配置文件"><a href="#修改配置文件" class="headerlink" title="修改配置文件"></a>修改配置文件</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 备份旧的配置文件</span><br><span class="line">cp /etc/samba/smb.conf /etc/samba/smb.conf.bak</span><br><span class="line"># 修改配置文件，添加一段映射目录的设置信息，如下图</span><br><span class="line">vi /etc/samba/smb.conf</span><br></pre></td></tr></table></figure>
-<p><img src="https://pic2.imgdb.cn/item/644f98750d2dde57774b9724.png" alt="Samba配置文件">  </p>
+<h1 id="软件版本"><a href="#软件版本" class="headerlink" title="软件版本"></a>软件版本</h1><p>IGV版本：2.13.0  </p>
+<h1 id="需求说明"><a href="#需求说明" class="headerlink" title="需求说明"></a>需求说明</h1><p>对b37的参考基因组fasta文件做了一些修改，需要在IGV中浏览它，而且需要有Refseq的基因注释信息的Track。  </p>
+<h1 id="信息说明"><a href="#信息说明" class="headerlink" title="信息说明"></a>信息说明</h1><h2 id="版本差异"><a href="#版本差异" class="headerlink" title="版本差异"></a>版本差异</h2><p>IGV 2.11.0版本以上，是用一个JSON文件去指定和加载参考基因组的。<br>同时弃用了之前版本的.genome格式；通过选项Genomes -&gt; Greate .genome File…的加载方式也取消了。  </p>
+<h2 id="官方文档"><a href="#官方文档" class="headerlink" title="官方文档"></a>官方文档</h2><p><a href="https://github.com/igvteam/igv/wiki/JSON-Genome-Format">格式说明</a> <code>https://github.com/igvteam/igv/wiki/JSON-Genome-Format</code><br><a href="https://github.com/igvteam/igv.js/wiki/Reference-Genome">属性说明</a> <code>https://github.com/igvteam/igv.js/wiki/Reference-Genome</code>  </p>
+<h2 id="参数说明"><a href="#参数说明" class="headerlink" title="参数说明"></a>参数说明</h2><p>IGV 2.11.0版本以上自定义参考基因组JSON文件，只有是fastaURL必填，其他都是可选。<br>所有URL都可以是在线资源或本地路径。  </p>
 <ul>
-<li>[blast]是windows系统设置网络映射时要填的目录名称</li>
-<li>comment是注释信息</li>
-<li>path是Linux本地要映射出去的实际路径</li>
-<li>public和browseable是路径是否公共&#x2F;可见？具体区别不太清楚</li>
-<li>writeable是可写权限</li>
-<li>write list是设置可写用户，用“@用户组名”可以设置可写用户组</li>
-<li>creat mask是设置上传的文件读写权限</li>
-<li>directory mask是设置上传的文件夹读写权限</li>
+<li>id：该参考基因组的名称，可选。就是在Genome下拉框里显示的基因组名称。</li>
+<li>name：描述信息，可选。</li>
+<li>fastaURL：参考基因组Fasta的URL，必填。可以是线上的，如UCSC等数据库中的fasta文件；也可以是本地的，如服务器上的fasta文件路径。</li>
+<li>indexURL：参考基因组Fasta的索引（.fai）文件，可选。但如果不提供.fai文件，会一次性加载整个fasta文件。</li>
+<li>cytobandURL：UCSC格式的cytoBand文件的URL，可选。是用于画染色体示意图的，可以在UCSC的goldenPath找到cytoBand.txt.gz，例如<a href="https://hgdownload.cse.ucsc.edu/goldenPath/hg19/database/">hg19</a>的。UCSC上有<a href="https://genome.ucsc.edu/cgi-bin/hgTables?db=hg38&hgta_group=map&hgta_track=cytoBand&hgta_table=cytoBand&hgta_doSchema=describe+table+schema">cytoBand文件格式说明</a>。</li>
+<li>tracks：加载参考基因组时，同时加载的一系列Tracks，例如默认的hg19基因组的RefSeq Gene描述信息，可选。IGV的Github有<a href="https://github.com/igvteam/igv.js/wiki/Tracks-2.0">tracks格式说明</a>。</li>
 </ul>
-<h1 id="testparm测试配置文件是否错误"><a href="#testparm测试配置文件是否错误" class="headerlink" title="testparm测试配置文件是否错误"></a>testparm测试配置文件是否错误</h1><p>testparm专门用于测试 &#x2F;etc&#x2F;samba&#x2F;smb.conf 文件格式是否正确<br>命令行输testparm ，回车即可<br><img src="https://pic2.imgdb.cn/item/644f98620d2dde57774b8854.png" alt="testparm测试"></p>
-<h1 id="修改Linux要映射的目录权限"><a href="#修改Linux要映射的目录权限" class="headerlink" title="修改Linux要映射的目录权限"></a>修改Linux要映射的目录权限</h1><p>可能不改权限，也能正常写入文件？  </p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">chmod 777 /xxx/data/xxx_BLAST  </span><br></pre></td></tr></table></figure>
+<h2 id="加载方法"><a href="#加载方法" class="headerlink" title="加载方法"></a>加载方法</h2><p>写完JSON文件后，在软件中加载自定义参考基因组的方法：Genomes -&gt; Load Genome from File… -&gt; 选择参考基因组json文件</p>
+<h1 id="JSON示例"><a href="#JSON示例" class="headerlink" title="JSON示例"></a>JSON示例</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  &quot;id&quot;: &quot;b37chr&quot;,</span><br><span class="line">  &quot;name&quot;: &quot;Human (b37 with chr)&quot;,</span><br><span class="line">  &quot;fastaURL&quot;: &quot;/xxx/database/b37chr/human_g1k_v37_decoy_chr.fasta&quot;,</span><br><span class="line">  &quot;indexURL&quot;: &quot;/xxx/database/b37chr/human_g1k_v37_decoy_chr.fasta.fai&quot;,</span><br><span class="line">  &quot;cytobandURL&quot;: &quot;/xxx/database/b37chr/cytoBand.txt&quot;,</span><br><span class="line">  &quot;tracks&quot;: [</span><br><span class="line">    &#123;</span><br><span class="line">      &quot;name&quot;: &quot;Refseq Genes&quot;,</span><br><span class="line">      &quot;format&quot;: &quot;refgene&quot;,</span><br><span class="line">      &quot;url&quot;: &quot;/xxx/database/b37chr/ncbiRefSeq.sorted.txt.gz&quot;,</span><br><span class="line">      &quot;indexURL&quot;: &quot;/xxx/database/b37chr/ncbiRefSeq.sorted.txt.gz.tbi&quot;</span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      &quot;name&quot;: &quot;Target 1&quot;,</span><br><span class="line">      &quot;format&quot;: &quot;bed&quot;,</span><br><span class="line">      &quot;url&quot;: &quot;/xxx/database/b37chr/bed/Target_1.bed&quot;</span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      &quot;name&quot;: &quot;Target 2&quot;,</span><br><span class="line">      &quot;format&quot;: &quot;bed&quot;,</span><br><span class="line">      &quot;url&quot;: &quot;/xxx/database/b37chr/bed/Target_2.bed&quot;</span><br><span class="line">    &#125;</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Log</category>
+      </categories>
+      <tags>
+        <tag>IGV</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Linux用户管理</title>
+    <url>/2023/05/21/Linux%E7%94%A8%E6%88%B7%E7%AE%A1%E7%90%86/</url>
+    <content><![CDATA[<p>Linux系统的用户查看、创建、目录权限</p>
+<span id="more"></span>
 
-<h1 id="关闭防火墙和SElinux"><a href="#关闭防火墙和SElinux" class="headerlink" title="关闭防火墙和SElinux"></a>关闭防火墙和SElinux</h1><p>这个服务器本来就关了，所以下面这2条命令没有测试过<br>不确定是不是不关也可以正常映射  </p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 关闭防火墙的ip包过滤服务？</span><br><span class="line">service iptables stop</span><br><span class="line"># 也可以直接修改/etc/sysconfig/selinux文件</span><br><span class="line">setenforce  0</span><br></pre></td></tr></table></figure>
+<h1 id="查看用户"><a href="#查看用户" class="headerlink" title="查看用户"></a>查看用户</h1><p>查看当前系统已存在的用户  </p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cat /etc/passwd | cut -d : -f 1</span><br></pre></td></tr></table></figure>
 
-<h1 id="设置访问用户信息"><a href="#设置访问用户信息" class="headerlink" title="设置访问用户信息"></a>设置访问用户信息</h1><p>samba的访问用户是Linux系统中已存在的用户，只需设置该用户的samba服务密码即可<br>注意该用户名或该用户组，在Samba配置时是不是在write list里  </p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># [user]是用户名，回车后，输2次密码，完成设置</span><br><span class="line">smbpasswd -a [user]</span><br><span class="line"># 重启samba服务</span><br><span class="line">service smb restart</span><br></pre></td></tr></table></figure>
+<h1 id="创建用户"><a href="#创建用户" class="headerlink" title="创建用户"></a>创建用户</h1><h2 id="创建非正规新用户"><a href="#创建非正规新用户" class="headerlink" title="创建非正规新用户"></a>创建非正规新用户</h2><p>以下创建方法，不会创建home、无归属用户组  </p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 创建用户</span><br><span class="line">useradd -M -N [name]</span><br><span class="line"># 修改/创建用户密码（可用简单密码）</span><br><span class="line">echo [password] | passwd --stdin [name]</span><br></pre></td></tr></table></figure>
+<h2 id="创建正规新用户"><a href="#创建正规新用户" class="headerlink" title="创建正规新用户"></a>创建正规新用户</h2><p>以下创建方法，会同时创建该用户的home目录，主用户组为参数指定的group  </p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 创建用户</span><br><span class="line">useradd -m -g [group] [name]</span><br><span class="line"># 创建用户密码（不可用简单密码）</span><br><span class="line">passwd [name]</span><br></pre></td></tr></table></figure>
 
-<h1 id="Windows设置网络映射"><a href="#Windows设置网络映射" class="headerlink" title="Windows设置网络映射"></a>Windows设置网络映射</h1><p>我的电脑，右键，映射网络驱动器<br>驱动器随便选一个盘符，映射成功之后，我的电脑里会出现这个盘<br>文件夹格式：\\[服务器ip]\[Samba配置文件设置的目录名称，如上面的blast]<br><img src="https://pic2.imgdb.cn/item/644f98320d2dde57774b61ec.jpg" alt="设置网络映射1"><br>输入samba访问用户和密码，点击确定，完成映射<br><img src="https://pic2.imgdb.cn/item/644f98520d2dde57774b78e1.png" alt="设置网络映射2"></p>
+<h1 id="操作用户组"><a href="#操作用户组" class="headerlink" title="操作用户组"></a>操作用户组</h1><h2 id="创建新用户组"><a href="#创建新用户组" class="headerlink" title="创建新用户组"></a>创建新用户组</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">groupadd [group]</span><br></pre></td></tr></table></figure>
+<h2 id="查看组内有哪些用户"><a href="#查看组内有哪些用户" class="headerlink" title="查看组内有哪些用户"></a>查看组内有哪些用户</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cat /etc/group|grep ^[group]</span><br></pre></td></tr></table></figure>
+<h2 id="将用户添加进组"><a href="#将用户添加进组" class="headerlink" title="将用户添加进组"></a>将用户添加进组</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">usermod -a -G [group] [name]</span><br></pre></td></tr></table></figure>
+<h2 id="查看用户的主用户组、所属用户组"><a href="#查看用户的主用户组、所属用户组" class="headerlink" title="查看用户的主用户组、所属用户组"></a>查看用户的主用户组、所属用户组</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">id [name]</span><br></pre></td></tr></table></figure>
+
+<h1 id="目录权限"><a href="#目录权限" class="headerlink" title="目录权限"></a>目录权限</h1><h2 id="改变文件或目录的所有者及用户组"><a href="#改变文件或目录的所有者及用户组" class="headerlink" title="改变文件或目录的所有者及用户组"></a>改变文件或目录的所有者及用户组</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># -R 递归目录内的所有文件  </span><br><span class="line">chown -R [name]:[group] [file/dir]</span><br></pre></td></tr></table></figure>
+<h2 id="改变文件或目录的权限"><a href="#改变文件或目录的权限" class="headerlink" title="改变文件或目录的权限"></a>改变文件或目录的权限</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 只有文件所有者和root用户可以修改文件或目录的权限</span><br><span class="line"># -R 递归目录内的所有文件</span><br><span class="line"># 指定权限（八进制语法）：读4，写2，操作1</span><br><span class="line">chmod -R [文件所有者权限、文件所有组内用户权限、其他用户权限] [file/dir]</span><br></pre></td></tr></table></figure>
 ]]></content>
       <categories>
         <category>Log</category>
       </categories>
       <tags>
-        <tag>Samba</tag>
-        <tag>网络映射</tag>
-        <tag>共享目录</tag>
+        <tag>Linux</tag>
       </tags>
   </entry>
   <entry>
@@ -178,6 +193,72 @@
       </tags>
   </entry>
   <entry>
+    <title>Linux配置Samba</title>
+    <url>/2023/05/01/Linux%E9%85%8D%E7%BD%AESamba/</url>
+    <content><![CDATA[<p>Linux系统配置Samba服务，Windows系统设置网络映射，实现共享目录</p>
+<span id="more"></span>
+
+<p><a href="https://blog.51cto.com/aby028/1830125">参考文档</a></p>
+<h1 id="安装Samba"><a href="#安装Samba" class="headerlink" title="安装Samba"></a>安装Samba</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">yum install samba</span><br></pre></td></tr></table></figure>
+<p>这个服务器之前已经安装过了，所以截图里是yum list，看看版本<br><img src="https://pic2.imgdb.cn/item/644f98820d2dde57774b9feb.png" alt="安装Samba"></p>
+<h1 id="修改配置文件"><a href="#修改配置文件" class="headerlink" title="修改配置文件"></a>修改配置文件</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 备份旧的配置文件</span><br><span class="line">cp /etc/samba/smb.conf /etc/samba/smb.conf.bak</span><br><span class="line"># 修改配置文件，添加一段映射目录的设置信息，如下图</span><br><span class="line">vi /etc/samba/smb.conf</span><br></pre></td></tr></table></figure>
+<p><img src="https://pic2.imgdb.cn/item/644f98750d2dde57774b9724.png" alt="Samba配置文件">  </p>
+<ul>
+<li>[blast]是windows系统设置网络映射时要填的目录名称</li>
+<li>comment是注释信息</li>
+<li>path是Linux本地要映射出去的实际路径</li>
+<li>public和browseable是路径是否公共&#x2F;可见？具体区别不太清楚</li>
+<li>writeable是可写权限</li>
+<li>write list是设置可写用户，用“@用户组名”可以设置可写用户组</li>
+<li>creat mask是设置上传的文件读写权限</li>
+<li>directory mask是设置上传的文件夹读写权限</li>
+</ul>
+<h1 id="testparm测试配置文件是否错误"><a href="#testparm测试配置文件是否错误" class="headerlink" title="testparm测试配置文件是否错误"></a>testparm测试配置文件是否错误</h1><p>testparm专门用于测试 &#x2F;etc&#x2F;samba&#x2F;smb.conf 文件格式是否正确<br>命令行输testparm ，回车即可<br><img src="https://pic2.imgdb.cn/item/644f98620d2dde57774b8854.png" alt="testparm测试"></p>
+<h1 id="修改Linux要映射的目录权限"><a href="#修改Linux要映射的目录权限" class="headerlink" title="修改Linux要映射的目录权限"></a>修改Linux要映射的目录权限</h1><p>可能不改权限，也能正常写入文件？  </p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">chmod 777 /xxx/data/xxx_BLAST  </span><br></pre></td></tr></table></figure>
+
+<h1 id="关闭防火墙和SElinux"><a href="#关闭防火墙和SElinux" class="headerlink" title="关闭防火墙和SElinux"></a>关闭防火墙和SElinux</h1><p>这个服务器本来就关了，所以下面这2条命令没有测试过<br>不确定是不是不关也可以正常映射  </p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 关闭防火墙的ip包过滤服务？</span><br><span class="line">service iptables stop</span><br><span class="line"># 也可以直接修改/etc/sysconfig/selinux文件</span><br><span class="line">setenforce  0</span><br></pre></td></tr></table></figure>
+
+<h1 id="设置访问用户信息"><a href="#设置访问用户信息" class="headerlink" title="设置访问用户信息"></a>设置访问用户信息</h1><p>samba的访问用户是Linux系统中已存在的用户，只需设置该用户的samba服务密码即可<br>注意该用户名或该用户组，在Samba配置时是不是在write list里  </p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># [user]是用户名，回车后，输2次密码，完成设置</span><br><span class="line">smbpasswd -a [user]</span><br><span class="line"># 重启samba服务</span><br><span class="line">service smb restart</span><br></pre></td></tr></table></figure>
+
+<h1 id="Windows设置网络映射"><a href="#Windows设置网络映射" class="headerlink" title="Windows设置网络映射"></a>Windows设置网络映射</h1><p>我的电脑，右键，映射网络驱动器<br>驱动器随便选一个盘符，映射成功之后，我的电脑里会出现这个盘<br>文件夹格式：\\[服务器ip]\[Samba配置文件设置的目录名称，如上面的blast]<br><img src="https://pic2.imgdb.cn/item/644f98320d2dde57774b61ec.jpg" alt="设置网络映射1"><br>输入samba访问用户和密码，点击确定，完成映射<br><img src="https://pic2.imgdb.cn/item/644f98520d2dde57774b78e1.png" alt="设置网络映射2"></p>
+]]></content>
+      <categories>
+        <category>Log</category>
+      </categories>
+      <tags>
+        <tag>Samba</tag>
+        <tag>网络映射</tag>
+        <tag>共享目录</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Salmon的decoy文件</title>
+    <url>/2023/05/21/Salmon%E7%9A%84decoy%E6%96%87%E4%BB%B6/</url>
+    <content><![CDATA[<p>用Salmon计算宏基因组预测基因的丰度，建index是否需要decoy文件。</p>
+<span id="more"></span>
+
+<h1 id="相关信息"><a href="#相关信息" class="headerlink" title="相关信息"></a>相关信息</h1><h2 id="1"><a href="#1" class="headerlink" title="1"></a>1</h2><p><a href="https://salmon.readthedocs.io/en/latest/salmon.html">Salmon用户手册</a>有以下描述：<br>Finally, we recommend using selective alignment with a decoy-aware transcriptome, to mitigate potential spurious mapping of reads that actually arise from some unannotated genomic locus that is sequence-similar to an annotated transcriptome.</p>
+<h2 id="2"><a href="#2" class="headerlink" title="2"></a>2</h2><p>Salmon的开发者Rob在<a href="https://www.biostars.org/p/456231/">biostars的一篇帖子</a>的回复：<br>The decoy sequences are regions of the target genome that are sequence similar to annotated transcripts.These are the regions of the genome most likely to cause mismapping (e.g. transcribed pseudogenes, etc.).<br>There are 3 ways to run salmon :<br>(a) with just the annotated transcriptome being indexed<br>(b) with the annotated transcriptome and a small set of decoys computed using MASHMAP to search transcripts against the genome and<br>(c) with the annotated transcriptome and using the entire genome as decoy sequence.  </p>
+<p>The (a) method requires the fewest resources,<br>(b) requires a good deal of resources to run the MASHMAP step, but the resulting index is similar to that of (a) and it avoids the most obvious cases of misalignment.<br>(c) results in the largest index, but it’s the most effective at avoiding potentially spurious mappings.  </p>
+<p>Salmon can be used without decoy sequences (and sometimes, this is necessary — e.g. in a de novo assembly, there will likely be no possibility for decoys).<br>It can also be run without decoys in reference organisms.<br>It is simply the case that decoys help avoid certain cases of misalignment that can’t be adjudicated with the transcriptome alone, and therefore can lead to somewhat more robust estimates of abundance in the presence of the expression of unannotated sequences.  </p>
+<h1 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h1><p>decoy序列指的是基因组上与注释出的真实转录本相似的序列。<br>建index时decoy文件的作用是避免后续比对时的错误，如比对到transcribed pseudogenes（可转录的假基因？）。<br>作者列举的3种方法中，(a)是只用注释出的转录本建index的。后面也有说Salmon在某些必要情况下是可以没有decoy序列信息的，例如de novo组装的基因组。<br>同理，如果是宏基因组分析中通过预测的方法得到基因&#x2F;转录本，本身就无法得到所谓的基因组上与转录本相似的区域。<br>因此宏基因组的基因丰度计算前，建Salmon index不需要decoy文件。  </p>
+<h1 id="脚本"><a href="#脚本" class="headerlink" title="脚本"></a>脚本</h1><h2 id="建库"><a href="#建库" class="headerlink" title="建库"></a>建库</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">salmon index -p 30 -k 31 -t Gene.fa -i ./Index/Gene</span><br></pre></td></tr></table></figure>
+<h2 id="定量"><a href="#定量" class="headerlink" title="定量"></a>定量</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">salmon quant -l IU --validateMappings --meta -p 10 -i ./Index/Gene -1 Sample.R1.clean.rmhost.fq.gz -2 Sample.R2.clean.rmhost.fq.gz -o ./Result/Sample</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Log</category>
+      </categories>
+      <tags>
+        <tag>Transcriptome</tag>
+        <tag>mNGS</tag>
+        <tag>Salmon</tag>
+        <tag>转录组</tag>
+        <tag>宏基因组</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>VEP安装</title>
     <url>/2023/04/19/VEP%E5%AE%89%E8%A3%85/</url>
     <content><![CDATA[<p>VEP安装过程</p>
@@ -207,34 +288,6 @@ cpan -i autodie
         <tag>VEP</tag>
         <tag>注释</tag>
         <tag>Perl</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>IGV自定义参考基因组</title>
-    <url>/2023/05/03/IGV%E8%87%AA%E5%AE%9A%E4%B9%89%E5%8F%82%E8%80%83%E5%9F%BA%E5%9B%A0%E7%BB%84/</url>
-    <content><![CDATA[<p>IGV 2.11.0版本以上，自定义参考基因组的方法</p>
-<span id="more"></span>
-
-<h1 id="软件版本"><a href="#软件版本" class="headerlink" title="软件版本"></a>软件版本</h1><p>IGV版本：2.13.0  </p>
-<h1 id="需求说明"><a href="#需求说明" class="headerlink" title="需求说明"></a>需求说明</h1><p>对b37的参考基因组fasta文件做了一些修改，需要在IGV中浏览它，而且需要有Refseq的基因注释信息的Track。  </p>
-<h1 id="信息说明"><a href="#信息说明" class="headerlink" title="信息说明"></a>信息说明</h1><h2 id="版本差异"><a href="#版本差异" class="headerlink" title="版本差异"></a>版本差异</h2><p>IGV 2.11.0版本以上，是用一个JSON文件去指定和加载参考基因组的。<br>同时弃用了之前版本的.genome格式；通过选项Genomes -&gt; Greate .genome File…的加载方式也取消了。  </p>
-<h2 id="官方文档"><a href="#官方文档" class="headerlink" title="官方文档"></a>官方文档</h2><p><a href="https://github.com/igvteam/igv/wiki/JSON-Genome-Format">格式说明</a> <code>https://github.com/igvteam/igv/wiki/JSON-Genome-Format</code><br><a href="https://github.com/igvteam/igv.js/wiki/Reference-Genome">属性说明</a> <code>https://github.com/igvteam/igv.js/wiki/Reference-Genome</code>  </p>
-<h2 id="参数说明"><a href="#参数说明" class="headerlink" title="参数说明"></a>参数说明</h2><p>IGV 2.11.0版本以上自定义参考基因组JSON文件，只有是fastaURL必填，其他都是可选。<br>所有URL都可以是在线资源或本地路径。  </p>
-<ul>
-<li>id：该参考基因组的名称，可选。就是在Genome下拉框里显示的基因组名称。</li>
-<li>name：描述信息，可选。</li>
-<li>fastaURL：参考基因组Fasta的URL，必填。可以是线上的，如UCSC等数据库中的fasta文件；也可以是本地的，如服务器上的fasta文件路径。</li>
-<li>indexURL：参考基因组Fasta的索引（.fai）文件，可选。但如果不提供.fai文件，会一次性加载整个fasta文件。</li>
-<li>cytobandURL：UCSC格式的cytoBand文件的URL，可选。是用于画染色体示意图的，可以在UCSC的goldenPath找到cytoBand.txt.gz，例如<a href="https://hgdownload.cse.ucsc.edu/goldenPath/hg19/database/">hg19</a>的。UCSC上有<a href="https://genome.ucsc.edu/cgi-bin/hgTables?db=hg38&hgta_group=map&hgta_track=cytoBand&hgta_table=cytoBand&hgta_doSchema=describe+table+schema">cytoBand文件格式说明</a>。</li>
-<li>tracks：加载参考基因组时，同时加载的一系列Tracks，例如默认的hg19基因组的RefSeq Gene描述信息，可选。IGV的Github有<a href="https://github.com/igvteam/igv.js/wiki/Tracks-2.0">tracks格式说明</a>。</li>
-</ul>
-<h2 id="加载方法"><a href="#加载方法" class="headerlink" title="加载方法"></a>加载方法</h2><p>写完JSON文件后，在软件中加载自定义参考基因组的方法：Genomes -&gt; Load Genome from File… -&gt; 选择参考基因组json文件</p>
-<h1 id="JSON示例"><a href="#JSON示例" class="headerlink" title="JSON示例"></a>JSON示例</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  &quot;id&quot;: &quot;b37chr&quot;,</span><br><span class="line">  &quot;name&quot;: &quot;Human (b37 with chr)&quot;,</span><br><span class="line">  &quot;fastaURL&quot;: &quot;/xxx/database/b37chr/human_g1k_v37_decoy_chr.fasta&quot;,</span><br><span class="line">  &quot;indexURL&quot;: &quot;/xxx/database/b37chr/human_g1k_v37_decoy_chr.fasta.fai&quot;,</span><br><span class="line">  &quot;cytobandURL&quot;: &quot;/xxx/database/b37chr/cytoBand.txt&quot;,</span><br><span class="line">  &quot;tracks&quot;: [</span><br><span class="line">    &#123;</span><br><span class="line">      &quot;name&quot;: &quot;Refseq Genes&quot;,</span><br><span class="line">      &quot;format&quot;: &quot;refgene&quot;,</span><br><span class="line">      &quot;url&quot;: &quot;/xxx/database/b37chr/ncbiRefSeq.sorted.txt.gz&quot;,</span><br><span class="line">      &quot;indexURL&quot;: &quot;/xxx/database/b37chr/ncbiRefSeq.sorted.txt.gz.tbi&quot;</span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      &quot;name&quot;: &quot;Target 1&quot;,</span><br><span class="line">      &quot;format&quot;: &quot;bed&quot;,</span><br><span class="line">      &quot;url&quot;: &quot;/xxx/database/b37chr/bed/Target_1.bed&quot;</span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      &quot;name&quot;: &quot;Target 2&quot;,</span><br><span class="line">      &quot;format&quot;: &quot;bed&quot;,</span><br><span class="line">      &quot;url&quot;: &quot;/xxx/database/b37chr/bed/Target_2.bed&quot;</span><br><span class="line">    &#125;</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Log</category>
-      </categories>
-      <tags>
-        <tag>IGV</tag>
       </tags>
   </entry>
   <entry>

@@ -61,6 +61,25 @@
       </tags>
   </entry>
   <entry>
+    <title>Bam文件操作</title>
+    <url>/2023/05/22/Bam%E6%96%87%E4%BB%B6%E6%93%8D%E4%BD%9C/</url>
+    <content><![CDATA[<p>用Linux命令行或软件对Bam文件进行操作</p>
+<span id="more"></span>
+
+<h1 id="统计CIGAR，从多到少排序"><a href="#统计CIGAR，从多到少排序" class="headerlink" title="统计CIGAR，从多到少排序"></a>统计CIGAR，从多到少排序</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sambamba view -F &quot;ref_name==&#x27;******&#x27; and not secondary_alignment and not supplementary&quot; ******.bam | cut -f 6 | sort | uniq -c | sed -r &#x27;s/^\s+//&#x27; | sed -r &#x27;s/\s+/\t/&#x27; | sort -k 1 -nr &gt; CIGAR.tsv</span><br></pre></td></tr></table></figure>
+
+<h1 id="提取Reads，转fasta"><a href="#提取Reads，转fasta" class="headerlink" title="提取Reads，转fasta"></a>提取Reads，转fasta</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sambamba view -F &quot;ref_name==&#x27;******&#x27; and not secondary_alignment and not supplementary&quot; ******.bam | cut -f 1,10 | sed &#x27;s/^/&gt;/&#x27; | sed -r &#x27;s/\t/\n/&#x27; &gt; Target.fa</span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>Log</category>
+      </categories>
+      <tags>
+        <tag>Bam</tag>
+        <tag>Sambamba</tag>
+        <tag>Linux</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Docker转Singularity</title>
     <url>/2023/04/24/Docker%E8%BD%ACSingularity/</url>
     <content><![CDATA[<p>Docker镜像转换为Singularity的sif格式镜像文件</p>
@@ -92,6 +111,25 @@
       </tags>
   </entry>
   <entry>
+    <title>Fastq、Fasta文件操作</title>
+    <url>/2023/05/22/Fastq%E3%80%81Fasta%E6%96%87%E4%BB%B6%E6%93%8D%E4%BD%9C/</url>
+    <content><![CDATA[<p>用Linux命令行或软件对Fastq、Fasta文件进行操作</p>
+<span id="more"></span>
+
+<h1 id="fastq转换为fasta"><a href="#fastq转换为fasta" class="headerlink" title="fastq转换为fasta"></a>fastq转换为fasta</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">awk &#x27;&#123;if(NR%4 == 1)&#123;print &quot;&gt;&quot; substr($0, 2)&#125;&#125;&#123;if(NR%4 == 2)&#123;print&#125;&#125;&#x27; $fastq &gt; $fasta</span><br></pre></td></tr></table></figure>
+
+<h1 id="fasta去重"><a href="#fasta去重" class="headerlink" title="fasta去重"></a>fasta去重</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">fastx_toolkit_0.0.13/bin/fastx_collapser -i Target.fa -o Target.dedup.fa</span><br></pre></td></tr></table></figure>
+
+<h1 id="fastq提取并统计某个部分碱基序列"><a href="#fastq提取并统计某个部分碱基序列" class="headerlink" title="fastq提取并统计某个部分碱基序列"></a>fastq提取并统计某个部分碱基序列</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 这里举例的是第101个碱基~最后一个碱基</span><br><span class="line">less $fastq | sed -n &#x27;0~2p&#x27; | sed -n &#x27;1~2p&#x27; | cut -c 101- | sort | uniq -c | sed -r &#x27;s/^\s+//&#x27; | sed &#x27;s/\s/\t/&#x27; &gt; $stat_tsv</span><br></pre></td></tr></table></figure>
+]]></content>
+      <tags>
+        <tag>Linux</tag>
+        <tag>Fastq</tag>
+        <tag>Fasta</tag>
+        <tag>fastx_toolkit</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>IGV自定义参考基因组</title>
     <url>/2023/05/03/IGV%E8%87%AA%E5%AE%9A%E4%B9%89%E5%8F%82%E8%80%83%E5%9F%BA%E5%9B%A0%E7%BB%84/</url>
     <content><![CDATA[<p>IGV 2.11.0版本以上，自定义参考基因组的方法</p>
@@ -117,6 +155,23 @@
       </categories>
       <tags>
         <tag>IGV</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Linux命令行文本文件操作</title>
+    <url>/2023/05/22/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E6%96%87%E6%9C%AC%E6%96%87%E4%BB%B6%E6%93%8D%E4%BD%9C/</url>
+    <content><![CDATA[<p>Linux命令对文本文件的操作</p>
+<span id="more"></span>
+
+<h1 id="表头行转成列"><a href="#表头行转成列" class="headerlink" title="表头行转成列"></a>表头行转成列</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">head -1 *.txt | awk &#x27;&#123;for(i=1;i&lt;=NF;i++)a[NR,i]=$i&#125;END&#123;for(j=1;j&lt;=NF;j++)for(k=1;k&lt;=NR;k++)printf k==NR?a[k,j] RS:a[k,j] FS&#125;&#x27;|less -SN</span><br></pre></td></tr></table></figure>
+
+<h1 id="修改文件时间"><a href="#修改文件时间" class="headerlink" title="修改文件时间"></a>修改文件时间</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">touch -m -d &quot;20220411 1306&quot; File.txt</span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>Log</category>
+      </categories>
+      <tags>
+        <tag>Linux</tag>
       </tags>
   </entry>
   <entry>
@@ -146,50 +201,6 @@
       </categories>
       <tags>
         <tag>Linux</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>R包安装报错 is not available</title>
-    <url>/2023/04/18/R%E5%8C%85%E5%AE%89%E8%A3%85%E6%8A%A5%E9%94%99-is-not-available/</url>
-    <content><![CDATA[<p>R包安装报错ERROR: dependency is not available</p>
-<span id="more"></span>
-
-
-<h1 id="软件版本"><a href="#软件版本" class="headerlink" title="软件版本"></a>软件版本</h1><ul>
-<li>R版本：version 3.6.0</li>
-</ul>
-<h1 id="简要过程"><a href="#简要过程" class="headerlink" title="简要过程"></a>简要过程</h1><ul>
-<li>安装R包：ComplexHeatmap  </li>
-<li>安装命令：<code>BiocManager::install(&quot;ComplexHeatmap&quot;)</code>  </li>
-<li>报错信息：ERROR: dependency ‘GetoptLong’ is not available for package ‘ComplexHeatmap’  </li>
-<li>原因：ComplexHeatmap依赖的GetoptLong依赖的rjson，要求R版本高于当前版本  </li>
-<li>解决：先安装旧版本的rjson，再安装ComplexHeatmap</li>
-</ul>
-<h1 id="具体过程"><a href="#具体过程" class="headerlink" title="具体过程"></a>具体过程</h1><h2 id="1"><a href="#1" class="headerlink" title="1"></a>1</h2><p>在github有查到报错信息：  </p>
-<ul>
-<li><a href="https://github.com/jokergoo/ComplexHeatmap/issues/514">找到个相关Issue</a>  </li>
-<li>按这个Issue说的，安装更旧版本的GetoptLong。<br><code>install.packages(&quot;https://cran.r-project.org/src/contrib/Archive/GetoptLong/GetoptLong_0.1.8.tar.gz&quot;, repo = NULL)</code></li>
-</ul>
-<h2 id="2"><a href="#2" class="headerlink" title="2"></a>2</h2><p>尝试安装更旧版本的GetoptLong时，会报另外一个包的错：  </p>
-<ul>
-<li>ERROR: dependency ‘rjson’ is not available for package ‘GetoptLong’  </li>
-<li>在CRAN上查<a href="https://cran.r-project.org/web/packages/rjson/index.html">rjson</a>，当前这个包的版本是 0.2.21，Depends的R版本要≥ 4.0.0。  </li>
-<li><strong>就是这个原因导致ComplexHeatmap安装不上，其实一开始GetoptLong的报错往上翻一点就会看见rjson的报错。</strong><br><img src="https://pic.imgdb.cn/item/643e8fe40d2dde5777cdc74f.jpg" alt="rjson_Depends"></li>
-</ul>
-<h2 id="3"><a href="#3" class="headerlink" title="3"></a>3</h2><ul>
-<li>到Old sources找旧版本，从新往旧，一个个安装试试。0.2.20版本就装得上。<br><code>install.packages(&quot;https://cran.r-project.org/src/contrib/Archive/rjson/rjson_0.2.20.tar.gz&quot;, repo = NULL)</code><br><img src="https://pic.imgdb.cn/item/643e90040d2dde5777cdf9f2.jpg" alt="Old_sources"></li>
-</ul>
-<h2 id="4"><a href="#4" class="headerlink" title="4"></a>4</h2><ul>
-<li>rjson安装成功后，重新安装ComplexHeatmap。  </li>
-<li><code>BiocManager::install(&quot;ComplexHeatmap&quot;)</code>安装成功。</li>
-</ul>
-]]></content>
-      <categories>
-        <category>Bug</category>
-      </categories>
-      <tags>
-        <tag>R</tag>
-        <tag>ComplexHeatmap</tag>
       </tags>
   </entry>
   <entry>
@@ -235,6 +246,46 @@
       </tags>
   </entry>
   <entry>
+    <title>MySQL操作</title>
+    <url>/2023/05/22/MySQL%E6%93%8D%E4%BD%9C/</url>
+    <content><![CDATA[<p>MySQL数据库的一些常用操作命令</p>
+<span id="more"></span>
+
+
+<h1 id="数据库操作"><a href="#数据库操作" class="headerlink" title="数据库操作"></a>数据库操作</h1><h2 id="mysql连接-x2F-登录"><a href="#mysql连接-x2F-登录" class="headerlink" title="mysql连接&#x2F;登录"></a>mysql连接&#x2F;登录</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">mysql -u root -p</span><br></pre></td></tr></table></figure>
+<h2 id="查看mysql中的数据库"><a href="#查看mysql中的数据库" class="headerlink" title="查看mysql中的数据库"></a>查看mysql中的数据库</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">show databases;</span><br></pre></td></tr></table></figure>
+<h2 id="选择-x2F-进入某个数据库"><a href="#选择-x2F-进入某个数据库" class="headerlink" title="选择&#x2F;进入某个数据库"></a>选择&#x2F;进入某个数据库</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">use &lt;数据库名&gt;;</span><br></pre></td></tr></table></figure>
+<h2 id="查看数据库中的表格"><a href="#查看数据库中的表格" class="headerlink" title="查看数据库中的表格"></a>查看数据库中的表格</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">show tables;</span><br></pre></td></tr></table></figure>
+<h2 id="新建数据库"><a href="#新建数据库" class="headerlink" title="新建数据库"></a>新建数据库</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">create database &lt;数据库名&gt;;</span><br><span class="line">CREATE DATABASE IF NOT EXISTS RUNOOB DEFAULT CHARSET utf8 COLLATE utf8_general_ci;</span><br></pre></td></tr></table></figure>
+<h2 id="删除数据库"><a href="#删除数据库" class="headerlink" title="删除数据库"></a>删除数据库</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">drop database &lt;数据库名&gt;;</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="表格操作"><a href="#表格操作" class="headerlink" title="表格操作"></a>表格操作</h1><h2 id="查找"><a href="#查找" class="headerlink" title="查找"></a>查找</h2><p>WHERE 子句的字符串比较是不区分大小写的。 你可以使用 BINARY关键字来区分大小写<br>SELECT * from runoob_tbl WHERE runoob_author&#x3D;’菜鸟教程’;<br>SELECT * from runoob_tbl WHERE BINARY runoob_author&#x3D;’runoob.com’;</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select * from 表名 where 列名 = &quot;列的名字&quot;;</span><br></pre></td></tr></table></figure>
+<h2 id="更新"><a href="#更新" class="headerlink" title="更新"></a>更新</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">update 表名称 set 列名称=新值 where 更新条件;</span><br></pre></td></tr></table></figure>
+<h2 id="字符串批量修改"><a href="#字符串批量修改" class="headerlink" title="字符串批量修改"></a>字符串批量修改</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">UPDATE table_name SET field=REPLACE(field, &#x27;old-string&#x27;, &#x27;new-string&#x27;);</span><br></pre></td></tr></table></figure>
+<h2 id="删除"><a href="#删除" class="headerlink" title="删除"></a>删除</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">delete from 表名称 where 删除条件;</span><br></pre></td></tr></table></figure>
+<h2 id="新增"><a href="#新增" class="headerlink" title="新增"></a>新增</h2><p>如果数据是字符型，必须使用单引号或者双引号，如：”value”</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">insert into 表名 (&quot;列名1&quot;,&quot;列名2&quot;) values (&quot;第一列内容&quot;, &quot;第二列内容&quot;);</span><br></pre></td></tr></table></figure>
+<h2 id="聚合查询"><a href="#聚合查询" class="headerlink" title="聚合查询"></a>聚合查询</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select count(*) from 表名;</span><br><span class="line">select count(id) from 表名;</span><br><span class="line">select max(&quot;列名&quot;) from 表名;</span><br></pre></td></tr></table></figure>
+<h2 id="新建表格"><a href="#新建表格" class="headerlink" title="新建表格"></a>新建表格</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">create table 表名 （列名 列类型）;</span><br></pre></td></tr></table></figure>
+<h2 id="删除表格"><a href="#删除表格" class="headerlink" title="删除表格"></a>删除表格</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">drop table 表名;</span><br></pre></td></tr></table></figure>
+<h2 id="表格新增列"><a href="#表格新增列" class="headerlink" title="表格新增列"></a>表格新增列</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">alter table 表名 add column 列名 数据类型 约束;</span><br></pre></td></tr></table></figure>
+<h2 id="表格删除列"><a href="#表格删除列" class="headerlink" title="表格删除列"></a>表格删除列</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">alter table 表名 drop 列名;</span><br></pre></td></tr></table></figure>
+<h2 id="修改列名"><a href="#修改列名" class="headerlink" title="修改列名"></a>修改列名</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">alter table 表名 change 原列名 新列名 数据类型 约束;</span><br></pre></td></tr></table></figure>
+
+<h1 id="参考来源"><a href="#参考来源" class="headerlink" title="参考来源"></a>参考来源</h1><ol>
+<li>菜鸟教程-MySQL教程 <a href="https://www.runoob.com/mysql/mysql-tutorial.html">https://www.runoob.com/mysql/mysql-tutorial.html</a></li>
+</ol>
+]]></content>
+      <categories>
+        <category>Log</category>
+      </categories>
+      <tags>
+        <tag>MySQL</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Salmon的decoy文件</title>
     <url>/2023/05/21/Salmon%E7%9A%84decoy%E6%96%87%E4%BB%B6/</url>
     <content><![CDATA[<p>用Salmon计算宏基因组预测基因的丰度，建index是否需要decoy文件。</p>
@@ -256,6 +307,50 @@
         <tag>Salmon</tag>
         <tag>转录组</tag>
         <tag>宏基因组</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>R包安装报错 is not available</title>
+    <url>/2023/04/18/R%E5%8C%85%E5%AE%89%E8%A3%85%E6%8A%A5%E9%94%99-is-not-available/</url>
+    <content><![CDATA[<p>R包安装报错ERROR: dependency is not available</p>
+<span id="more"></span>
+
+
+<h1 id="软件版本"><a href="#软件版本" class="headerlink" title="软件版本"></a>软件版本</h1><ul>
+<li>R版本：version 3.6.0</li>
+</ul>
+<h1 id="简要过程"><a href="#简要过程" class="headerlink" title="简要过程"></a>简要过程</h1><ul>
+<li>安装R包：ComplexHeatmap  </li>
+<li>安装命令：<code>BiocManager::install(&quot;ComplexHeatmap&quot;)</code>  </li>
+<li>报错信息：ERROR: dependency ‘GetoptLong’ is not available for package ‘ComplexHeatmap’  </li>
+<li>原因：ComplexHeatmap依赖的GetoptLong依赖的rjson，要求R版本高于当前版本  </li>
+<li>解决：先安装旧版本的rjson，再安装ComplexHeatmap</li>
+</ul>
+<h1 id="具体过程"><a href="#具体过程" class="headerlink" title="具体过程"></a>具体过程</h1><h2 id="1"><a href="#1" class="headerlink" title="1"></a>1</h2><p>在github有查到报错信息：  </p>
+<ul>
+<li><a href="https://github.com/jokergoo/ComplexHeatmap/issues/514">找到个相关Issue</a>  </li>
+<li>按这个Issue说的，安装更旧版本的GetoptLong。<br><code>install.packages(&quot;https://cran.r-project.org/src/contrib/Archive/GetoptLong/GetoptLong_0.1.8.tar.gz&quot;, repo = NULL)</code></li>
+</ul>
+<h2 id="2"><a href="#2" class="headerlink" title="2"></a>2</h2><p>尝试安装更旧版本的GetoptLong时，会报另外一个包的错：  </p>
+<ul>
+<li>ERROR: dependency ‘rjson’ is not available for package ‘GetoptLong’  </li>
+<li>在CRAN上查<a href="https://cran.r-project.org/web/packages/rjson/index.html">rjson</a>，当前这个包的版本是 0.2.21，Depends的R版本要≥ 4.0.0。  </li>
+<li><strong>就是这个原因导致ComplexHeatmap安装不上，其实一开始GetoptLong的报错往上翻一点就会看见rjson的报错。</strong><br><img src="https://pic.imgdb.cn/item/643e8fe40d2dde5777cdc74f.jpg" alt="rjson_Depends"></li>
+</ul>
+<h2 id="3"><a href="#3" class="headerlink" title="3"></a>3</h2><ul>
+<li>到Old sources找旧版本，从新往旧，一个个安装试试。0.2.20版本就装得上。<br><code>install.packages(&quot;https://cran.r-project.org/src/contrib/Archive/rjson/rjson_0.2.20.tar.gz&quot;, repo = NULL)</code><br><img src="https://pic.imgdb.cn/item/643e90040d2dde5777cdf9f2.jpg" alt="Old_sources"></li>
+</ul>
+<h2 id="4"><a href="#4" class="headerlink" title="4"></a>4</h2><ul>
+<li>rjson安装成功后，重新安装ComplexHeatmap。  </li>
+<li><code>BiocManager::install(&quot;ComplexHeatmap&quot;)</code>安装成功。</li>
+</ul>
+]]></content>
+      <categories>
+        <category>Bug</category>
+      </categories>
+      <tags>
+        <tag>R</tag>
+        <tag>ComplexHeatmap</tag>
       </tags>
   </entry>
   <entry>
@@ -363,8 +458,8 @@ cpan -i autodie
       </categories>
       <tags>
         <tag>数据库</tag>
-        <tag>Python</tag>
         <tag>MySQL</tag>
+        <tag>Python</tag>
         <tag>Excel</tag>
       </tags>
   </entry>
@@ -397,8 +492,8 @@ cpan -i autodie
       </categories>
       <tags>
         <tag>数据库</tag>
-        <tag>Python</tag>
         <tag>MySQL</tag>
+        <tag>Python</tag>
         <tag>Excel</tag>
       </tags>
   </entry>

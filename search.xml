@@ -80,6 +80,25 @@
       </tags>
   </entry>
   <entry>
+    <title>Fastq、Fasta文件操作</title>
+    <url>/2023/05/22/Fastq%E3%80%81Fasta%E6%96%87%E4%BB%B6%E6%93%8D%E4%BD%9C/</url>
+    <content><![CDATA[<p>用Linux命令行或软件对Fastq、Fasta文件进行操作</p>
+<span id="more"></span>
+
+<h1 id="fastq转换为fasta"><a href="#fastq转换为fasta" class="headerlink" title="fastq转换为fasta"></a>fastq转换为fasta</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">awk &#x27;&#123;if(NR%4 == 1)&#123;print &quot;&gt;&quot; substr($0, 2)&#125;&#125;&#123;if(NR%4 == 2)&#123;print&#125;&#125;&#x27; $fastq &gt; $fasta</span><br></pre></td></tr></table></figure>
+
+<h1 id="fasta去重"><a href="#fasta去重" class="headerlink" title="fasta去重"></a>fasta去重</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">fastx_toolkit_0.0.13/bin/fastx_collapser -i Target.fa -o Target.dedup.fa</span><br></pre></td></tr></table></figure>
+
+<h1 id="fastq提取并统计某个部分碱基序列"><a href="#fastq提取并统计某个部分碱基序列" class="headerlink" title="fastq提取并统计某个部分碱基序列"></a>fastq提取并统计某个部分碱基序列</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 这里举例的是第101个碱基~最后一个碱基</span><br><span class="line">less $fastq | sed -n &#x27;0~2p&#x27; | sed -n &#x27;1~2p&#x27; | cut -c 101- | sort | uniq -c | sed -r &#x27;s/^\s+//&#x27; | sed &#x27;s/\s/\t/&#x27; &gt; $stat_tsv</span><br></pre></td></tr></table></figure>
+]]></content>
+      <tags>
+        <tag>Linux</tag>
+        <tag>Fastq</tag>
+        <tag>Fasta</tag>
+        <tag>fastx_toolkit</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Docker转Singularity</title>
     <url>/2023/04/24/Docker%E8%BD%ACSingularity/</url>
     <content><![CDATA[<p>Docker镜像转换为Singularity的sif格式镜像文件</p>
@@ -108,25 +127,6 @@
         <tag>Singularity</tag>
         <tag>WDL</tag>
         <tag>Cromwell</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Fastq、Fasta文件操作</title>
-    <url>/2023/05/22/Fastq%E3%80%81Fasta%E6%96%87%E4%BB%B6%E6%93%8D%E4%BD%9C/</url>
-    <content><![CDATA[<p>用Linux命令行或软件对Fastq、Fasta文件进行操作</p>
-<span id="more"></span>
-
-<h1 id="fastq转换为fasta"><a href="#fastq转换为fasta" class="headerlink" title="fastq转换为fasta"></a>fastq转换为fasta</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">awk &#x27;&#123;if(NR%4 == 1)&#123;print &quot;&gt;&quot; substr($0, 2)&#125;&#125;&#123;if(NR%4 == 2)&#123;print&#125;&#125;&#x27; $fastq &gt; $fasta</span><br></pre></td></tr></table></figure>
-
-<h1 id="fasta去重"><a href="#fasta去重" class="headerlink" title="fasta去重"></a>fasta去重</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">fastx_toolkit_0.0.13/bin/fastx_collapser -i Target.fa -o Target.dedup.fa</span><br></pre></td></tr></table></figure>
-
-<h1 id="fastq提取并统计某个部分碱基序列"><a href="#fastq提取并统计某个部分碱基序列" class="headerlink" title="fastq提取并统计某个部分碱基序列"></a>fastq提取并统计某个部分碱基序列</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 这里举例的是第101个碱基~最后一个碱基</span><br><span class="line">less $fastq | sed -n &#x27;0~2p&#x27; | sed -n &#x27;1~2p&#x27; | cut -c 101- | sort | uniq -c | sed -r &#x27;s/^\s+//&#x27; | sed &#x27;s/\s/\t/&#x27; &gt; $stat_tsv</span><br></pre></td></tr></table></figure>
-]]></content>
-      <tags>
-        <tag>Linux</tag>
-        <tag>Fastq</tag>
-        <tag>Fasta</tag>
-        <tag>fastx_toolkit</tag>
       </tags>
   </entry>
   <entry>
@@ -286,30 +286,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Salmon的decoy文件</title>
-    <url>/2023/05/21/Salmon%E7%9A%84decoy%E6%96%87%E4%BB%B6/</url>
-    <content><![CDATA[<p>用Salmon计算宏基因组预测基因的丰度，建index是否需要decoy文件。</p>
-<span id="more"></span>
-
-<h1 id="相关信息"><a href="#相关信息" class="headerlink" title="相关信息"></a>相关信息</h1><h2 id="1"><a href="#1" class="headerlink" title="1"></a>1</h2><p><a href="https://salmon.readthedocs.io/en/latest/salmon.html">Salmon用户手册</a>有以下描述：<br>Finally, we recommend using selective alignment with a decoy-aware transcriptome, to mitigate potential spurious mapping of reads that actually arise from some unannotated genomic locus that is sequence-similar to an annotated transcriptome.</p>
-<h2 id="2"><a href="#2" class="headerlink" title="2"></a>2</h2><p>Salmon的开发者Rob在<a href="https://www.biostars.org/p/456231/">biostars的一篇帖子</a>的回复：<br>The decoy sequences are regions of the target genome that are sequence similar to annotated transcripts.These are the regions of the genome most likely to cause mismapping (e.g. transcribed pseudogenes, etc.).<br>There are 3 ways to run salmon :<br>(a) with just the annotated transcriptome being indexed<br>(b) with the annotated transcriptome and a small set of decoys computed using MASHMAP to search transcripts against the genome and<br>(c) with the annotated transcriptome and using the entire genome as decoy sequence.  </p>
-<p>The (a) method requires the fewest resources,<br>(b) requires a good deal of resources to run the MASHMAP step, but the resulting index is similar to that of (a) and it avoids the most obvious cases of misalignment.<br>(c) results in the largest index, but it’s the most effective at avoiding potentially spurious mappings.  </p>
-<p>Salmon can be used without decoy sequences (and sometimes, this is necessary — e.g. in a de novo assembly, there will likely be no possibility for decoys).<br>It can also be run without decoys in reference organisms.<br>It is simply the case that decoys help avoid certain cases of misalignment that can’t be adjudicated with the transcriptome alone, and therefore can lead to somewhat more robust estimates of abundance in the presence of the expression of unannotated sequences.  </p>
-<h1 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h1><p>decoy序列指的是基因组上与注释出的真实转录本相似的序列。<br>建index时decoy文件的作用是避免后续比对时的错误，如比对到transcribed pseudogenes（可转录的假基因？）。<br>作者列举的3种方法中，(a)是只用注释出的转录本建index的。后面也有说Salmon在某些必要情况下是可以没有decoy序列信息的，例如de novo组装的基因组。<br>同理，如果是宏基因组分析中通过预测的方法得到基因&#x2F;转录本，本身就无法得到所谓的基因组上与转录本相似的区域。<br>因此宏基因组的基因丰度计算前，建Salmon index不需要decoy文件。  </p>
-<h1 id="脚本"><a href="#脚本" class="headerlink" title="脚本"></a>脚本</h1><h2 id="建库"><a href="#建库" class="headerlink" title="建库"></a>建库</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">salmon index -p 30 -k 31 -t Gene.fa -i ./Index/Gene</span><br></pre></td></tr></table></figure>
-<h2 id="定量"><a href="#定量" class="headerlink" title="定量"></a>定量</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">salmon quant -l IU --validateMappings --meta -p 10 -i ./Index/Gene -1 Sample.R1.clean.rmhost.fq.gz -2 Sample.R2.clean.rmhost.fq.gz -o ./Result/Sample</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Log</category>
-      </categories>
-      <tags>
-        <tag>Transcriptome</tag>
-        <tag>mNGS</tag>
-        <tag>Salmon</tag>
-        <tag>转录组</tag>
-        <tag>宏基因组</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>R包安装报错 is not available</title>
     <url>/2023/04/18/R%E5%8C%85%E5%AE%89%E8%A3%85%E6%8A%A5%E9%94%99-is-not-available/</url>
     <content><![CDATA[<p>R包安装报错ERROR: dependency is not available</p>
@@ -351,6 +327,30 @@
       <tags>
         <tag>R</tag>
         <tag>ComplexHeatmap</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Salmon的decoy文件</title>
+    <url>/2023/05/21/Salmon%E7%9A%84decoy%E6%96%87%E4%BB%B6/</url>
+    <content><![CDATA[<p>用Salmon计算宏基因组预测基因的丰度，建index是否需要decoy文件。</p>
+<span id="more"></span>
+
+<h1 id="相关信息"><a href="#相关信息" class="headerlink" title="相关信息"></a>相关信息</h1><h2 id="1"><a href="#1" class="headerlink" title="1"></a>1</h2><p><a href="https://salmon.readthedocs.io/en/latest/salmon.html">Salmon用户手册</a>有以下描述：<br>Finally, we recommend using selective alignment with a decoy-aware transcriptome, to mitigate potential spurious mapping of reads that actually arise from some unannotated genomic locus that is sequence-similar to an annotated transcriptome.</p>
+<h2 id="2"><a href="#2" class="headerlink" title="2"></a>2</h2><p>Salmon的开发者Rob在<a href="https://www.biostars.org/p/456231/">biostars的一篇帖子</a>的回复：<br>The decoy sequences are regions of the target genome that are sequence similar to annotated transcripts.These are the regions of the genome most likely to cause mismapping (e.g. transcribed pseudogenes, etc.).<br>There are 3 ways to run salmon :<br>(a) with just the annotated transcriptome being indexed<br>(b) with the annotated transcriptome and a small set of decoys computed using MASHMAP to search transcripts against the genome and<br>(c) with the annotated transcriptome and using the entire genome as decoy sequence.  </p>
+<p>The (a) method requires the fewest resources,<br>(b) requires a good deal of resources to run the MASHMAP step, but the resulting index is similar to that of (a) and it avoids the most obvious cases of misalignment.<br>(c) results in the largest index, but it’s the most effective at avoiding potentially spurious mappings.  </p>
+<p>Salmon can be used without decoy sequences (and sometimes, this is necessary — e.g. in a de novo assembly, there will likely be no possibility for decoys).<br>It can also be run without decoys in reference organisms.<br>It is simply the case that decoys help avoid certain cases of misalignment that can’t be adjudicated with the transcriptome alone, and therefore can lead to somewhat more robust estimates of abundance in the presence of the expression of unannotated sequences.  </p>
+<h1 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h1><p>decoy序列指的是基因组上与注释出的真实转录本相似的序列。<br>建index时decoy文件的作用是避免后续比对时的错误，如比对到transcribed pseudogenes（可转录的假基因？）。<br>作者列举的3种方法中，(a)是只用注释出的转录本建index的。后面也有说Salmon在某些必要情况下是可以没有decoy序列信息的，例如de novo组装的基因组。<br>同理，如果是宏基因组分析中通过预测的方法得到基因&#x2F;转录本，本身就无法得到所谓的基因组上与转录本相似的区域。<br>因此宏基因组的基因丰度计算前，建Salmon index不需要decoy文件。  </p>
+<h1 id="脚本"><a href="#脚本" class="headerlink" title="脚本"></a>脚本</h1><h2 id="建库"><a href="#建库" class="headerlink" title="建库"></a>建库</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">salmon index -p 30 -k 31 -t Gene.fa -i ./Index/Gene</span><br></pre></td></tr></table></figure>
+<h2 id="定量"><a href="#定量" class="headerlink" title="定量"></a>定量</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">salmon quant -l IU --validateMappings --meta -p 10 -i ./Index/Gene -1 Sample.R1.clean.rmhost.fq.gz -2 Sample.R2.clean.rmhost.fq.gz -o ./Result/Sample</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Log</category>
+      </categories>
+      <tags>
+        <tag>Transcriptome</tag>
+        <tag>mNGS</tag>
+        <tag>Salmon</tag>
+        <tag>转录组</tag>
+        <tag>宏基因组</tag>
       </tags>
   </entry>
   <entry>
@@ -584,6 +584,27 @@ cpan -i autodie
         <tag>GO</tag>
         <tag>KEGG</tag>
         <tag>画图</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>ggplot2设置坐标轴字体颜色</title>
+    <url>/2023/05/24/ggplot2%E8%AE%BE%E7%BD%AE%E5%9D%90%E6%A0%87%E8%BD%B4%E5%AD%97%E4%BD%93%E9%A2%9C%E8%89%B2/</url>
+    <content><![CDATA[<p>通过ggplot2的theme()指定坐标轴的每个刻度标签的字体颜色</p>
+<span id="more"></span>
+
+<h1 id="关键代码"><a href="#关键代码" class="headerlink" title="关键代码"></a>关键代码</h1><p>设置X轴：<code>theme(axis.text.x = element_text(colour = Data$Color))</code><br>设置Y轴：<code>theme(axis.text.y = element_text(colour = Data$Color))</code></p>
+<h1 id="需求说明"><a href="#需求说明" class="headerlink" title="需求说明"></a>需求说明</h1><p>有若干个样本都检出某个物种，需要画检出Reads数的柱状图，当前样本字体颜色和填充颜色为蓝色，其他样本为灰色。</p>
+<h1 id="完成示例"><a href="#完成示例" class="headerlink" title="完成示例"></a>完成示例</h1><p><img src="https://pic1.imgdb.cn/item/646db75d0d2dde5777e0998b.png" alt="坐标轴字体颜色"></p>
+<h1 id="代码示例"><a href="#代码示例" class="headerlink" title="代码示例"></a>代码示例</h1><figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>ggplot2<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">args<span class="operator">&lt;-</span>commandArgs<span class="punctuation">(</span><span class="built_in">T</span><span class="punctuation">)</span></span><br><span class="line"><span class="comment"># 数据表</span></span><br><span class="line">Reads_Table<span class="operator">=</span>args<span class="punctuation">[</span><span class="number">1</span><span class="punctuation">]</span></span><br><span class="line"><span class="comment"># 输出目录</span></span><br><span class="line">Result_Dir<span class="operator">=</span>args<span class="punctuation">[</span><span class="number">2</span><span class="punctuation">]</span></span><br><span class="line"><span class="comment"># 当前样本</span></span><br><span class="line">Plot_Sample <span class="operator">=</span> args<span class="punctuation">[</span><span class="number">3</span><span class="punctuation">]</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 读入数据表</span></span><br><span class="line">Data <span class="operator">=</span> read.table<span class="punctuation">(</span>Reads_Table<span class="punctuation">,</span> head<span class="operator">=</span><span class="built_in">T</span><span class="punctuation">,</span> sep<span class="operator">=</span><span class="string">&quot;\t&quot;</span><span class="punctuation">,</span> comment.char<span class="operator">=</span><span class="string">&quot;#&quot;</span><span class="punctuation">,</span> stringsAsFactors<span class="operator">=</span><span class="literal">FALSE</span><span class="punctuation">,</span> check.names<span class="operator">=</span><span class="literal">FALSE</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 设置其他样本和当前样本的分组、颜色信息</span></span><br><span class="line">List_Color <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;#808080&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#1e90ff&quot;</span><span class="punctuation">)</span></span><br><span class="line">Data<span class="operator">$</span>Group <span class="operator">=</span> <span class="built_in">rep</span><span class="punctuation">(</span><span class="string">&quot;Other Sample&quot;</span><span class="punctuation">,</span> nrow<span class="punctuation">(</span>Data<span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">Data<span class="operator">$</span>Group<span class="punctuation">[</span>with<span class="punctuation">(</span>Data<span class="punctuation">,</span> Sample<span class="operator">==</span>Plot_Sample<span class="punctuation">)</span><span class="punctuation">]</span> <span class="operator">=</span> <span class="string">&quot;This Sample&quot;</span></span><br><span class="line">Data<span class="operator">$</span>Color <span class="operator">=</span> <span class="built_in">rep</span><span class="punctuation">(</span>List_Color<span class="punctuation">[</span><span class="number">1</span><span class="punctuation">]</span><span class="punctuation">,</span> nrow<span class="punctuation">(</span>Data<span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">Data<span class="operator">$</span>Color<span class="punctuation">[</span>with<span class="punctuation">(</span>Data<span class="punctuation">,</span> Sample<span class="operator">==</span>Plot_Sample<span class="punctuation">)</span><span class="punctuation">]</span> <span class="operator">=</span> List_Color<span class="punctuation">[</span><span class="number">2</span><span class="punctuation">]</span></span><br><span class="line"><span class="keyword">if</span> <span class="punctuation">(</span>nrow<span class="punctuation">(</span>Data<span class="punctuation">)</span> <span class="operator">==</span> <span class="number">1</span><span class="punctuation">)</span><span class="punctuation">&#123;</span></span><br><span class="line">	List_Color <span class="operator">=</span> List_Color<span class="punctuation">[</span><span class="number">2</span><span class="punctuation">]</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 通用主题</span></span><br><span class="line">plot_font_size<span class="operator">=</span><span class="number">10</span></span><br><span class="line"><span class="keyword">if</span> <span class="punctuation">(</span>plot_font_size <span class="operator">&lt;</span> <span class="number">10</span><span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">	plot_font_size <span class="operator">=</span> <span class="number">10</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br><span class="line">universal_theme<span class="operator">=</span>theme_bw<span class="punctuation">(</span>base_size<span class="operator">=</span>plot_font_size<span class="punctuation">)</span><span class="operator">+</span></span><br><span class="line">	theme<span class="punctuation">(</span>axis.line<span class="operator">=</span>element_line<span class="punctuation">(</span>size<span class="operator">=</span><span class="number">0.5</span><span class="punctuation">,</span>colour<span class="operator">=</span><span class="string">&#x27;black&#x27;</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="operator">+</span></span><br><span class="line">	theme<span class="punctuation">(</span>axis.title.x<span class="operator">=</span>element_text<span class="punctuation">(</span>size<span class="operator">=</span>plot_font_size<span class="operator">-</span><span class="number">2</span><span class="punctuation">)</span><span class="punctuation">,</span>axis.title.y<span class="operator">=</span>element_text<span class="punctuation">(</span>size<span class="operator">=</span>plot_font_size<span class="operator">-</span><span class="number">2</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="operator">+</span></span><br><span class="line">	theme<span class="punctuation">(</span>axis.text.x<span class="operator">=</span>element_text<span class="punctuation">(</span>size<span class="operator">=</span>plot_font_size<span class="operator">-</span><span class="number">3</span><span class="punctuation">,</span>colour<span class="operator">=</span><span class="string">&#x27;black&#x27;</span><span class="punctuation">)</span><span class="punctuation">,</span>axis.text.y<span class="operator">=</span>element_text<span class="punctuation">(</span>size<span class="operator">=</span>plot_font_size<span class="operator">-</span><span class="number">3</span><span class="punctuation">,</span>colour<span class="operator">=</span><span class="string">&#x27;black&#x27;</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="operator">+</span></span><br><span class="line">	theme<span class="punctuation">(</span>legend.key.size<span class="operator">=</span>unit<span class="punctuation">(</span><span class="number">20</span><span class="punctuation">,</span><span class="string">&quot;pt&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span>legend.title<span class="operator">=</span>element_text<span class="punctuation">(</span>size<span class="operator">=</span>plot_font_size<span class="operator">-</span><span class="number">2</span><span class="punctuation">)</span><span class="punctuation">,</span>legend.text<span class="operator">=</span>element_text<span class="punctuation">(</span>size<span class="operator">=</span>plot_font_size<span class="operator">-</span><span class="number">3</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="operator">+</span></span><br><span class="line">	theme<span class="punctuation">(</span>panel.border<span class="operator">=</span>element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="operator">+</span></span><br><span class="line">	theme<span class="punctuation">(</span>plot.title<span class="operator">=</span>element_text<span class="punctuation">(</span>hjust<span class="operator">=</span><span class="number">0.5</span><span class="punctuation">,</span>size<span class="operator">=</span>plot_font_size<span class="punctuation">)</span><span class="punctuation">)</span><span class="operator">+</span></span><br><span class="line">	theme<span class="punctuation">(</span>legend.position<span class="operator">=</span><span class="string">&quot;none&quot;</span><span class="punctuation">)</span><span class="operator">+</span></span><br><span class="line">	theme<span class="punctuation">(</span>panel.grid<span class="operator">=</span>element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 画柱状图</span></span><br><span class="line">picture <span class="operator">=</span> ggplot<span class="punctuation">(</span>data<span class="operator">=</span>Data<span class="punctuation">,</span> aes<span class="punctuation">(</span>x<span class="operator">=</span>Sample<span class="punctuation">,</span> y<span class="operator">=</span>Reads<span class="punctuation">,</span> fill<span class="operator">=</span>Group<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">	geom_bar<span class="punctuation">(</span>stat<span class="operator">=</span><span class="string">&quot;identity&quot;</span><span class="punctuation">,</span> width<span class="operator">=</span><span class="number">0.7</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">	labs<span class="punctuation">(</span>x<span class="operator">=</span><span class="string">&quot;&quot;</span><span class="punctuation">,</span> y<span class="operator">=</span><span class="string">&quot;&quot;</span><span class="punctuation">,</span> title<span class="operator">=</span><span class="string">&quot;无乳链球菌&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">	scale_y_continuous<span class="punctuation">(</span>expand <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="number">0</span><span class="punctuation">,</span><span class="number">0</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">	scale_fill_manual<span class="punctuation">(</span>values <span class="operator">=</span> List_Color<span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">	universal_theme <span class="operator">+</span> </span><br><span class="line">	theme<span class="punctuation">(</span>axis.text.y <span class="operator">=</span> element_text<span class="punctuation">(</span>colour <span class="operator">=</span> rev<span class="punctuation">(</span>Data<span class="operator">$</span>Color<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">	coord_flip<span class="punctuation">(</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 保存图片</span></span><br><span class="line">output_png <span class="operator">=</span> paste<span class="punctuation">(</span>Result_Dir<span class="punctuation">,</span> <span class="string">&quot;/&quot;</span><span class="punctuation">,</span> <span class="string">&quot;无乳链球菌.png&quot;</span><span class="punctuation">,</span> sep<span class="operator">=</span><span class="string">&quot;&quot;</span><span class="punctuation">,</span> collapse<span class="operator">=</span><span class="string">&quot;&quot;</span><span class="punctuation">)</span></span><br><span class="line">ggsave<span class="punctuation">(</span>output_png<span class="punctuation">,</span> picture<span class="punctuation">,</span> width<span class="operator">=</span><span class="number">8</span><span class="punctuation">,</span> height<span class="operator">=</span><span class="number">10</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<h1 id="警告信息"><a href="#警告信息" class="headerlink" title="警告信息"></a>警告信息</h1><p>使用以上代码画图，会出现警告信息。<br>这是因为用向量变量在element_text中指定颜色并不是官方支持的标准用法，算是个workaround。<br>目前是能正常使用的，但在将来的ggplot2版本不一定依然支持这样的用法。  </p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Warning message:</span><br><span class="line">Vectorized input to `element_text()` is not officially supported.</span><br><span class="line">Results may be unexpected or may change in future versions of ggplot2.</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Log</category>
+      </categories>
+      <tags>
+        <tag>画图</tag>
+        <tag>ggplot2</tag>
       </tags>
   </entry>
   <entry>

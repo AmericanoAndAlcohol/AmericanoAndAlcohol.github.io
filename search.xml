@@ -99,6 +99,34 @@
       </tags>
   </entry>
   <entry>
+    <title>IGV自定义参考基因组</title>
+    <url>/2023/05/03/IGV%E8%87%AA%E5%AE%9A%E4%B9%89%E5%8F%82%E8%80%83%E5%9F%BA%E5%9B%A0%E7%BB%84/</url>
+    <content><![CDATA[<p>IGV 2.11.0版本以上，自定义参考基因组的方法</p>
+<span id="more"></span>
+
+<h1 id="软件版本"><a href="#软件版本" class="headerlink" title="软件版本"></a>软件版本</h1><p>IGV版本：2.13.0  </p>
+<h1 id="需求说明"><a href="#需求说明" class="headerlink" title="需求说明"></a>需求说明</h1><p>对b37的参考基因组fasta文件做了一些修改，需要在IGV中浏览它，而且需要有Refseq的基因注释信息的Track。  </p>
+<h1 id="信息说明"><a href="#信息说明" class="headerlink" title="信息说明"></a>信息说明</h1><h2 id="版本差异"><a href="#版本差异" class="headerlink" title="版本差异"></a>版本差异</h2><p>IGV 2.11.0版本以上，是用一个JSON文件去指定和加载参考基因组的。<br>同时弃用了之前版本的.genome格式；通过选项Genomes -&gt; Greate .genome File…的加载方式也取消了。  </p>
+<h2 id="官方文档"><a href="#官方文档" class="headerlink" title="官方文档"></a>官方文档</h2><p><a href="https://github.com/igvteam/igv/wiki/JSON-Genome-Format">格式说明</a> <code>https://github.com/igvteam/igv/wiki/JSON-Genome-Format</code><br><a href="https://github.com/igvteam/igv.js/wiki/Reference-Genome">属性说明</a> <code>https://github.com/igvteam/igv.js/wiki/Reference-Genome</code>  </p>
+<h2 id="参数说明"><a href="#参数说明" class="headerlink" title="参数说明"></a>参数说明</h2><p>IGV 2.11.0版本以上自定义参考基因组JSON文件，只有是fastaURL必填，其他都是可选。<br>所有URL都可以是在线资源或本地路径。  </p>
+<ul>
+<li>id：该参考基因组的名称，可选。就是在Genome下拉框里显示的基因组名称。</li>
+<li>name：描述信息，可选。</li>
+<li>fastaURL：参考基因组Fasta的URL，必填。可以是线上的，如UCSC等数据库中的fasta文件；也可以是本地的，如服务器上的fasta文件路径。</li>
+<li>indexURL：参考基因组Fasta的索引（.fai）文件，可选。但如果不提供.fai文件，会一次性加载整个fasta文件。</li>
+<li>cytobandURL：UCSC格式的cytoBand文件的URL，可选。是用于画染色体示意图的，可以在UCSC的goldenPath找到cytoBand.txt.gz，例如<a href="https://hgdownload.cse.ucsc.edu/goldenPath/hg19/database/">hg19</a>的。UCSC上有<a href="https://genome.ucsc.edu/cgi-bin/hgTables?db=hg38&hgta_group=map&hgta_track=cytoBand&hgta_table=cytoBand&hgta_doSchema=describe+table+schema">cytoBand文件格式说明</a>。</li>
+<li>tracks：加载参考基因组时，同时加载的一系列Tracks，例如默认的hg19基因组的RefSeq Gene描述信息，可选。IGV的Github有<a href="https://github.com/igvteam/igv.js/wiki/Tracks-2.0">tracks格式说明</a>。</li>
+</ul>
+<h2 id="加载方法"><a href="#加载方法" class="headerlink" title="加载方法"></a>加载方法</h2><p>写完JSON文件后，在软件中加载自定义参考基因组的方法：Genomes -&gt; Load Genome from File… -&gt; 选择参考基因组json文件</p>
+<h1 id="JSON示例"><a href="#JSON示例" class="headerlink" title="JSON示例"></a>JSON示例</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  &quot;id&quot;: &quot;b37chr&quot;,</span><br><span class="line">  &quot;name&quot;: &quot;Human (b37 with chr)&quot;,</span><br><span class="line">  &quot;fastaURL&quot;: &quot;/xxx/database/b37chr/human_g1k_v37_decoy_chr.fasta&quot;,</span><br><span class="line">  &quot;indexURL&quot;: &quot;/xxx/database/b37chr/human_g1k_v37_decoy_chr.fasta.fai&quot;,</span><br><span class="line">  &quot;cytobandURL&quot;: &quot;/xxx/database/b37chr/cytoBand.txt&quot;,</span><br><span class="line">  &quot;tracks&quot;: [</span><br><span class="line">    &#123;</span><br><span class="line">      &quot;name&quot;: &quot;Refseq Genes&quot;,</span><br><span class="line">      &quot;format&quot;: &quot;refgene&quot;,</span><br><span class="line">      &quot;url&quot;: &quot;/xxx/database/b37chr/ncbiRefSeq.sorted.txt.gz&quot;,</span><br><span class="line">      &quot;indexURL&quot;: &quot;/xxx/database/b37chr/ncbiRefSeq.sorted.txt.gz.tbi&quot;</span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      &quot;name&quot;: &quot;Target 1&quot;,</span><br><span class="line">      &quot;format&quot;: &quot;bed&quot;,</span><br><span class="line">      &quot;url&quot;: &quot;/xxx/database/b37chr/bed/Target_1.bed&quot;</span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      &quot;name&quot;: &quot;Target 2&quot;,</span><br><span class="line">      &quot;format&quot;: &quot;bed&quot;,</span><br><span class="line">      &quot;url&quot;: &quot;/xxx/database/b37chr/bed/Target_2.bed&quot;</span><br><span class="line">    &#125;</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Log</category>
+      </categories>
+      <tags>
+        <tag>IGV</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Docker转Singularity</title>
     <url>/2023/04/24/Docker%E8%BD%ACSingularity/</url>
     <content><![CDATA[<p>Docker镜像转换为Singularity的sif格式镜像文件</p>
@@ -127,34 +155,6 @@
         <tag>Singularity</tag>
         <tag>WDL</tag>
         <tag>Cromwell</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>IGV自定义参考基因组</title>
-    <url>/2023/05/03/IGV%E8%87%AA%E5%AE%9A%E4%B9%89%E5%8F%82%E8%80%83%E5%9F%BA%E5%9B%A0%E7%BB%84/</url>
-    <content><![CDATA[<p>IGV 2.11.0版本以上，自定义参考基因组的方法</p>
-<span id="more"></span>
-
-<h1 id="软件版本"><a href="#软件版本" class="headerlink" title="软件版本"></a>软件版本</h1><p>IGV版本：2.13.0  </p>
-<h1 id="需求说明"><a href="#需求说明" class="headerlink" title="需求说明"></a>需求说明</h1><p>对b37的参考基因组fasta文件做了一些修改，需要在IGV中浏览它，而且需要有Refseq的基因注释信息的Track。  </p>
-<h1 id="信息说明"><a href="#信息说明" class="headerlink" title="信息说明"></a>信息说明</h1><h2 id="版本差异"><a href="#版本差异" class="headerlink" title="版本差异"></a>版本差异</h2><p>IGV 2.11.0版本以上，是用一个JSON文件去指定和加载参考基因组的。<br>同时弃用了之前版本的.genome格式；通过选项Genomes -&gt; Greate .genome File…的加载方式也取消了。  </p>
-<h2 id="官方文档"><a href="#官方文档" class="headerlink" title="官方文档"></a>官方文档</h2><p><a href="https://github.com/igvteam/igv/wiki/JSON-Genome-Format">格式说明</a> <code>https://github.com/igvteam/igv/wiki/JSON-Genome-Format</code><br><a href="https://github.com/igvteam/igv.js/wiki/Reference-Genome">属性说明</a> <code>https://github.com/igvteam/igv.js/wiki/Reference-Genome</code>  </p>
-<h2 id="参数说明"><a href="#参数说明" class="headerlink" title="参数说明"></a>参数说明</h2><p>IGV 2.11.0版本以上自定义参考基因组JSON文件，只有是fastaURL必填，其他都是可选。<br>所有URL都可以是在线资源或本地路径。  </p>
-<ul>
-<li>id：该参考基因组的名称，可选。就是在Genome下拉框里显示的基因组名称。</li>
-<li>name：描述信息，可选。</li>
-<li>fastaURL：参考基因组Fasta的URL，必填。可以是线上的，如UCSC等数据库中的fasta文件；也可以是本地的，如服务器上的fasta文件路径。</li>
-<li>indexURL：参考基因组Fasta的索引（.fai）文件，可选。但如果不提供.fai文件，会一次性加载整个fasta文件。</li>
-<li>cytobandURL：UCSC格式的cytoBand文件的URL，可选。是用于画染色体示意图的，可以在UCSC的goldenPath找到cytoBand.txt.gz，例如<a href="https://hgdownload.cse.ucsc.edu/goldenPath/hg19/database/">hg19</a>的。UCSC上有<a href="https://genome.ucsc.edu/cgi-bin/hgTables?db=hg38&hgta_group=map&hgta_track=cytoBand&hgta_table=cytoBand&hgta_doSchema=describe+table+schema">cytoBand文件格式说明</a>。</li>
-<li>tracks：加载参考基因组时，同时加载的一系列Tracks，例如默认的hg19基因组的RefSeq Gene描述信息，可选。IGV的Github有<a href="https://github.com/igvteam/igv.js/wiki/Tracks-2.0">tracks格式说明</a>。</li>
-</ul>
-<h2 id="加载方法"><a href="#加载方法" class="headerlink" title="加载方法"></a>加载方法</h2><p>写完JSON文件后，在软件中加载自定义参考基因组的方法：Genomes -&gt; Load Genome from File… -&gt; 选择参考基因组json文件</p>
-<h1 id="JSON示例"><a href="#JSON示例" class="headerlink" title="JSON示例"></a>JSON示例</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  &quot;id&quot;: &quot;b37chr&quot;,</span><br><span class="line">  &quot;name&quot;: &quot;Human (b37 with chr)&quot;,</span><br><span class="line">  &quot;fastaURL&quot;: &quot;/xxx/database/b37chr/human_g1k_v37_decoy_chr.fasta&quot;,</span><br><span class="line">  &quot;indexURL&quot;: &quot;/xxx/database/b37chr/human_g1k_v37_decoy_chr.fasta.fai&quot;,</span><br><span class="line">  &quot;cytobandURL&quot;: &quot;/xxx/database/b37chr/cytoBand.txt&quot;,</span><br><span class="line">  &quot;tracks&quot;: [</span><br><span class="line">    &#123;</span><br><span class="line">      &quot;name&quot;: &quot;Refseq Genes&quot;,</span><br><span class="line">      &quot;format&quot;: &quot;refgene&quot;,</span><br><span class="line">      &quot;url&quot;: &quot;/xxx/database/b37chr/ncbiRefSeq.sorted.txt.gz&quot;,</span><br><span class="line">      &quot;indexURL&quot;: &quot;/xxx/database/b37chr/ncbiRefSeq.sorted.txt.gz.tbi&quot;</span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      &quot;name&quot;: &quot;Target 1&quot;,</span><br><span class="line">      &quot;format&quot;: &quot;bed&quot;,</span><br><span class="line">      &quot;url&quot;: &quot;/xxx/database/b37chr/bed/Target_1.bed&quot;</span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      &quot;name&quot;: &quot;Target 2&quot;,</span><br><span class="line">      &quot;format&quot;: &quot;bed&quot;,</span><br><span class="line">      &quot;url&quot;: &quot;/xxx/database/b37chr/bed/Target_2.bed&quot;</span><br><span class="line">    &#125;</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Log</category>
-      </categories>
-      <tags>
-        <tag>IGV</tag>
       </tags>
   </entry>
   <entry>
@@ -495,6 +495,42 @@ cpan -i autodie
         <tag>MySQL</tag>
         <tag>Python</tag>
         <tag>Excel</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>bcl2fastq数据拆分报错</title>
+    <url>/2023/05/25/bcl2fastq%E6%95%B0%E6%8D%AE%E6%8B%86%E5%88%86%E6%8A%A5%E9%94%99/</url>
+    <content><![CDATA[<p>bcl2fastq数据拆分报错，拆分过程中报错中断</p>
+<span id="more"></span>
+
+<h1 id="报错信息"><a href="#报错信息" class="headerlink" title="报错信息"></a>报错信息</h1><p>有可能出现下面两种报错：</p>
+<ul>
+<li><p>报错信息 1<br><img src="https://pic1.imgdb.cn/item/646f2ab8f024cca173865ddd.png" alt="报错信息1"><br><code>ERROR: Thread: xxx caught an exception first: ...... bytes_read=0 bytes_expected=xxxxxx</code></p>
+</li>
+<li><p>报错信息 2<br><img src="https://pic1.imgdb.cn/item/646f2ac6f024cca173867090.png" alt="报错信息1"><br><code>Mismatching cluster count in BCL file: Cycle #xxx, Tile#xxx: bytes_read=0 bytes_expected=xxxxxx</code></p>
+</li>
+</ul>
+<h1 id="可能原因"><a href="#可能原因" class="headerlink" title="可能原因"></a>可能原因</h1><p>可能是该测序批次数据量太大，缓存读写跟不上，导致有些Cycle文件在写出前就从缓存被丢弃了，文件大小为0，最后导致报错。  </p>
+<h1 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h1><p>让读写线程大于加载和处理线程，看下是否能避免报错。  </p>
+<h1 id="测试方案"><a href="#测试方案" class="headerlink" title="测试方案"></a>测试方案</h1><h2 id="重复报错信息"><a href="#重复报错信息" class="headerlink" title="重复报错信息"></a>重复报错信息</h2><ul>
+<li>bcl2fastq参数设置<br><code>--loading-threads 10 --processing-threads 10 --writing-threads 10</code></li>
+<li>测试结果<br>报错，出现上述报错信息 1</li>
+</ul>
+<h2 id="测试解决方案（较少线程）"><a href="#测试解决方案（较少线程）" class="headerlink" title="测试解决方案（较少线程）"></a>测试解决方案（较少线程）</h2><ul>
+<li>bcl2fastq参数设置<br><code>--loading-threads 6 --processing-threads 6 --writing-threads 8</code></li>
+<li>测试结果<br>拆分成功，耗时 1 hour 7 min</li>
+</ul>
+<h2 id="测试解决方案（较多线程）"><a href="#测试解决方案（较多线程）" class="headerlink" title="测试解决方案（较多线程）"></a>测试解决方案（较多线程）</h2><ul>
+<li>bcl2fastq参数设置<br><code>--loading-threads 14 --processing-threads 14 --writing-threads 18</code></li>
+<li>测试结果<br>拆分成功，耗时 29min</li>
+</ul>
+]]></content>
+      <categories>
+        <category>Bug</category>
+      </categories>
+      <tags>
+        <tag>bcl2fastq</tag>
+        <tag>数据拆分</tag>
       </tags>
   </entry>
   <entry>

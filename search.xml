@@ -58,6 +58,7 @@
         <tag>NT</tag>
         <tag>BLAST</tag>
         <tag>数据库</tag>
+        <tag>TaxonKit</tag>
       </tags>
   </entry>
   <entry>
@@ -77,6 +78,37 @@
         <tag>Bam</tag>
         <tag>Sambamba</tag>
         <tag>Linux</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Docker转Singularity</title>
+    <url>/2023/04/24/Docker%E8%BD%ACSingularity/</url>
+    <content><![CDATA[<p>Docker镜像转换为Singularity的sif格式镜像文件</p>
+<span id="more"></span>
+
+<h1 id="需求"><a href="#需求" class="headerlink" title="需求"></a>需求</h1><p>本地搭建了一些docker镜像，已有的方案用Cromwell投递WDL项目时用的是Singularity镜像，所以需要转为Singularity的sif格式镜像文件。  </p>
+<h1 id="错误方案"><a href="#错误方案" class="headerlink" title="错误方案"></a>错误方案</h1><p>同事之前已经写了一个将docker hub的镜像pull下来并转为sif格式的脚本，想改成用singularity build去处理本地docker镜像。<br>但是发现生成的sif文件名称没有sha256后面的验证码。<br>正常生成的sif名称类似：***_varscan2_sha256_b235818***************595db587df.sif，但是singularity build生成的的会类似***<em>varscan2_sha256</em>.sif。<br>原因是sha256验证码取的是docker镜像的RepoDigests，此信息只有当镜像被上传到docker hub后才会有。<br>本地搭建的，未上传到docker hub的镜像，使用docker images –digests查看会见到该镜像的DIGEST列的值为&lt;none&gt;。所以其实是sha256码本身就不存在，所以无法生成对应的文件名。<br>其实没有sha256的Singularity的sif格式镜像文件也可以用于Cromwell投递WDL项目，需要Cromwell配置文件设置参数。[这里挖一个坑，写好填上]  </p>
+<p>已有的用于Docker转换为Singularity的脚本：  </p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#! /bin/bash</span><br><span class="line"></span><br><span class="line">docker=$1</span><br><span class="line"></span><br><span class="line">export SINGULARITY_CACHEDIR=[存放Singularity镜像的目录]</span><br><span class="line">CACHE_DIR=$SINGULARITY_CACHEDIR</span><br><span class="line">DOCKER_NAME=$(echo $docker | cut -d&quot;:&quot; -f 1 | sed -e &#x27;s/\//_/&#x27;)</span><br><span class="line">SHA_NAME=$(docker inspect --format=&#x27;&#123;&#123;index .RepoDigests 0&#125;&#125;&#x27; $&#123;docker&#125; | cut -d&quot;:&quot; -f 2)</span><br><span class="line">SHA_TAG=&quot;sha256_$&#123;SHA_NAME&#125;&quot;</span><br><span class="line">IMAGE=$CACHE_DIR/$&#123;DOCKER_NAME&#125;_$&#123;SHA_TAG&#125;.sif</span><br><span class="line">if [ ! -f $IMAGE ]; then</span><br><span class="line">    singularity pull $IMAGE docker://$&#123;docker&#125;</span><br><span class="line">fi</span><br></pre></td></tr></table></figure>
+
+<h1 id="正确方案"><a href="#正确方案" class="headerlink" title="正确方案"></a>正确方案</h1><p>先将本地的docker image上传到docker hub上（<a href="https://blog.csdn.net/u013258415/article/details/80050956/">参考</a>），生成Docker镜像的RepoDigests后，再跑一下上面的shell脚本。  </p>
+<ol>
+<li>注册docker hub账户，<code>https://hub.docker.com/</code>。  </li>
+<li>在服务器上登录docker hub，命令行docker login，输账号密码。  </li>
+<li>检查镜像的REPOSITORY命名方式，必须是“注册用户名&#x2F;镜像名”。不符合的可以用docker tag <old_REPOSITORY> <new_REPOSITORY>修改。修改后可以docker rmi 把旧的删掉。  </new_REPOSITORY></old_REPOSITORY></li>
+<li>上传镜像到docker hub，命令行docker push REPOSITORY:TAG，等待上传完毕即可。无需重新pull镜像，上传完本地的镜像就会有RepoDigests，可以通过docker images –digests查看。  </li>
+<li>退出当前docker hub账号，命令行docker logout。  </li>
+<li>使用上面的shell脚本将docker容器转为sif格式，传入参数是docker image的REPOSITORY:TAG。</li>
+</ol>
+]]></content>
+      <categories>
+        <category>Log</category>
+      </categories>
+      <tags>
+        <tag>Docker</tag>
+        <tag>Singularity</tag>
+        <tag>WDL</tag>
+        <tag>Cromwell</tag>
       </tags>
   </entry>
   <entry>
@@ -127,37 +159,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Docker转Singularity</title>
-    <url>/2023/04/24/Docker%E8%BD%ACSingularity/</url>
-    <content><![CDATA[<p>Docker镜像转换为Singularity的sif格式镜像文件</p>
-<span id="more"></span>
-
-<h1 id="需求"><a href="#需求" class="headerlink" title="需求"></a>需求</h1><p>本地搭建了一些docker镜像，已有的方案用Cromwell投递WDL项目时用的是Singularity镜像，所以需要转为Singularity的sif格式镜像文件。  </p>
-<h1 id="错误方案"><a href="#错误方案" class="headerlink" title="错误方案"></a>错误方案</h1><p>同事之前已经写了一个将docker hub的镜像pull下来并转为sif格式的脚本，想改成用singularity build去处理本地docker镜像。<br>但是发现生成的sif文件名称没有sha256后面的验证码。<br>正常生成的sif名称类似：***_varscan2_sha256_b235818***************595db587df.sif，但是singularity build生成的的会类似***<em>varscan2_sha256</em>.sif。<br>原因是sha256验证码取的是docker镜像的RepoDigests，此信息只有当镜像被上传到docker hub后才会有。<br>本地搭建的，未上传到docker hub的镜像，使用docker images –digests查看会见到该镜像的DIGEST列的值为&lt;none&gt;。所以其实是sha256码本身就不存在，所以无法生成对应的文件名。<br>其实没有sha256的Singularity的sif格式镜像文件也可以用于Cromwell投递WDL项目，需要Cromwell配置文件设置参数。[这里挖一个坑，写好填上]  </p>
-<p>已有的用于Docker转换为Singularity的脚本：  </p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#! /bin/bash</span><br><span class="line"></span><br><span class="line">docker=$1</span><br><span class="line"></span><br><span class="line">export SINGULARITY_CACHEDIR=[存放Singularity镜像的目录]</span><br><span class="line">CACHE_DIR=$SINGULARITY_CACHEDIR</span><br><span class="line">DOCKER_NAME=$(echo $docker | cut -d&quot;:&quot; -f 1 | sed -e &#x27;s/\//_/&#x27;)</span><br><span class="line">SHA_NAME=$(docker inspect --format=&#x27;&#123;&#123;index .RepoDigests 0&#125;&#125;&#x27; $&#123;docker&#125; | cut -d&quot;:&quot; -f 2)</span><br><span class="line">SHA_TAG=&quot;sha256_$&#123;SHA_NAME&#125;&quot;</span><br><span class="line">IMAGE=$CACHE_DIR/$&#123;DOCKER_NAME&#125;_$&#123;SHA_TAG&#125;.sif</span><br><span class="line">if [ ! -f $IMAGE ]; then</span><br><span class="line">    singularity pull $IMAGE docker://$&#123;docker&#125;</span><br><span class="line">fi</span><br></pre></td></tr></table></figure>
-
-<h1 id="正确方案"><a href="#正确方案" class="headerlink" title="正确方案"></a>正确方案</h1><p>先将本地的docker image上传到docker hub上（<a href="https://blog.csdn.net/u013258415/article/details/80050956/">参考</a>），生成Docker镜像的RepoDigests后，再跑一下上面的shell脚本。  </p>
-<ol>
-<li>注册docker hub账户，<code>https://hub.docker.com/</code>。  </li>
-<li>在服务器上登录docker hub，命令行docker login，输账号密码。  </li>
-<li>检查镜像的REPOSITORY命名方式，必须是“注册用户名&#x2F;镜像名”。不符合的可以用docker tag <old_REPOSITORY> <new_REPOSITORY>修改。修改后可以docker rmi 把旧的删掉。  </new_REPOSITORY></old_REPOSITORY></li>
-<li>上传镜像到docker hub，命令行docker push REPOSITORY:TAG，等待上传完毕即可。无需重新pull镜像，上传完本地的镜像就会有RepoDigests，可以通过docker images –digests查看。  </li>
-<li>退出当前docker hub账号，命令行docker logout。  </li>
-<li>使用上面的shell脚本将docker容器转为sif格式，传入参数是docker image的REPOSITORY:TAG。</li>
-</ol>
-]]></content>
-      <categories>
-        <category>Log</category>
-      </categories>
-      <tags>
-        <tag>Docker</tag>
-        <tag>Singularity</tag>
-        <tag>WDL</tag>
-        <tag>Cromwell</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Linux命令行文本文件操作</title>
     <url>/2023/05/22/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E6%96%87%E6%9C%AC%E6%96%87%E4%BB%B6%E6%93%8D%E4%BD%9C/</url>
     <content><![CDATA[<p>Linux命令对文本文件的操作</p>
@@ -204,6 +205,78 @@
       </tags>
   </entry>
   <entry>
+    <title>MySQL操作</title>
+    <url>/2023/05/22/MySQL%E6%93%8D%E4%BD%9C/</url>
+    <content><![CDATA[<p>MySQL数据库的一些常用操作命令</p>
+<span id="more"></span>
+
+
+<h1 id="数据库操作"><a href="#数据库操作" class="headerlink" title="数据库操作"></a>数据库操作</h1><h2 id="mysql连接-x2F-登录"><a href="#mysql连接-x2F-登录" class="headerlink" title="mysql连接&#x2F;登录"></a>mysql连接&#x2F;登录</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">mysql -u root -p</span><br></pre></td></tr></table></figure>
+<h2 id="查看mysql中的数据库"><a href="#查看mysql中的数据库" class="headerlink" title="查看mysql中的数据库"></a>查看mysql中的数据库</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">show databases;</span><br></pre></td></tr></table></figure>
+<h2 id="选择-x2F-进入某个数据库"><a href="#选择-x2F-进入某个数据库" class="headerlink" title="选择&#x2F;进入某个数据库"></a>选择&#x2F;进入某个数据库</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">use &lt;数据库名&gt;;</span><br></pre></td></tr></table></figure>
+<h2 id="查看数据库中的表格"><a href="#查看数据库中的表格" class="headerlink" title="查看数据库中的表格"></a>查看数据库中的表格</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">show tables;</span><br></pre></td></tr></table></figure>
+<h2 id="新建数据库"><a href="#新建数据库" class="headerlink" title="新建数据库"></a>新建数据库</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">create database &lt;数据库名&gt;;</span><br><span class="line">CREATE DATABASE IF NOT EXISTS RUNOOB DEFAULT CHARSET utf8 COLLATE utf8_general_ci;</span><br></pre></td></tr></table></figure>
+<h2 id="删除数据库"><a href="#删除数据库" class="headerlink" title="删除数据库"></a>删除数据库</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">drop database &lt;数据库名&gt;;</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="表格操作"><a href="#表格操作" class="headerlink" title="表格操作"></a>表格操作</h1><h2 id="查找"><a href="#查找" class="headerlink" title="查找"></a>查找</h2><p>WHERE 子句的字符串比较是不区分大小写的。 你可以使用 BINARY关键字来区分大小写<br>SELECT * from runoob_tbl WHERE runoob_author&#x3D;’菜鸟教程’;<br>SELECT * from runoob_tbl WHERE BINARY runoob_author&#x3D;’runoob.com’;</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select * from 表名 where 列名 = &quot;列的名字&quot;;</span><br></pre></td></tr></table></figure>
+<h2 id="更新"><a href="#更新" class="headerlink" title="更新"></a>更新</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">update 表名称 set 列名称=新值 where 更新条件;</span><br></pre></td></tr></table></figure>
+<h2 id="字符串批量修改"><a href="#字符串批量修改" class="headerlink" title="字符串批量修改"></a>字符串批量修改</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">UPDATE table_name SET field=REPLACE(field, &#x27;old-string&#x27;, &#x27;new-string&#x27;);</span><br></pre></td></tr></table></figure>
+<h2 id="删除"><a href="#删除" class="headerlink" title="删除"></a>删除</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">delete from 表名称 where 删除条件;</span><br></pre></td></tr></table></figure>
+<h2 id="新增"><a href="#新增" class="headerlink" title="新增"></a>新增</h2><p>如果数据是字符型，必须使用单引号或者双引号，如：”value”</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">insert into 表名 (&quot;列名1&quot;,&quot;列名2&quot;) values (&quot;第一列内容&quot;, &quot;第二列内容&quot;);</span><br></pre></td></tr></table></figure>
+<h2 id="聚合查询"><a href="#聚合查询" class="headerlink" title="聚合查询"></a>聚合查询</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select count(*) from 表名;</span><br><span class="line">select count(id) from 表名;</span><br><span class="line">select max(&quot;列名&quot;) from 表名;</span><br></pre></td></tr></table></figure>
+<h2 id="新建表格"><a href="#新建表格" class="headerlink" title="新建表格"></a>新建表格</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">create table 表名 （列名 列类型）;</span><br></pre></td></tr></table></figure>
+<h2 id="删除表格"><a href="#删除表格" class="headerlink" title="删除表格"></a>删除表格</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">drop table 表名;</span><br></pre></td></tr></table></figure>
+<h2 id="表格新增列"><a href="#表格新增列" class="headerlink" title="表格新增列"></a>表格新增列</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">alter table 表名 add column 列名 数据类型 约束;</span><br></pre></td></tr></table></figure>
+<h2 id="表格删除列"><a href="#表格删除列" class="headerlink" title="表格删除列"></a>表格删除列</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">alter table 表名 drop 列名;</span><br></pre></td></tr></table></figure>
+<h2 id="修改列名"><a href="#修改列名" class="headerlink" title="修改列名"></a>修改列名</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">alter table 表名 change 原列名 新列名 数据类型 约束;</span><br></pre></td></tr></table></figure>
+
+<h1 id="参考来源"><a href="#参考来源" class="headerlink" title="参考来源"></a>参考来源</h1><ol>
+<li>菜鸟教程-MySQL教程 <a href="https://www.runoob.com/mysql/mysql-tutorial.html">https://www.runoob.com/mysql/mysql-tutorial.html</a></li>
+</ol>
+]]></content>
+      <categories>
+        <category>Log</category>
+      </categories>
+      <tags>
+        <tag>MySQL</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Pacbio三代数据SV分析</title>
+    <url>/2023/05/26/Pacbio%E4%B8%89%E4%BB%A3%E6%95%B0%E6%8D%AESV%E5%88%86%E6%9E%90/</url>
+    <content><![CDATA[<p>（未解决） Pacbio CCS(HIFI)数据，IGV能看到的Deletion，用三代SV软件call不出</p>
+<span id="more"></span>
+
+<h1 id="需求说明"><a href="#需求说明" class="headerlink" title="需求说明"></a>需求说明</h1><p>输入文件是一个Pacbio CCS(HIFI)数据，是用pbmm2 1.5.0 (commit v1.5.0-1-gadeb061)比对得到的Bam文件。<br>需要确认一个9.5k Deletion的情况，已在IGV明确找到softclip fragment比对位置。  </p>
+<h1 id="分析过程"><a href="#分析过程" class="headerlink" title="分析过程"></a>分析过程</h1><h2 id="pbsv"><a href="#pbsv" class="headerlink" title="pbsv"></a>pbsv</h2><p>因为是Pacbio的数据，所以一开始是用pbsv分析。但是出现以下问题：  </p>
+<h3 id="pbmm2特定版本结果只与pbsv特定版本兼容？"><a href="#pbmm2特定版本结果只与pbsv特定版本兼容？" class="headerlink" title="pbmm2特定版本结果只与pbsv特定版本兼容？"></a>pbmm2特定版本结果只与pbsv特定版本兼容？</h3><p>从bioconda找到<a href="https://anaconda.org/bioconda/pbsv/files">不同版本的pbsv</a>。<br>测试了2.3.0、2.4.0、2.4.1、2.6.0、2.6.2、2.9.0，不同版本的pbsv discover结果.svsig.gz文件都有差别。<br>但是只在2.4.1、2.6.0、2.6.2的pbsv call的TRACE级别Log中有看见一些cluster。所以pbmm2 1.5.0应该对应2.4.1、2.6.0、2.6.2版本的pbsv？<br>后续接着用2.6.2版本的pbsv分析。  </p>
+<h3 id="pbsv-call不出"><a href="#pbsv-call不出" class="headerlink" title="pbsv call不出"></a>pbsv call不出</h3><p>.svsig.gz中能看到支持该Deletion的记录，但最终call的结果里没有该Deletion。<br>pbsv call的TRACE级别Log文件中能看到：  </p>
+<ul>
+<li>有警告信息：Could not find parse function for type: s。但是<a href="https://github.com/PacificBiosciences/pbbioconda/issues/455">.svsig.gz文件不提供文件格式说明</a>，没法确认是不是这个警告导致没结果。</li>
+<li>看见的cluster都是Insertion的，而且都因为failed coverage被过滤掉。该Deletion连cluster都没有。</li>
+</ul>
+<h2 id="Sniffles2"><a href="#Sniffles2" class="headerlink" title="Sniffles2"></a>Sniffles2</h2><p>pbsv不行，于是试了下Sniffles2。</p>
+<h3 id="Sniffles-2-可能有bug"><a href="#Sniffles-2-可能有bug" class="headerlink" title="Sniffles 2 可能有bug"></a>Sniffles 2 可能有bug</h3><p>先用的Sniffles 2，发现github上有人说Sniffles2可能会漏检大片段缺失：<br><a href="https://github.com/fritzsedlazeck/Sniffles/issues/390">https://github.com/fritzsedlazeck/Sniffles/issues/390</a><br><a href="https://github.com/fritzsedlazeck/Sniffles/issues/367">https://github.com/fritzsedlazeck/Sniffles/issues/367</a><br>原因：未知。<br>可能的解决方法：（1）用sniffles 1；（2）用cuteSV。  </p>
+<h3 id="Sniffles-1-报错"><a href="#Sniffles-1-报错" class="headerlink" title="Sniffles 1 报错"></a>Sniffles 1 报错</h3><p><code>No MD string detected! Check bam file! Otherwise generate using e.g. samtools.</code><br><a href="https://github.com/fritzsedlazeck/Sniffles/issues/149">https://github.com/fritzsedlazeck/Sniffles/issues/149</a><br><a href="https://github.com/fritzsedlazeck/Sniffles/issues/58">https://github.com/fritzsedlazeck/Sniffles/issues/58</a><br><a href="https://github.com/lh3/minimap2/issues/142">https://github.com/lh3/minimap2/issues/142</a><br>原因：minimap2旧版本不输出XS标签。<br>解决方法：（1）用samtools calmd给Bam文件添加XS标签；（2）更新minimap2并在比对时添加–MD参数。  </p>
+<h3 id="Sniffles-1、Sniffles-2-都call不出"><a href="#Sniffles-1、Sniffles-2-都call不出" class="headerlink" title="Sniffles 1、Sniffles 2 都call不出"></a>Sniffles 1、Sniffles 2 都call不出</h3><p>Sniffles 2.0.7用–no-qc参数只找到一些Insertion的SV。<br>Sniffles 1.0.12用–ccs_reads –cs_string –min_support 1 –cluster_support 1也是只找到与Sniffles 2相同的Insertion。  </p>
+<h2 id="cuteSV"><a href="#cuteSV" class="headerlink" title="cuteSV"></a>cuteSV</h2><h3 id="cuteSV-call不出"><a href="#cuteSV-call不出" class="headerlink" title="cuteSV call不出"></a>cuteSV call不出</h3><p>使用的版本是cuteSV 2.0.2。<br>按<a href="https://github.com/tjiangHIT/cuteSV">github文档</a>的建议，用了For PacBio CCS(HIFI) data和For force calling两种参数组合都只call出两个Insertion。  </p>
+]]></content>
+      <categories>
+        <category>Unsolved</category>
+      </categories>
+      <tags>
+        <tag>Pacbio</tag>
+        <tag>三代</tag>
+        <tag>SV</tag>
+        <tag>pbsv</tag>
+        <tag>Sniffles</tag>
+        <tag>cuteSV</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Linux配置Samba</title>
     <url>/2023/05/01/Linux%E9%85%8D%E7%BD%AESamba/</url>
     <content><![CDATA[<p>Linux系统配置Samba服务，Windows系统设置网络映射，实现共享目录</p>
@@ -243,46 +316,6 @@
         <tag>Samba</tag>
         <tag>网络映射</tag>
         <tag>共享目录</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>MySQL操作</title>
-    <url>/2023/05/22/MySQL%E6%93%8D%E4%BD%9C/</url>
-    <content><![CDATA[<p>MySQL数据库的一些常用操作命令</p>
-<span id="more"></span>
-
-
-<h1 id="数据库操作"><a href="#数据库操作" class="headerlink" title="数据库操作"></a>数据库操作</h1><h2 id="mysql连接-x2F-登录"><a href="#mysql连接-x2F-登录" class="headerlink" title="mysql连接&#x2F;登录"></a>mysql连接&#x2F;登录</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">mysql -u root -p</span><br></pre></td></tr></table></figure>
-<h2 id="查看mysql中的数据库"><a href="#查看mysql中的数据库" class="headerlink" title="查看mysql中的数据库"></a>查看mysql中的数据库</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">show databases;</span><br></pre></td></tr></table></figure>
-<h2 id="选择-x2F-进入某个数据库"><a href="#选择-x2F-进入某个数据库" class="headerlink" title="选择&#x2F;进入某个数据库"></a>选择&#x2F;进入某个数据库</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">use &lt;数据库名&gt;;</span><br></pre></td></tr></table></figure>
-<h2 id="查看数据库中的表格"><a href="#查看数据库中的表格" class="headerlink" title="查看数据库中的表格"></a>查看数据库中的表格</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">show tables;</span><br></pre></td></tr></table></figure>
-<h2 id="新建数据库"><a href="#新建数据库" class="headerlink" title="新建数据库"></a>新建数据库</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">create database &lt;数据库名&gt;;</span><br><span class="line">CREATE DATABASE IF NOT EXISTS RUNOOB DEFAULT CHARSET utf8 COLLATE utf8_general_ci;</span><br></pre></td></tr></table></figure>
-<h2 id="删除数据库"><a href="#删除数据库" class="headerlink" title="删除数据库"></a>删除数据库</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">drop database &lt;数据库名&gt;;</span><br></pre></td></tr></table></figure>
-
-
-<h1 id="表格操作"><a href="#表格操作" class="headerlink" title="表格操作"></a>表格操作</h1><h2 id="查找"><a href="#查找" class="headerlink" title="查找"></a>查找</h2><p>WHERE 子句的字符串比较是不区分大小写的。 你可以使用 BINARY关键字来区分大小写<br>SELECT * from runoob_tbl WHERE runoob_author&#x3D;’菜鸟教程’;<br>SELECT * from runoob_tbl WHERE BINARY runoob_author&#x3D;’runoob.com’;</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select * from 表名 where 列名 = &quot;列的名字&quot;;</span><br></pre></td></tr></table></figure>
-<h2 id="更新"><a href="#更新" class="headerlink" title="更新"></a>更新</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">update 表名称 set 列名称=新值 where 更新条件;</span><br></pre></td></tr></table></figure>
-<h2 id="字符串批量修改"><a href="#字符串批量修改" class="headerlink" title="字符串批量修改"></a>字符串批量修改</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">UPDATE table_name SET field=REPLACE(field, &#x27;old-string&#x27;, &#x27;new-string&#x27;);</span><br></pre></td></tr></table></figure>
-<h2 id="删除"><a href="#删除" class="headerlink" title="删除"></a>删除</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">delete from 表名称 where 删除条件;</span><br></pre></td></tr></table></figure>
-<h2 id="新增"><a href="#新增" class="headerlink" title="新增"></a>新增</h2><p>如果数据是字符型，必须使用单引号或者双引号，如：”value”</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">insert into 表名 (&quot;列名1&quot;,&quot;列名2&quot;) values (&quot;第一列内容&quot;, &quot;第二列内容&quot;);</span><br></pre></td></tr></table></figure>
-<h2 id="聚合查询"><a href="#聚合查询" class="headerlink" title="聚合查询"></a>聚合查询</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select count(*) from 表名;</span><br><span class="line">select count(id) from 表名;</span><br><span class="line">select max(&quot;列名&quot;) from 表名;</span><br></pre></td></tr></table></figure>
-<h2 id="新建表格"><a href="#新建表格" class="headerlink" title="新建表格"></a>新建表格</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">create table 表名 （列名 列类型）;</span><br></pre></td></tr></table></figure>
-<h2 id="删除表格"><a href="#删除表格" class="headerlink" title="删除表格"></a>删除表格</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">drop table 表名;</span><br></pre></td></tr></table></figure>
-<h2 id="表格新增列"><a href="#表格新增列" class="headerlink" title="表格新增列"></a>表格新增列</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">alter table 表名 add column 列名 数据类型 约束;</span><br></pre></td></tr></table></figure>
-<h2 id="表格删除列"><a href="#表格删除列" class="headerlink" title="表格删除列"></a>表格删除列</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">alter table 表名 drop 列名;</span><br></pre></td></tr></table></figure>
-<h2 id="修改列名"><a href="#修改列名" class="headerlink" title="修改列名"></a>修改列名</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">alter table 表名 change 原列名 新列名 数据类型 约束;</span><br></pre></td></tr></table></figure>
-
-<h1 id="参考来源"><a href="#参考来源" class="headerlink" title="参考来源"></a>参考来源</h1><ol>
-<li>菜鸟教程-MySQL教程 <a href="https://www.runoob.com/mysql/mysql-tutorial.html">https://www.runoob.com/mysql/mysql-tutorial.html</a></li>
-</ol>
-]]></content>
-      <categories>
-        <category>Log</category>
-      </categories>
-      <tags>
-        <tag>MySQL</tag>
       </tags>
   </entry>
   <entry>

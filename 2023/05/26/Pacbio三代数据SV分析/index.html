@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  
+  <meta name="keywords" content="bioinfomatics,生物信息">
+  
+  
+  <meta name="description" content="bioinfomatics 生物信息">
+  
+  <title>
+    Pacbio三代数据SV分析 |
+    
+    A Blog
+  </title>
+  <!-- Icon -->
+  
+    <link rel="shortcut icon" href="/images/K_Letter_White.svg">
+    
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <main class="content">
+    <section class="outer">
+  <article id="post-Pacbio三代数据SV分析" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+      
+  
+  <h1 class="article-title" itemprop="name">
+    Pacbio三代数据SV分析
+  </h1>
+  
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2023/05/26/Pacbio%E4%B8%89%E4%BB%A3%E6%95%B0%E6%8D%AESV%E5%88%86%E6%9E%90/" class="article-date">
+  <time datetime="2023-05-26T08:45:17.000Z" itemprop="datePublished">2023-05-26</time>
+</a>
+      
+<div class="article-category">
+  <a class="article-category-link" href="/categories/Unsolved/">Unsolved</a>
+</div>
+
+    </div>
+    
+
+    
+    
+<div class="tocbot"></div>
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+      
+        <p>（未解决） Pacbio CCS(HIFI)数据，IGV能看到的Deletion，用三代SV软件call不出</p>
+<span id="more"></span>
+
+<h1 id="需求说明"><a href="#需求说明" class="headerlink" title="需求说明"></a>需求说明</h1><p>输入文件是一个Pacbio CCS(HIFI)数据，是用pbmm2 1.5.0 (commit v1.5.0-1-gadeb061)比对得到的Bam文件。<br>需要确认一个9.5k Deletion的情况，已在IGV明确找到softclip fragment比对位置。  </p>
+<h1 id="分析过程"><a href="#分析过程" class="headerlink" title="分析过程"></a>分析过程</h1><h2 id="pbsv"><a href="#pbsv" class="headerlink" title="pbsv"></a>pbsv</h2><p>因为是Pacbio的数据，所以一开始是用pbsv分析。但是出现以下问题：  </p>
+<h3 id="pbmm2特定版本结果只与pbsv特定版本兼容？"><a href="#pbmm2特定版本结果只与pbsv特定版本兼容？" class="headerlink" title="pbmm2特定版本结果只与pbsv特定版本兼容？"></a>pbmm2特定版本结果只与pbsv特定版本兼容？</h3><p>从bioconda找到<a target="_blank" rel="noopener" href="https://anaconda.org/bioconda/pbsv/files">不同版本的pbsv</a>。<br>测试了2.3.0、2.4.0、2.4.1、2.6.0、2.6.2、2.9.0，不同版本的pbsv discover结果.svsig.gz文件都有差别。<br>但是只在2.4.1、2.6.0、2.6.2的pbsv call的TRACE级别Log中有看见一些cluster。所以pbmm2 1.5.0应该对应2.4.1、2.6.0、2.6.2版本的pbsv？<br>后续接着用2.6.2版本的pbsv分析。  </p>
+<h3 id="pbsv-call不出"><a href="#pbsv-call不出" class="headerlink" title="pbsv call不出"></a>pbsv call不出</h3><p>.svsig.gz中能看到支持该Deletion的记录，但最终call的结果里没有该Deletion。<br>pbsv call的TRACE级别Log文件中能看到：  </p>
+<ul>
+<li>有警告信息：Could not find parse function for type: s。但是<a target="_blank" rel="noopener" href="https://github.com/PacificBiosciences/pbbioconda/issues/455">.svsig.gz文件不提供文件格式说明</a>，没法确认是不是这个警告导致没结果。</li>
+<li>看见的cluster都是Insertion的，而且都因为failed coverage被过滤掉。该Deletion连cluster都没有。</li>
+</ul>
+<h2 id="Sniffles2"><a href="#Sniffles2" class="headerlink" title="Sniffles2"></a>Sniffles2</h2><p>pbsv不行，于是试了下Sniffles2。</p>
+<h3 id="Sniffles-2-可能有bug"><a href="#Sniffles-2-可能有bug" class="headerlink" title="Sniffles 2 可能有bug"></a>Sniffles 2 可能有bug</h3><p>先用的Sniffles 2，发现github上有人说Sniffles2可能会漏检大片段缺失：<br><a target="_blank" rel="noopener" href="https://github.com/fritzsedlazeck/Sniffles/issues/390">https://github.com/fritzsedlazeck/Sniffles/issues/390</a><br><a target="_blank" rel="noopener" href="https://github.com/fritzsedlazeck/Sniffles/issues/367">https://github.com/fritzsedlazeck/Sniffles/issues/367</a><br>原因：未知。<br>可能的解决方法：（1）用sniffles 1；（2）用cuteSV。  </p>
+<h3 id="Sniffles-1-报错"><a href="#Sniffles-1-报错" class="headerlink" title="Sniffles 1 报错"></a>Sniffles 1 报错</h3><p><code>No MD string detected! Check bam file! Otherwise generate using e.g. samtools.</code><br><a target="_blank" rel="noopener" href="https://github.com/fritzsedlazeck/Sniffles/issues/149">https://github.com/fritzsedlazeck/Sniffles/issues/149</a><br><a target="_blank" rel="noopener" href="https://github.com/fritzsedlazeck/Sniffles/issues/58">https://github.com/fritzsedlazeck/Sniffles/issues/58</a><br><a target="_blank" rel="noopener" href="https://github.com/lh3/minimap2/issues/142">https://github.com/lh3/minimap2/issues/142</a><br>原因：minimap2旧版本不输出XS标签。<br>解决方法：（1）用samtools calmd给Bam文件添加XS标签；（2）更新minimap2并在比对时添加–MD参数。  </p>
+<h3 id="Sniffles-1、Sniffles-2-都call不出"><a href="#Sniffles-1、Sniffles-2-都call不出" class="headerlink" title="Sniffles 1、Sniffles 2 都call不出"></a>Sniffles 1、Sniffles 2 都call不出</h3><p>Sniffles 2.0.7用–no-qc参数只找到一些Insertion的SV。<br>Sniffles 1.0.12用–ccs_reads –cs_string –min_support 1 –cluster_support 1也是只找到与Sniffles 2相同的Insertion。  </p>
+<h2 id="cuteSV"><a href="#cuteSV" class="headerlink" title="cuteSV"></a>cuteSV</h2><h3 id="cuteSV-call不出"><a href="#cuteSV-call不出" class="headerlink" title="cuteSV call不出"></a>cuteSV call不出</h3><p>使用的版本是cuteSV 2.0.2。<br>按<a target="_blank" rel="noopener" href="https://github.com/tjiangHIT/cuteSV">github文档</a>的建议，用了For PacBio CCS(HIFI) data和For force calling两种参数组合都只call出两个Insertion。  </p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+<ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Pacbio/" rel="tag">Pacbio</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SV/" rel="tag">SV</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Sniffles/" rel="tag">Sniffles</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/cuteSV/" rel="tag">cuteSV</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/pbsv/" rel="tag">pbsv</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E4%B8%89%E4%BB%A3/" rel="tag">三代</a></li></ul>
+
+    </footer>
+
+  </div>
+
+  
+  
+<nav class="article-nav">
+  
+  
+  <a href="/2023/05/25/bcl2fastq%E6%95%B0%E6%8D%AE%E6%8B%86%E5%88%86%E6%8A%A5%E9%94%99/" class="article-nav-link">
+    <strong class="article-nav-caption">后一篇</strong>
+    <div class="article-nav-title">bcl2fastq数据拆分报错</div>
+  </a>
+  
+</nav>
+
+  
+
+  
+  
+<div class="vcomments" id="vcomments"></div>
+
+<script src="https://unpkg.com/valine/dist/Valine.min.js"></script>
+
+<script>
+  new Valine({
+    el: '#vcomments',
+    appId: 'AbTah7Q6uUUamYA9gZ0ANnav-9Nh9j0Va',
+    appKey: 'Ue6meFW6ZFZ6VHHH8DIpct5h',
+    notify: 'false',
+    verify: 'true',
+    avatar: 'identicon',
+    pageSize: '10',
+    placeholder: '说点什么'
+  })
+</script>
+
+  
+  
+
+</article>
+</section>
+    <footer class="footer">
+  <div class="outer">
+    <ul class="list-inline">
+      <li>A Blog &copy; 2023</li>
+      
+        <li>
+          
+            <a href="https://beian.miit.gov.cn/" target="_blank"></a>
+            
+        </li>
+      
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>theme  <a target="_blank" rel="noopener" href="https://github.com/zhwangart/hexo-theme-ocean">Ocean</a></li>
+    </ul>
+    <p><ul class="list-inline">
+  
+  <li><i class="fe fe-smile-alt tooltip" data-tooltip="UV"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+  <li><i class="fe fe-bookmark tooltip" data-tooltip="PV"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul></p>
+  </div>
+</footer>
+  </main>
+  <aside class="sidebar">
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/K_Letter.svg" alt="A Blog"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">首页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">关于</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="搜索">
+        <i class="fe fe-search"></i>
+        搜索
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto',
+  });
+</script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+
+</html>

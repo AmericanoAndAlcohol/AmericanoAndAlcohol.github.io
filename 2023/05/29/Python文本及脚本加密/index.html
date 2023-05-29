@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  
+  <meta name="keywords" content="bioinfomatics,生物信息">
+  
+  
+  <meta name="description" content="bioinfomatics 生物信息">
+  
+  <title>
+    Python文本及脚本加密 |
+    
+    A Blog
+  </title>
+  <!-- Icon -->
+  
+    <link rel="shortcut icon" href="/images/K_Letter_White.svg">
+    
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <main class="content">
+    <section class="outer">
+  <article id="post-Python文本及脚本加密" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+      
+  
+  <h1 class="article-title" itemprop="name">
+    Python文本及脚本加密
+  </h1>
+  
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2023/05/29/Python%E6%96%87%E6%9C%AC%E5%8F%8A%E8%84%9A%E6%9C%AC%E5%8A%A0%E5%AF%86/" class="article-date">
+  <time datetime="2023-05-29T07:31:10.000Z" itemprop="datePublished">2023-05-29</time>
+</a>
+      
+<div class="article-category">
+  <a class="article-category-link" href="/categories/Log/">Log</a>
+</div>
+
+    </div>
+    
+
+    
+    
+<div class="tocbot"></div>
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+      
+        <p>Python脚本实现异或方法加密和解密文本文件，通过Cython编译为so文件加密Python脚本</p>
+<span id="more"></span>
+
+<h1 id="文本加密和解密"><a href="#文本加密和解密" class="headerlink" title="文本加密和解密"></a>文本加密和解密</h1><p>异或是一种简单的加密算法，根据异或的运算规则，通过密钥对明文信息进行异或运算，可以得到加密后的密文信息。<br>同时由于异或运算的可逆性，用同一密钥对密文信息再次进行异或运算，可以得到明文信息。  </p>
+<h2 id="Python实现"><a href="#Python实现" class="headerlink" title="Python实现"></a>Python实现</h2><p>以下是对文本文件异或加密及解密的Python实现，Encrypt_Decrypt_Text.py。<br>此脚本里设定的字符编码是UTF-8，可以按需修改。  </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br></pre></td><td class="code"><pre><span class="line"># Python</span><br><span class="line"># Encrypt or decrypt text file with a password</span><br><span class="line"># coding=utf-8</span><br><span class="line"></span><br><span class="line">import os</span><br><span class="line">import sys</span><br><span class="line"></span><br><span class="line">EncodeSet = &quot;UTF-8&quot;</span><br><span class="line"></span><br><span class="line">def encrypt(String, Password, Seed):</span><br><span class="line">	if (len(Password) == 0):</span><br><span class="line">		sys.stderr.write(&quot;Password can&#x27;t be empty. Exit.&quot;)</span><br><span class="line">		exit()</span><br><span class="line">	Key_Int = ord(Password[Seed % len(Password)])</span><br><span class="line">	String_Byte = String.encode(EncodeSet)</span><br><span class="line">	String_Int = int.from_bytes(String_Byte, &#x27;big&#x27;)</span><br><span class="line">	String_Encrypt = String_Int ^ Key_Int</span><br><span class="line">	return String_Encrypt</span><br><span class="line"></span><br><span class="line">def decrypt(String, Password, Seed):</span><br><span class="line">	if (len(Password) == 0):</span><br><span class="line">		sys.stderr.write(&quot;Password can&#x27;t be empty. Exit.&quot;)</span><br><span class="line">		exit()</span><br><span class="line">	Key_Int = ord(Password[Seed % len(Password)])</span><br><span class="line">	String_Decrypt = String ^ Key_Int</span><br><span class="line">	Length = (String_Decrypt.bit_length() + 7) // 8</span><br><span class="line">	Decrypt_Byte = int.to_bytes(String_Decrypt, Length, &#x27;big&#x27;)</span><br><span class="line">	Decrypt = Decrypt_Byte.decode(EncodeSet)</span><br><span class="line">	return Decrypt</span><br><span class="line"></span><br><span class="line">def encrypt_file(Input, Password):</span><br><span class="line">	Input = os.path.abspath(Input)</span><br><span class="line">	Encrypt_Output_File = Input + &quot;.encrypt&quot;</span><br><span class="line">	Input_File = open(Input, &quot;rt&quot;, encoding = EncodeSet)</span><br><span class="line">	Output_File = open(Encrypt_Output_File, &quot;wt&quot;, encoding = EncodeSet)</span><br><span class="line">	Counter = 0</span><br><span class="line">	for Line in Input_File:</span><br><span class="line">		Counter = Counter + 1</span><br><span class="line">		Line = Line.strip(&quot;\r&quot;).strip(&quot;\n&quot;)</span><br><span class="line">		for Word in Line:</span><br><span class="line">			Word_Encrypt = encrypt(Word, Password, Counter)</span><br><span class="line">			Output_File.write(str(Word_Encrypt) + &quot; &quot;)</span><br><span class="line">		Output_File.write(&quot;\n&quot;)</span><br><span class="line">	Input_File.close()</span><br><span class="line">	Output_File.close()</span><br><span class="line">	return Encrypt_Output_File</span><br><span class="line"></span><br><span class="line">def decrypt_file(Input, Password):</span><br><span class="line">	Input = os.path.abspath(Input)</span><br><span class="line">	Decrypt_String = &quot;&quot;</span><br><span class="line">	Input_File = open(Input, &quot;rt&quot;, encoding = EncodeSet)</span><br><span class="line">	Counter = 0</span><br><span class="line">	for Line in Input_File:</span><br><span class="line">		Counter = Counter + 1</span><br><span class="line">		Line = Line.strip(&quot;\r&quot;).strip(&quot;\n&quot;)</span><br><span class="line">		Line = Line.strip(&quot; &quot;)</span><br><span class="line">		for Word in Line.split(&quot; &quot;):</span><br><span class="line">			Word_Decrypt = decrypt(int(Word), Password, Counter)</span><br><span class="line">			Decrypt_String = Decrypt_String + Word_Decrypt</span><br><span class="line">		Decrypt_String = Decrypt_String + &quot;\n&quot;</span><br><span class="line">	Input_File.close()</span><br><span class="line">	Decrypt_String = Decrypt_String.strip(&quot;\r&quot;).strip(&quot;\n&quot;)</span><br><span class="line">	return Decrypt_String</span><br></pre></td></tr></table></figure>
+
+<h2 id="使用示例"><a href="#使用示例" class="headerlink" title="使用示例"></a>使用示例</h2><h3 id="加密"><a href="#加密" class="headerlink" title="加密"></a>加密</h3><p>以下是加密脚本示例，Encrypt.py。<br>encrypt_file函数返回的是加密文件路径，路径是[原文件路径].encrypt。  </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"># Python</span><br><span class="line"># -*- coding:utf-8 -*-</span><br><span class="line"></span><br><span class="line">import Encrypt_Decrypt_Text</span><br><span class="line">import sys</span><br><span class="line"></span><br><span class="line">Input = sys.argv[1]</span><br><span class="line">Password = sys.argv[2]</span><br><span class="line"></span><br><span class="line">Encrypt_File_Path = Encrypt_Decrypt_Text.encrypt_file(Input, Password)</span><br><span class="line"></span><br><span class="line">print(Encrypt_File_Path)</span><br></pre></td></tr></table></figure>
+
+<h3 id="解密"><a href="#解密" class="headerlink" title="解密"></a>解密</h3><p>以下是解密脚本示例，Decrypt.py。<br>函数返回解密后的字符串，建议在脚本中解密后直接调用字符串，不要重新保存成文件。<br>假如密码错误，会报错或返回乱码。  </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"># Python</span><br><span class="line"># -*- coding:utf-8 -*-</span><br><span class="line"></span><br><span class="line">import Encrypt_Decrypt_Text</span><br><span class="line">import sys</span><br><span class="line"></span><br><span class="line">Input = sys.argv[1]</span><br><span class="line">Password = sys.argv[2]</span><br><span class="line"></span><br><span class="line">Decrype_File_Content = Encrypt_Decrypt_Text.decrypt_file(Input, Password)</span><br><span class="line"></span><br><span class="line">print(Decrype_File_Content)</span><br></pre></td></tr></table></figure>
+
+<h1 id="脚本加密"><a href="#脚本加密" class="headerlink" title="脚本加密"></a>脚本加密</h1><p>用于文本文件加密的密钥，如果以明文方式写在脚本里等于没有加密。<br>所以需要对调用解密过程的python脚本再通过Cython加密，那么脚本里密钥的也加密了。  </p>
+<h2 id="安装Cython"><a href="#安装Cython" class="headerlink" title="安装Cython"></a>安装Cython</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># Python</span><br><span class="line">python -m pip install Cython</span><br></pre></td></tr></table></figure>
+
+<h2 id="Cython脚本"><a href="#Cython脚本" class="headerlink" title="Cython脚本"></a>Cython脚本</h2><p>以下是将python脚本编译为so文件的脚本，Cpython_so.py。<br>以下脚本会生成so文件和清理中间文件，调用此脚本方法见”调用Cython脚本”部分。  </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br></pre></td><td class="code"><pre><span class="line"># Python</span><br><span class="line"></span><br><span class="line">import sys</span><br><span class="line">import os</span><br><span class="line">import re</span><br><span class="line">import argparse</span><br><span class="line"></span><br><span class="line">############################################################## Help #############################################################</span><br><span class="line"></span><br><span class="line">parser=argparse.ArgumentParser(</span><br><span class="line">	description=&quot;Description: Generate .so from .py. Version of .so is base of python version.&quot;,</span><br><span class="line">	prog=&quot;Cpython_so.py&quot;,</span><br><span class="line">	usage=&quot;python Cpython_so.py [-h] [-V] -i &lt;python script&gt; -o &lt;Output Dir&gt;&quot;,</span><br><span class="line">	formatter_class=argparse.RawTextHelpFormatter</span><br><span class="line">)</span><br><span class="line">parser.add_argument(&#x27;-V&#x27;,&#x27;--version&#x27;,action=&quot;version&quot;,version=&quot;Version 1.0.0&quot;)</span><br><span class="line">parser.add_argument(&#x27;-i&#x27;,&#x27;--input&#x27;,required=True,type=str,help=&quot;File: python script&quot;)</span><br><span class="line">parser.add_argument(&#x27;-o&#x27;,&#x27;--output_dir&#x27;,required=True,type=str,help=&quot;Dir: Output directory path&quot;)</span><br><span class="line">if len(sys.argv[1:]) == 0:</span><br><span class="line">	parser.print_help()</span><br><span class="line">	parser.exit()</span><br><span class="line">args=parser.parse_args()</span><br><span class="line"></span><br><span class="line">############################################################## Run ##############################################################</span><br><span class="line"></span><br><span class="line">Input_Dir = os.path.dirname(os.path.abspath(args.input))</span><br><span class="line">Output_Dir = os.path.abspath(args.output_dir)</span><br><span class="line">if (Input_Dir == Output_Dir):</span><br><span class="line">	sys.stderr.write(&quot;Output directory can&#x27;t be same as python script.  Exit.\n&quot;)</span><br><span class="line">	exit(1)</span><br><span class="line"></span><br><span class="line">if not (os.path.exists(args.output_dir)):</span><br><span class="line">	os.mkdir(args.output_dir)</span><br><span class="line"></span><br><span class="line">Module = re.sub(&quot;.py$&quot;, &quot;&quot;, os.path.basename(args.input))</span><br><span class="line"></span><br><span class="line"># Copy Original Script To Work Dir</span><br><span class="line">Py_Script = os.path.abspath(args.output_dir) + &quot;/&quot; + os.path.basename(args.input)</span><br><span class="line">Command_Cp = &quot;cp &quot; + args.input + &quot; &quot; + Py_Script</span><br><span class="line">os.system(Command_Cp)</span><br><span class="line"></span><br><span class="line"># Generate .so From .py</span><br><span class="line">Cpython_Script = os.path.abspath(args.output_dir) + &quot;/Cpython_Setup.py&quot;</span><br><span class="line">Cpython_Script_File = open(Cpython_Script, &quot;w&quot;)</span><br><span class="line">Cpython_Script_File.write(&quot;from distutils.core import setup&quot; + &quot;\n&quot;)</span><br><span class="line">Cpython_Script_File.write(&quot;from Cython.Build import cythonize&quot; + &quot;\n&quot;)</span><br><span class="line">Cpython_Script_File.write(&quot;&quot; + &quot;\n&quot;)</span><br><span class="line">Cpython_Script_File.write(&quot;setup(ext_modules = cythonize(\&quot;&quot; + Py_Script + &quot;\&quot;))&quot; + &quot;\n&quot;)</span><br><span class="line">Cpython_Script_File.write(&quot;&quot; + &quot;\n&quot;)</span><br><span class="line">Cpython_Script_File.close()</span><br><span class="line"></span><br><span class="line">Py_Version = &quot;python&quot; + &quot;.&quot;.join([str(sys.version_info[0]),str(sys.version_info[1])])</span><br><span class="line">Command_Cpython = Py_Version + &quot; &quot; + Cpython_Script + &quot; build_ext --inplace&quot;</span><br><span class="line">os.system(Command_Cpython)</span><br><span class="line"></span><br><span class="line"># Move Result .so And Clean Temp Dir</span><br><span class="line">So_File = os.getcwd() + &quot;/&quot; + Module + &quot;*.so&quot;</span><br><span class="line">C_File = os.path.abspath(args.output_dir) + &quot;/&quot; + Module + &quot;.c&quot;</span><br><span class="line">Temp_Dir = os.getcwd() + &quot;/&quot; + &quot;build&quot;</span><br><span class="line"></span><br><span class="line">Command_Move = &quot;mv &quot; + So_File + &quot; &quot; + os.path.abspath(args.output_dir)</span><br><span class="line">os.system(Command_Move)</span><br><span class="line"></span><br><span class="line">Commad_Clean = &quot;rm -rf &quot; + &quot; &quot;.join([Py_Script, Cpython_Script, Temp_Dir, C_File])</span><br><span class="line">os.system(Commad_Clean)</span><br><span class="line"></span><br><span class="line"># Generate .py And .sh To Run .so</span><br><span class="line">So_Py_Script = os.path.abspath(args.output_dir) + &quot;/&quot; + Module + &quot;.py&quot;</span><br><span class="line">So_Sh_Script = os.path.abspath(args.output_dir) + &quot;/&quot; + Module + &quot;.sh&quot;</span><br><span class="line"></span><br><span class="line">So_Py_Script_File = open(So_Py_Script, &quot;w&quot;)</span><br><span class="line">So_Py_Script_File.write(&quot;import &quot; + Module + &quot;\n\n&quot;)</span><br><span class="line">So_Py_Script_File.close()</span><br><span class="line"></span><br><span class="line">So_Sh_Script_File = open(So_Sh_Script, &quot;w&quot;)</span><br><span class="line">So_Sh_Script_File.write(Py_Version + &quot; &quot; + So_Py_Script + &quot;\n&quot;)</span><br><span class="line">So_Sh_Script_File.close()</span><br><span class="line"></span><br><span class="line">Command_Chmod = &quot;chmod +x &quot; + So_Py_Script + &quot; &quot; + So_Sh_Script</span><br><span class="line">os.system(Command_Chmod)</span><br></pre></td></tr></table></figure>
+
+<h2 id="调用Cython脚本"><a href="#调用Cython脚本" class="headerlink" title="调用Cython脚本"></a>调用Cython脚本</h2><p>可以写个shell调用，也可以直接命令行调用。<br>-i 是待加密的python脚本路径，-o 是加密后脚本的输出目录路径。<br>不同Python版本加密生成的so文件不一定通用，加密前脚本用哪个Python版本调用，就用哪个版本调用Cython脚本。<br>加密后的.so文件可以作为模块调用，使用方法可参考输出目录生成的.sh文件。  </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"># Shell</span><br><span class="line"></span><br><span class="line"># 系统默认的Python版本</span><br><span class="line">python Cpython_so.py -i ../../Cpython_Setup/Step1_Python_To_so/Store_Tumor_Report.py -o ./Test_2.7</span><br><span class="line"></span><br><span class="line"># 指定用Python 3.6版本</span><br><span class="line">python3.6 Cpython_so.py -i ../../Cpython_Setup/Step1_Python_To_so/Store_Tumor_Report.py -o ./Test_3.6</span><br></pre></td></tr></table></figure>
+
+<h1 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h1><ol>
+<li><a target="_blank" rel="noopener" href="https://www.boydwang.com/2019/01/xor-powershell/">异或加密(XOR)原理及实现</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.51cto.com/u_15316394/4995945">Python 循环异或对文件进行加解密</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/529539134">Python程序加密-cython</a></li>
+</ol>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+<ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Cython/" rel="tag">Cython</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Python/" rel="tag">Python</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%8A%A0%E5%AF%86/" rel="tag">加密</a></li></ul>
+
+    </footer>
+
+  </div>
+
+  
+  
+<nav class="article-nav">
+  
+  
+  <a href="/2023/05/27/Cutadapt%E6%8B%86%E5%88%86MGI%E6%95%B0%E6%8D%AE/" class="article-nav-link">
+    <strong class="article-nav-caption">后一篇</strong>
+    <div class="article-nav-title">Cutadapt拆分MGI数据</div>
+  </a>
+  
+</nav>
+
+  
+
+  
+  
+<div class="vcomments" id="vcomments"></div>
+
+<script src="https://unpkg.com/valine/dist/Valine.min.js"></script>
+
+<script>
+  new Valine({
+    el: '#vcomments',
+    appId: 'AbTah7Q6uUUamYA9gZ0ANnav-9Nh9j0Va',
+    appKey: 'Ue6meFW6ZFZ6VHHH8DIpct5h',
+    notify: 'false',
+    verify: 'true',
+    avatar: 'identicon',
+    pageSize: '10',
+    placeholder: '说点什么'
+  })
+</script>
+
+  
+  
+
+</article>
+</section>
+    <footer class="footer">
+  <div class="outer">
+    <ul class="list-inline">
+      <li>A Blog &copy; 2023</li>
+      
+        <li>
+          
+            <a href="https://beian.miit.gov.cn/" target="_blank"></a>
+            
+        </li>
+      
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>theme  <a target="_blank" rel="noopener" href="https://github.com/zhwangart/hexo-theme-ocean">Ocean</a></li>
+    </ul>
+    <p><ul class="list-inline">
+  
+  <li><i class="fe fe-smile-alt tooltip" data-tooltip="UV"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+  <li><i class="fe fe-bookmark tooltip" data-tooltip="PV"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul></p>
+  </div>
+</footer>
+  </main>
+  <aside class="sidebar">
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/K_Letter.svg" alt="A Blog"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">首页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">关于</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="搜索">
+        <i class="fe fe-search"></i>
+        搜索
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto',
+  });
+</script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+
+</html>

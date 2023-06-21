@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  
+  <meta name="keywords" content="bioinfomatics,生物信息">
+  
+  
+  <meta name="description" content="bioinfomatics 生物信息">
+  
+  <title>
+    Illumina测序产生的重复序列 |
+    
+    A Blog
+  </title>
+  <!-- Icon -->
+  
+    <link rel="shortcut icon" href="/images/K_Letter_White.svg">
+    
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <main class="content">
+    <section class="outer">
+  <article id="post-Illumina测序产生的重复序列" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+      
+  
+  <h1 class="article-title" itemprop="name">
+    Illumina测序产生的重复序列
+  </h1>
+  
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2023/06/21/Illumina%E6%B5%8B%E5%BA%8F%E4%BA%A7%E7%94%9F%E7%9A%84%E9%87%8D%E5%A4%8D%E5%BA%8F%E5%88%97/" class="article-date">
+  <time datetime="2023-06-21T06:31:04.000Z" itemprop="datePublished">2023-06-21</time>
+</a>
+      
+<div class="article-category">
+  <a class="article-category-link" href="/categories/Log/">Log</a>
+</div>
+
+    </div>
+    
+
+    
+    
+<div class="tocbot"></div>
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+      
+        <p>Illumina的Patterned Flow Cell产生重复序列</p>
+<span id="more"></span>
+
+<h1 id="QC-Fail-Sequencing内容"><a href="#QC-Fail-Sequencing内容" class="headerlink" title="QC Fail Sequencing内容"></a>QC Fail Sequencing内容</h1><p><strong>以下内容摘录并翻译自QC Fail Sequencing，完整内容请查看：</strong><br><a target="_blank" rel="noopener" href="https://sequencing.qcfail.com/articles/illumina-patterned-flow-cells-generate-duplicated-sequences/">Illumina Patterned Flow Cells Generate Duplicated Sequences</a></p>
+<h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p>Illumina最近的一项创新是有序的流动槽，它首次应用在HiSeq X，随后也应用于HiSeq 3000和HiSeq 4000测序仪。通过规律化排列数十亿个固定大小的纳米孔，使其在流动槽中均匀分布，能够产生更高密度的DNA簇（可以更有效地利用Flow Cell表面积，增加数据产出，减少成本，降低运行时间）。<br>虽然有以上这些优点，但有证据表明，与早期设计（Nonpatterned Flow Cell）相比，Patterned Flow Cell会产生更多的重复序列。  </p>
+<h2 id="症状"><a href="#症状" class="headerlink" title="症状"></a>症状</h2><p>使用 HiSeq 4000和HiSeq 2500（用的是Nonpatterned Flow Cell）对同一个Hi-C文库进行测序。测序后，数据使用 HiCUP 分析。<br>与预期一致，HiSeq 4000产出的原始Reads数是383M， 远多于HiSeq 2500的257M。<br>然而，同一文库的这两次测序之间的重复序列比例存在显着差异。经过去重处理后，HiSeq 2500只有 <strong>2%</strong> 的原始序列被过滤，这与HiSeq 4000去除了 <strong>33%</strong> 形成鲜明对比。<br><img src="https://pic.imgdb.cn/item/6492ad6b1ddac507ccd24753.png" alt="duplicates_graph"><br>经过HiCUP流程分析后，用不同测序仪测序的两个样本最后都剩余55M Reads，HiSeq 4000原本增加的数据产出被抵消了。  </p>
+<h2 id="诊断"><a href="#诊断" class="headerlink" title="诊断"></a>诊断</h2><p>在研究两台测序仪之间的差异之前，为了排除这种可能性：即HiSeq 4000测到的重复序列比例增加，仅仅是因为它测到了更多di-tags（一般测序文库里的DNA Fragments），即给定样本被测序的次数越多，测到重复序列的可能性就越高（也就是测序数据量较高，文库复杂度较低时，出现的Dup率高的情况）。为了确认这一点，对HiSeq 4000的FASTQ文件随机抽样，缩小到与 HiSeq 2500相同的Reads数量。然后还是用HiCUP流程分析，这次HiSeq 4000数据中的 <strong>25%</strong> 在去重步骤中被过滤掉，仍然远远超过HiSeq 2500的 <strong>2%</strong> 。<br>为了查证产生重复序列的可能原因，我们分析了流动槽上重复序列的空间分布。对于两台测序仪，重复序列都是均一形式分布，没有呈现出明显的“热点”区域。虽然重复序列没有分布在流动槽的特定区域，但一般来说，重复序列仍然可能与其拷贝有位置相关关系。为了验证这一假设，我们找到重复序列的两个拷贝序列，并记录它们的位置是在1还是2个Tiles上（Illumina数据可以通过Reads ID知道该Read&#x2F;cluster的坐标，包括Lane、Tile、X、Y，就可以判断两条Reads是否来源于同一个Tile）。值得注意的是，HiSeq 2500的重复序列有 <strong>1%</strong> 来自同一个Tile，而HiSeq 4000是 <strong>92%</strong> 。这种重复序列的位置接近性，说明在HiSeq 4000上观察到的重复序列主要是测序仪特有的Sequencing artefacts。<br><img src="https://pic.imgdb.cn/item/6492b8a91ddac507cce7f2ed.png" alt="one_two_tile_graph"><br>为了进一步表现这种二维距离，我们提取了只来自1个Tile的重复序列，然后记录了同一重复序列之间的相对位置（还是基于Illumina数据的Reads ID中含有的坐标信息）。下图将这些序列的相对距离展示为密度图（对于每个重复序列，其中一条序列被指定为原点，图中显示了“其他重复序列”与原点的相对位置）。<br><img src="https://pic.imgdb.cn/item/6492bada1ddac507ccebfb32.png" alt="relative_position_of_duplicates"><br>HiSeq 2500 除了靠近原点的高密度区域外，在整个图上的是均匀分布的。而HiSeq 4000 原点周围的密度升高更为明显，几乎所有其他重复序列都集中在原点区域。我们猜测远离原点的那些重复序列是来源于真实的生物学重复（biological duplicates）或实验导致的PCR重复（experimental PCR duplicates）。而那些接近原点的重复序列更有可能是由测序仪导致的（optical duplicates）。这再次说明了HiSeq 4000产生了更多的duplication artefacts。<br>然后，我们研究了HiSeq 4000上的重复序列是否仅出现在相邻的纳米孔，或流动槽中同一局部区域中的某些纳米孔。虽然我们无法获得FASTQ坐标系与特定某个纳米孔的直接关联信息，但可以通过紧邻原点创建该区域的密度图来可视化HiSeq 4000流动槽。该图清楚地表明，在原点周围的多个孔中发现了重复序列，并且随着远离原点，这种趋势会减小。而HiSeq 2500数据中，正如预期，看不到纳米孔图案分布特征。<br><img src="https://pic.imgdb.cn/item/6492c0061ddac507ccf6128c.png" alt="duplicates_patterned_flowcell-1"><br><img src="https://pic.imgdb.cn/item/6492c0471ddac507ccf693ca.png" alt="duplicates_unordered_flowcell-1">  </p>
+<h2 id="预防"><a href="#预防" class="headerlink" title="预防"></a>预防</h2><p>其他研究者已经讨论过Patterned Flow Cell有产生更多重复序列的倾向性。在最近发表在 CRUK-CI Core Genomics 博客上的一篇<a target="_blank" rel="noopener" href="http://core-genomics.blogspot.co.uk/2016/05/increased-read-duplication-on-patterned.html">文章</a>中，James Hadfield 报告说，来自一个簇的文库分子可能会返回到周围的溶液中，然后作为相邻flow cell（应该是nanowell？）中第二个簇的种子。有人提出，可以通过增加上机文库浓度来最大程度地减少这些重新播种（re-seeding）事件，但是代价是会产生没有用的多克隆簇（指的应该是文库的experimental PCR duplicates？）。因此，需要在这两个相互竞争的问题之间取得平衡，使特异的有效的序列数量最大化。我们直接与Illumina讨论了这个问题，Illumina同意这一策略，并建议patterned flowcell测序仪可能需要逐个测序仪地进行校准，以确定最佳上机浓度。  </p>
+<h1 id="更多相关信息"><a href="#更多相关信息" class="headerlink" title="更多相关信息"></a>更多相关信息</h1><h2 id="Patterned-和-Nonpatterned-Flow-Cell"><a href="#Patterned-和-Nonpatterned-Flow-Cell" class="headerlink" title="Patterned 和 Nonpatterned Flow Cell"></a>Patterned 和 Nonpatterned Flow Cell</h2><p>这篇Illumina的官方文档，比较清楚地说明了Patterned 和 Nonpatterned Flow Cell在测序时的一些区别。<br><a target="_blank" rel="noopener" href="https://www.illumina.com/content/dam/illumina-marketing/documents/products/technotes/hiseq-x-percent-pf-technical-note-770-2014-043.pdf">Calculating Percent Passing Filter for Patterned and Nonpatterned Flow Cells</a>  </p>
+<h2 id="RTA软件"><a href="#RTA软件" class="headerlink" title="RTA软件"></a>RTA软件</h2><p>Patterned Flow Cell通过规律排布纳米孔，使测序芯片产生更多的簇，更多数据；同时也通过升级RTA（Real Time Analysis）软件，减少了从图像到序列转换的分析时间。<br><a target="_blank" rel="noopener" href="https://www.illumina.com/content/dam/illumina-marketing/documents/products/appnotes/novaseq-hiseq-q30-app-note-770-2017-010.pdf">NovaSeq™ 6000 System Quality Scores and RTA3 Software</a>  </p>
+<h2 id="过滤optical-duplicates序列"><a href="#过滤optical-duplicates序列" class="headerlink" title="过滤optical duplicates序列"></a>过滤optical duplicates序列</h2><p>在<a target="_blank" rel="noopener" href="https://sequencing.qcfail.com/articles/illumina-patterned-flow-cells-generate-duplicated-sequences/">Illumina Patterned Flow Cells Generate Duplicated Sequences</a>原文的Mitigation部分有提到Picard过滤optical duplicates的方法。<br>目前Picard已经被整合到了GATK中，相关模块和参数是MarkDuplicates (Picard)的–OPTICAL_DUPLICATE_PIXEL_DISTANCE。<br>GATK 4.4.0.0的<a target="_blank" rel="noopener" href="https://gatk.broadinstitute.org/hc/en-us/articles/13832748517275-MarkDuplicates-Picard-#--OPTICAL_DUPLICATE_PIXEL_DISTANCE">MarkDuplicates (Picard)</a>说明文档中有写：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">For the patterned flowcell models, 2500 is moreappropriate. </span><br><span class="line">For other platforms and models, users should experiment to find what works best.</span><br></pre></td></tr></table></figure>
+<p>使用Patterned Flow Cell的测序平台，推荐–OPTICAL_DUPLICATE_PIXEL_DISTANCE参数设置为2500，但其实默认参数是100。<br>所以最好在分析前确认测序芯片类型，然后设置合适的参数。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+<ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Duplicate/" rel="tag">Duplicate</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Illumina/" rel="tag">Illumina</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/QC-Fail-Sequencing/" rel="tag">QC Fail Sequencing</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%B5%8B%E5%BA%8F%E5%8E%9F%E7%90%86/" rel="tag">测序原理</a></li></ul>
+
+    </footer>
+
+  </div>
+
+  
+  
+<nav class="article-nav">
+  
+  
+  <a href="/2023/05/29/Python%E6%96%87%E6%9C%AC%E5%8F%8A%E8%84%9A%E6%9C%AC%E5%8A%A0%E5%AF%86/" class="article-nav-link">
+    <strong class="article-nav-caption">后一篇</strong>
+    <div class="article-nav-title">Python文本及脚本加密</div>
+  </a>
+  
+</nav>
+
+  
+
+  
+  
+<div class="vcomments" id="vcomments"></div>
+
+<script src="https://unpkg.com/valine/dist/Valine.min.js"></script>
+
+<script>
+  new Valine({
+    el: '#vcomments',
+    appId: 'AbTah7Q6uUUamYA9gZ0ANnav-9Nh9j0Va',
+    appKey: 'Ue6meFW6ZFZ6VHHH8DIpct5h',
+    notify: 'false',
+    verify: 'true',
+    avatar: 'identicon',
+    pageSize: '10',
+    placeholder: '说点什么'
+  })
+</script>
+
+  
+  
+
+</article>
+</section>
+    <footer class="footer">
+  <div class="outer">
+    <ul class="list-inline">
+      <li>A Blog &copy; 2023</li>
+      
+        <li>
+          
+            <a href="https://beian.miit.gov.cn/" target="_blank"></a>
+            
+        </li>
+      
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>theme  <a target="_blank" rel="noopener" href="https://github.com/zhwangart/hexo-theme-ocean">Ocean</a></li>
+    </ul>
+    <p><ul class="list-inline">
+  
+  <li><i class="fe fe-smile-alt tooltip" data-tooltip="UV"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+  <li><i class="fe fe-bookmark tooltip" data-tooltip="PV"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul></p>
+  </div>
+</footer>
+  </main>
+  <aside class="sidebar">
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/K_Letter.svg" alt="A Blog"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">首页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">关于</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="搜索">
+        <i class="fe fe-search"></i>
+        搜索
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto',
+  });
+</script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+
+</html>

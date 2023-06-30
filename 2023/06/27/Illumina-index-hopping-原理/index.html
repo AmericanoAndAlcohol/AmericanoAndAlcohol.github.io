@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  
+  <meta name="keywords" content="bioinfomatics,生物信息">
+  
+  
+  <meta name="description" content="bioinfomatics 生物信息">
+  
+  <title>
+    Illumina index hopping 原理 |
+    
+    A Blog
+  </title>
+  <!-- Icon -->
+  
+    <link rel="shortcut icon" href="/images/K_Letter_White.svg">
+    
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <main class="content">
+    <section class="outer">
+  <article id="post-Illumina-index-hopping-原理" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+      
+  
+  <h1 class="article-title" itemprop="name">
+    Illumina index hopping 原理
+  </h1>
+  
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2023/06/27/Illumina-index-hopping-%E5%8E%9F%E7%90%86/" class="article-date">
+  <time datetime="2023-06-27T02:14:43.000Z" itemprop="datePublished">2023-06-27</time>
+</a>
+      
+<div class="article-category">
+  <a class="article-category-link" href="/categories/Log/">Log</a>
+</div>
+
+    </div>
+    
+
+    
+    
+<div class="tocbot"></div>
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+      
+        <p>Illumina的Patterned Flow Cell使用了更易产生index hopping的化学反应。通过更谨慎的实验​​准备，可能改善这种情况，可以忽略对大多数下游应用的影响。</p>
+<span id="more"></span>
+
+<h1 id="QC-Fail-Sequencing内容"><a href="#QC-Fail-Sequencing内容" class="headerlink" title="QC Fail Sequencing内容"></a>QC Fail Sequencing内容</h1><p><strong>以下内容摘录并翻译自QC Fail Sequencing，完整内容请查看：</strong><br><a target="_blank" rel="noopener" href="https://sequencing.qcfail.com/articles/the-latest-illumina-sequencers-muddle-samples/">The latest Illumina sequencers muddle samples</a></p>
+<h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p>最近，《Wired》杂志刊登了一篇文章，讨论新型号测序仪的问题。这篇文章记录了一位斯坦福大学研究人员的经历，他在研究血液干细胞时似乎得到了有趣的发现。然而，潜在的重要发现其实很明显是测序技术问题的副产品，导致在测序过程中不同的样本产生混淆。这对于相关科学家（据报道他浪费了一年的工作成果）来说是不幸的，但这一技术问题的影响给更多的分子生物学和基因组学界研究人员敲响了警钟。  </p>
+<h2 id="症状"><a href="#症状" class="headerlink" title="症状"></a>症状</h2><p>斯坦福大学的研究人员将他们的发现放在了<a target="_blank" rel="noopener" href="http://dx.doi.org/10.1101/125724">bioRxiv</a>上。他们使用 HiSeq 4000 对小鼠单细胞 RNA-Seq 样本进行了测序。与通常处理单细胞数据时一样，他们对样本进行了多重（multiplex）处理：一种在 DNA 分子两端用预定义条形码标记（index &#x2F; barcode）的技术，然后将来自不同文库的DNA组合起来。然后将这组样本和加上条形码一起进行测序，产生的 FASTQ 文件可以使用专业软件进行“多路分解”（de-multiplexed &#x2F; index拆分），使研究人员能够判断序列来自哪个文库。<br>在观察样品制备过程中使用的 384 孔板上样本的表达模式的空间排列时，发现了可疑情况。每个孔中应包含只来自单个细胞的 cDNA，并且样品应随机分布在各个孔中。令人惊讶的是，如果某个基因在特定的孔中有非常高的水平表达，那么在该孔的同一行和同一列的所有或大多数孔中也会检测到信号，但水平较低，从而在孔中形成特征性的十字形表达模式（如下图所示）。在其他类型的文库也可以观察到类似的模式，例如 ATAC-Seq。研究人员认为该模式与 technical artefact 的情况最为一致。<br><img src="https://pic.imgdb.cn/item/649a55d01ddac507cc6c9d50.png" alt="barcode_swapping_heatmap">  </p>
+<h2 id="诊断"><a href="#诊断" class="headerlink" title="诊断"></a>诊断</h2><p>斯坦福大学小组在另一台 HiSeq 4000 上对他们的样本进行了重新测序，并观察到了相同的模式，但是在 NextSeq 500 上进行测序时没有观察到该模式。这一点非常重要，因为旧型号的 NextSeq 500 没有使用Patterned Flow Cell，这表明问题只存在于有这种设计的测序仪。这种图案化排列模式是由数十亿个固定大小的纳米孔组成，均匀分布在Flow Cell中，使其比上一代测序仪分隔出DNA簇的密度高得多。<br>被混淆的信号的十字形图案与文库分配的barcode有关，表明barcode被错误识别。为了进一步研究，他们用以下3种条件进行了实验：</p>
+<ol>
+<li>cDNA &#x2F; 试剂 (包含index引物)</li>
+<li>只有试剂 (包含index引物)</li>
+<li>没有 cDNA &#x2F; 没有试剂</li>
+</ol>
+<p>不含试剂也不含cDNA的孔（条件3）相对应的barcode序列非常少。与此形成鲜明对比的是，在仅缺少cDNA的孔（条件2）中发现了许多序列（约为含有cDNA的孔（条件1）的平均值的7%）。此外，这些序列约80%比对到小鼠基因组 (mm10) 。这表明index引物的存在导致了样品的混淆，因此在混合处理多个样品时将出现大量信号混淆，称为“标签跳跃”（index hopping）或“条形码交换”（barcode swapping）。<br>虽然上述的百分比令人不安，但其他研究人员也报告观察到相同的现象，混淆水平显着降低。 CRUK剑桥研究所基因组学负责人James Hadfield观察到标签跳跃比例约为0.1 - 0.2%，这对于大多数下游应用来说应该不会造成太大问题。<br>（事实上​​，<a target="_blank" rel="noopener" href="https://sequencing.qcfail.com/articles/mixing-sample-types-in-a-flowcell-lane-generates-cross-contamination-artefacts/">在之前的non-patterned测序仪上观察到的标签跳跃水平非常低</a>，但只有差异很大的样本进行混合测序，例如将RNA-Seq与ChIP-Seq样本混合测序，才会出现明显问题。）  </p>
+<h2 id="预防"><a href="#预防" class="headerlink" title="预防"></a>预防</h2><p>在HiSeq 4000上观察到的标签跳跃可能是由于patterned flow cell，因此预计HiSeq 3000和HiSeq X Ten以及NovaSeq测序仪也会发生这种情况。使用patterned flow cell需要用到一种新型测序化学反应，称为exclusion amplification (ExAmp)，取代non-patterned flow cell上使用的传统的桥式扩增来生成簇（cluster）。<br>这种新的测序化学反应的技术细节尚未公开，但可以查阅相关专利来了解整个过程，因此可以合理地推测标签跳跃发生在簇生成之前，因为簇生成所需的所有试剂都存在于该反应混合物中。该混合物中游离的index引物有可能作为文库片段的引物并通过DNA聚合酶进行延伸。这些分子，携带了错误的条形码，可以自由地生成DNA簇。传统的non-patterned flow cell的情况并非如此，在传统的flow cell设计中，DNA片段与flow cell杂交后，游离的index会被洗掉。只有在此步骤之后，才会添加DNA聚合酶并启动序列延伸。<br><img src="https://pic.imgdb.cn/item/649e445c1ddac507ccc8bea5.png" alt="barcode_swap_mechanism"><br>目前尚不清楚如何通过一般的生物信息学方法来去除这种artefacts，实际上可能可以通过实验方案解决。在处理少量样本时，研究人员应该停止采用单条形码（single-barcode）策略，而应该使用双条形码（double-barcode）样本。测序后，应该过滤序列，仅保留两个条形码都一致而且是预期的序列。由于双条形码都跳跃应该是一种罕见事件，因此采取此步骤应该会大大减少样本的错误分配。<br>当对许多样本进行混合测序时（即使没有条形码跳跃问题，也已经需要用双条形码），斯坦福大学研究人员建议使用条形码对，其中每个单独的条形码仅使用一次。尽管该方法减少了可用条形码组合的数量，但它仍然可以使许多样品在同一lane上测序。此外，他们提出了从文库中去除游离引物的纯化策略。<br>Illumina最近发表了一篇<a target="_blank" rel="noopener" href="https://www.illumina.com/content/dam/illumina-marketing/documents/products/whitepapers/index-hopping-white-paper-770-2017-004.pdf?linkId=36607862">论文</a>，证实了标签跳跃的发生。他们表示，通过正确地清理游离引物并实施其他实验技术，对于大多数下游应用来说，应该可以将标签跳跃最小化到可以忽略不计的水平。该论文还建议在单个lane上只混合测序相似条件的样本。他们给出了大脑与肝脏RNA-Seq的例子，某个转录本在肝脏中以高水平存在，但在大脑中根本不存在。由于标签跳跃，导致该转录本可能在大脑中以低水平表达。 Illumina 建议，通过单个lane上只混合相似的样本（即大脑或肝脏），可以避免此问题。然而，这肯定不是理想的解决方案，因为研究人员需要提前知道样本的表达谱是怎样的，而且这种策略会导致批次效应的问题更严重。  </p>
+<h1 id="更多相关信息"><a href="#更多相关信息" class="headerlink" title="更多相关信息"></a>更多相关信息</h1><h2 id="Illumina-Index-Hopping的说明"><a href="#Illumina-Index-Hopping的说明" class="headerlink" title="Illumina | Index Hopping的说明"></a>Illumina | Index Hopping的说明</h2><p>简单说明了Index Hopping导致样本混淆的问题，列出了一些相关文档。<br><a target="_blank" rel="noopener" href="https://www.illumina.com/techniques/sequencing/ngs-library-prep/multiplexing.html?langsel=/us/">Sample Multiplexing Overview</a></p>
+<h2 id="Illumina-如何降低Index-Hopping"><a href="#Illumina-如何降低Index-Hopping" class="headerlink" title="Illumina | 如何降低Index Hopping"></a>Illumina | 如何降低Index Hopping</h2><p>Index Hopping是什么，有什么影响，如何减少发生。<br><a target="_blank" rel="noopener" href="https://www.illumina.com/techniques/sequencing/ngs-library-prep/multiplexing/index-hopping.html?langsel=/us/">Minimize index hopping in multiplexed runs</a></p>
+<h2 id="IDT-Dual-index接头减少index-hopping"><a href="#IDT-Dual-index接头减少index-hopping" class="headerlink" title="IDT | Dual index接头减少index hopping"></a>IDT | Dual index接头减少index hopping</h2><p>说明了Dual index接头如何减少index hopping，有非常详细的图表和数据。<br><a target="_blank" rel="noopener" href="https://sg.idtdna.com/pages/technology/next-generation-sequencing/dual-index-adapters-reduce-index-hopping">Dual index adapters reduce index hopping</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+<ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Illumina/" rel="tag">Illumina</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Index-Hopping/" rel="tag">Index Hopping</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/QC-Fail-Sequencing/" rel="tag">QC Fail Sequencing</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%B5%8B%E5%BA%8F%E5%8E%9F%E7%90%86/" rel="tag">测序原理</a></li></ul>
+
+    </footer>
+
+  </div>
+
+  
+  
+<nav class="article-nav">
+  
+  
+  <a href="/2023/06/21/Illumina%E6%B5%8B%E5%BA%8F%E4%BA%A7%E7%94%9F%E7%9A%84%E9%87%8D%E5%A4%8D%E5%BA%8F%E5%88%97/" class="article-nav-link">
+    <strong class="article-nav-caption">后一篇</strong>
+    <div class="article-nav-title">Illumina测序产生的重复序列</div>
+  </a>
+  
+</nav>
+
+  
+
+  
+  
+<div class="vcomments" id="vcomments"></div>
+
+<script src="https://unpkg.com/valine/dist/Valine.min.js"></script>
+
+<script>
+  new Valine({
+    el: '#vcomments',
+    appId: 'AbTah7Q6uUUamYA9gZ0ANnav-9Nh9j0Va',
+    appKey: 'Ue6meFW6ZFZ6VHHH8DIpct5h',
+    notify: 'false',
+    verify: 'true',
+    avatar: 'identicon',
+    pageSize: '10',
+    placeholder: '说点什么'
+  })
+</script>
+
+  
+  
+
+</article>
+</section>
+    <footer class="footer">
+  <div class="outer">
+    <ul class="list-inline">
+      <li>A Blog &copy; 2023</li>
+      
+        <li>
+          
+            <a href="https://beian.miit.gov.cn/" target="_blank"></a>
+            
+        </li>
+      
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>theme  <a target="_blank" rel="noopener" href="https://github.com/zhwangart/hexo-theme-ocean">Ocean</a></li>
+    </ul>
+    <p><ul class="list-inline">
+  
+  <li><i class="fe fe-smile-alt tooltip" data-tooltip="UV"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+  <li><i class="fe fe-bookmark tooltip" data-tooltip="PV"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul></p>
+  </div>
+</footer>
+  </main>
+  <aside class="sidebar">
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/K_Letter.svg" alt="A Blog"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">首页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">关于</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="搜索">
+        <i class="fe fe-search"></i>
+        搜索
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto',
+  });
+</script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+
+</html>

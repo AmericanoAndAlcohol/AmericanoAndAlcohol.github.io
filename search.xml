@@ -185,6 +185,37 @@
       </tags>
   </entry>
   <entry>
+    <title>Illumina index hopping 原理</title>
+    <url>/2023/06/27/Illumina-index-hopping-%E5%8E%9F%E7%90%86/</url>
+    <content><![CDATA[<p>Illumina的Patterned Flow Cell使用了更易产生index hopping的化学反应。通过更谨慎的实验​​准备，可能改善这种情况，可以忽略对大多数下游应用的影响。</p>
+<span id="more"></span>
+
+<h1 id="QC-Fail-Sequencing内容"><a href="#QC-Fail-Sequencing内容" class="headerlink" title="QC Fail Sequencing内容"></a>QC Fail Sequencing内容</h1><p><strong>以下内容摘录并翻译自QC Fail Sequencing，完整内容请查看：</strong><br><a href="https://sequencing.qcfail.com/articles/the-latest-illumina-sequencers-muddle-samples/">The latest Illumina sequencers muddle samples</a></p>
+<h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p>最近，《Wired》杂志刊登了一篇文章，讨论新型号测序仪的问题。这篇文章记录了一位斯坦福大学研究人员的经历，他在研究血液干细胞时似乎得到了有趣的发现。然而，潜在的重要发现其实很明显是测序技术问题的副产品，导致在测序过程中不同的样本产生混淆。这对于相关科学家（据报道他浪费了一年的工作成果）来说是不幸的，但这一技术问题的影响给更多的分子生物学和基因组学界研究人员敲响了警钟。  </p>
+<h2 id="症状"><a href="#症状" class="headerlink" title="症状"></a>症状</h2><p>斯坦福大学的研究人员将他们的发现放在了<a href="http://dx.doi.org/10.1101/125724">bioRxiv</a>上。他们使用 HiSeq 4000 对小鼠单细胞 RNA-Seq 样本进行了测序。与通常处理单细胞数据时一样，他们对样本进行了多重（multiplex）处理：一种在 DNA 分子两端用预定义条形码标记（index &#x2F; barcode）的技术，然后将来自不同文库的DNA组合起来。然后将这组样本和加上条形码一起进行测序，产生的 FASTQ 文件可以使用专业软件进行“多路分解”（de-multiplexed &#x2F; index拆分），使研究人员能够判断序列来自哪个文库。<br>在观察样品制备过程中使用的 384 孔板上样本的表达模式的空间排列时，发现了可疑情况。每个孔中应包含只来自单个细胞的 cDNA，并且样品应随机分布在各个孔中。令人惊讶的是，如果某个基因在特定的孔中有非常高的水平表达，那么在该孔的同一行和同一列的所有或大多数孔中也会检测到信号，但水平较低，从而在孔中形成特征性的十字形表达模式（如下图所示）。在其他类型的文库也可以观察到类似的模式，例如 ATAC-Seq。研究人员认为该模式与 technical artefact 的情况最为一致。<br><img src="https://pic.imgdb.cn/item/649a55d01ddac507cc6c9d50.png" alt="barcode_swapping_heatmap">  </p>
+<h2 id="诊断"><a href="#诊断" class="headerlink" title="诊断"></a>诊断</h2><p>斯坦福大学小组在另一台 HiSeq 4000 上对他们的样本进行了重新测序，并观察到了相同的模式，但是在 NextSeq 500 上进行测序时没有观察到该模式。这一点非常重要，因为旧型号的 NextSeq 500 没有使用Patterned Flow Cell，这表明问题只存在于有这种设计的测序仪。这种图案化排列模式是由数十亿个固定大小的纳米孔组成，均匀分布在Flow Cell中，使其比上一代测序仪分隔出DNA簇的密度高得多。<br>被混淆的信号的十字形图案与文库分配的barcode有关，表明barcode被错误识别。为了进一步研究，他们用以下3种条件进行了实验：</p>
+<ol>
+<li>cDNA &#x2F; 试剂 (包含index引物)</li>
+<li>只有试剂 (包含index引物)</li>
+<li>没有 cDNA &#x2F; 没有试剂</li>
+</ol>
+<p>不含试剂也不含cDNA的孔（条件3）相对应的barcode序列非常少。与此形成鲜明对比的是，在仅缺少cDNA的孔（条件2）中发现了许多序列（约为含有cDNA的孔（条件1）的平均值的7%）。此外，这些序列约80%比对到小鼠基因组 (mm10) 。这表明index引物的存在导致了样品的混淆，因此在混合处理多个样品时将出现大量信号混淆，称为“标签跳跃”（index hopping）或“条形码交换”（barcode swapping）。<br>虽然上述的百分比令人不安，但其他研究人员也报告观察到相同的现象，混淆水平显着降低。 CRUK剑桥研究所基因组学负责人James Hadfield观察到标签跳跃比例约为0.1 - 0.2%，这对于大多数下游应用来说应该不会造成太大问题。<br>（事实上​​，<a href="https://sequencing.qcfail.com/articles/mixing-sample-types-in-a-flowcell-lane-generates-cross-contamination-artefacts/">在之前的non-patterned测序仪上观察到的标签跳跃水平非常低</a>，但只有差异很大的样本进行混合测序，例如将RNA-Seq与ChIP-Seq样本混合测序，才会出现明显问题。）  </p>
+<h2 id="预防"><a href="#预防" class="headerlink" title="预防"></a>预防</h2><p>在HiSeq 4000上观察到的标签跳跃可能是由于patterned flow cell，因此预计HiSeq 3000和HiSeq X Ten以及NovaSeq测序仪也会发生这种情况。使用patterned flow cell需要用到一种新型测序化学反应，称为exclusion amplification (ExAmp)，取代non-patterned flow cell上使用的传统的桥式扩增来生成簇（cluster）。<br>这种新的测序化学反应的技术细节尚未公开，但可以查阅相关专利来了解整个过程，因此可以合理地推测标签跳跃发生在簇生成之前，因为簇生成所需的所有试剂都存在于该反应混合物中。该混合物中游离的index引物有可能作为文库片段的引物并通过DNA聚合酶进行延伸。这些分子，携带了错误的条形码，可以自由地生成DNA簇。传统的non-patterned flow cell的情况并非如此，在传统的flow cell设计中，DNA片段与flow cell杂交后，游离的index会被洗掉。只有在此步骤之后，才会添加DNA聚合酶并启动序列延伸。<br><img src="https://pic.imgdb.cn/item/649e445c1ddac507ccc8bea5.png" alt="barcode_swap_mechanism"><br>目前尚不清楚如何通过一般的生物信息学方法来去除这种artefacts，实际上可能可以通过实验方案解决。在处理少量样本时，研究人员应该停止采用单条形码（single-barcode）策略，而应该使用双条形码（double-barcode）样本。测序后，应该过滤序列，仅保留两个条形码都一致而且是预期的序列。由于双条形码都跳跃应该是一种罕见事件，因此采取此步骤应该会大大减少样本的错误分配。<br>当对许多样本进行混合测序时（即使没有条形码跳跃问题，也已经需要用双条形码），斯坦福大学研究人员建议使用条形码对，其中每个单独的条形码仅使用一次。尽管该方法减少了可用条形码组合的数量，但它仍然可以使许多样品在同一lane上测序。此外，他们提出了从文库中去除游离引物的纯化策略。<br>Illumina最近发表了一篇<a href="https://www.illumina.com/content/dam/illumina-marketing/documents/products/whitepapers/index-hopping-white-paper-770-2017-004.pdf?linkId=36607862">论文</a>，证实了标签跳跃的发生。他们表示，通过正确地清理游离引物并实施其他实验技术，对于大多数下游应用来说，应该可以将标签跳跃最小化到可以忽略不计的水平。该论文还建议在单个lane上只混合测序相似条件的样本。他们给出了大脑与肝脏RNA-Seq的例子，某个转录本在肝脏中以高水平存在，但在大脑中根本不存在。由于标签跳跃，导致该转录本可能在大脑中以低水平表达。 Illumina 建议，通过单个lane上只混合相似的样本（即大脑或肝脏），可以避免此问题。然而，这肯定不是理想的解决方案，因为研究人员需要提前知道样本的表达谱是怎样的，而且这种策略会导致批次效应的问题更严重。  </p>
+<h1 id="更多相关信息"><a href="#更多相关信息" class="headerlink" title="更多相关信息"></a>更多相关信息</h1><h2 id="Illumina-Index-Hopping的说明"><a href="#Illumina-Index-Hopping的说明" class="headerlink" title="Illumina | Index Hopping的说明"></a>Illumina | Index Hopping的说明</h2><p>简单说明了Index Hopping导致样本混淆的问题，列出了一些相关文档。<br><a href="https://www.illumina.com/techniques/sequencing/ngs-library-prep/multiplexing.html?langsel=/us/">Sample Multiplexing Overview</a></p>
+<h2 id="Illumina-如何降低Index-Hopping"><a href="#Illumina-如何降低Index-Hopping" class="headerlink" title="Illumina | 如何降低Index Hopping"></a>Illumina | 如何降低Index Hopping</h2><p>Index Hopping是什么，有什么影响，如何减少发生。<br><a href="https://www.illumina.com/techniques/sequencing/ngs-library-prep/multiplexing/index-hopping.html?langsel=/us/">Minimize index hopping in multiplexed runs</a></p>
+<h2 id="IDT-Dual-index接头减少index-hopping"><a href="#IDT-Dual-index接头减少index-hopping" class="headerlink" title="IDT | Dual index接头减少index hopping"></a>IDT | Dual index接头减少index hopping</h2><p>说明了Dual index接头如何减少index hopping，有非常详细的图表和数据。<br><a href="https://sg.idtdna.com/pages/technology/next-generation-sequencing/dual-index-adapters-reduce-index-hopping">Dual index adapters reduce index hopping</a></p>
+]]></content>
+      <categories>
+        <category>Log</category>
+      </categories>
+      <tags>
+        <tag>Illumina</tag>
+        <tag>Index Hopping</tag>
+        <tag>测序原理</tag>
+        <tag>QC Fail Sequencing</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Illumina测序产生的重复序列</title>
     <url>/2023/06/21/Illumina%E6%B5%8B%E5%BA%8F%E4%BA%A7%E7%94%9F%E7%9A%84%E9%87%8D%E5%A4%8D%E5%BA%8F%E5%88%97/</url>
     <content><![CDATA[<p>Illumina的Patterned Flow Cell产生重复序列</p>
@@ -197,7 +228,7 @@
 <h2 id="预防"><a href="#预防" class="headerlink" title="预防"></a>预防</h2><p>其他研究者已经讨论过Patterned Flow Cell有产生更多重复序列的倾向性。在最近发表在 CRUK-CI Core Genomics 博客上的一篇<a href="http://core-genomics.blogspot.co.uk/2016/05/increased-read-duplication-on-patterned.html">文章</a>中，James Hadfield 报告说，来自一个簇的文库分子可能会返回到周围的溶液中，然后作为相邻flow cell（应该是nanowell？）中第二个簇的种子。有人提出，可以通过增加上机文库浓度来最大程度地减少这些重新播种（re-seeding）事件，但是代价是会产生没有用的多克隆簇（指的应该是文库的experimental PCR duplicates？）。因此，需要在这两个相互竞争的问题之间取得平衡，使特异的有效的序列数量最大化。我们直接与Illumina讨论了这个问题，Illumina同意这一策略，并建议patterned flowcell测序仪可能需要逐个测序仪地进行校准，以确定最佳上机浓度。  </p>
 <h1 id="更多相关信息"><a href="#更多相关信息" class="headerlink" title="更多相关信息"></a>更多相关信息</h1><h2 id="Patterned-和-Nonpatterned-Flow-Cell"><a href="#Patterned-和-Nonpatterned-Flow-Cell" class="headerlink" title="Patterned 和 Nonpatterned Flow Cell"></a>Patterned 和 Nonpatterned Flow Cell</h2><p>这篇Illumina的官方文档，比较清楚地说明了Patterned 和 Nonpatterned Flow Cell在测序时的一些区别。<br><a href="https://www.illumina.com/content/dam/illumina-marketing/documents/products/technotes/hiseq-x-percent-pf-technical-note-770-2014-043.pdf">Calculating Percent Passing Filter for Patterned and Nonpatterned Flow Cells</a>  </p>
 <h2 id="RTA软件"><a href="#RTA软件" class="headerlink" title="RTA软件"></a>RTA软件</h2><p>Patterned Flow Cell通过规律排布纳米孔，使测序芯片产生更多的簇，更多数据；同时也通过升级RTA（Real Time Analysis）软件，减少了从图像到序列转换的分析时间。<br><a href="https://www.illumina.com/content/dam/illumina-marketing/documents/products/appnotes/novaseq-hiseq-q30-app-note-770-2017-010.pdf">NovaSeq™ 6000 System Quality Scores and RTA3 Software</a>  </p>
-<h2 id="过滤optical-duplicates序列"><a href="#过滤optical-duplicates序列" class="headerlink" title="过滤optical duplicates序列"></a>过滤optical duplicates序列</h2><p>在<a href="https://sequencing.qcfail.com/articles/illumina-patterned-flow-cells-generate-duplicated-sequences/">Illumina Patterned Flow Cells Generate Duplicated Sequences</a>原文的Mitigation部分有提到Picard过滤optical duplicates的方法。<br>目前Picard已经被整合到了GATK中，相关模块和参数是MarkDuplicates (Picard)的–OPTICAL_DUPLICATE_PIXEL_DISTANCE。<br>GATK 4.4.0.0的<a href="https://gatk.broadinstitute.org/hc/en-us/articles/13832748517275-MarkDuplicates-Picard-#--OPTICAL_DUPLICATE_PIXEL_DISTANCE">MarkDuplicates (Picard)</a>说明文档中有写：</p>
+<h2 id="过滤optical-duplicates序列"><a href="#过滤optical-duplicates序列" class="headerlink" title="过滤optical duplicates序列"></a>过滤optical duplicates序列</h2><p>在<a href="https://sequencing.qcfail.com/articles/illumina-patterned-flow-cells-generate-duplicated-sequences/">Illumina Patterned Flow Cells Generate Duplicated Sequences</a>原文的Mitigation部分（没翻译这部分，有兴趣请看原文）有提到Picard过滤optical duplicates的方法。<br>目前Picard已经被整合到了GATK中，相关模块和参数是MarkDuplicates (Picard)的–OPTICAL_DUPLICATE_PIXEL_DISTANCE。<br>GATK 4.4.0.0的<a href="https://gatk.broadinstitute.org/hc/en-us/articles/13832748517275-MarkDuplicates-Picard-#--OPTICAL_DUPLICATE_PIXEL_DISTANCE">MarkDuplicates (Picard)</a>说明文档中有写：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">For the patterned flowcell models, 2500 is moreappropriate. </span><br><span class="line">For other platforms and models, users should experiment to find what works best.</span><br></pre></td></tr></table></figure>
 <p>使用Patterned Flow Cell的测序平台，推荐–OPTICAL_DUPLICATE_PIXEL_DISTANCE参数设置为2500，但其实默认参数是100。<br>所以最好在分析前确认测序芯片类型，然后设置合适的参数。</p>
 ]]></content>
@@ -206,9 +237,9 @@
       </categories>
       <tags>
         <tag>Illumina</tag>
-        <tag>Duplicate</tag>
         <tag>测序原理</tag>
         <tag>QC Fail Sequencing</tag>
+        <tag>Duplicate</tag>
       </tags>
   </entry>
   <entry>
@@ -220,6 +251,35 @@
 <h1 id="表头行转成列"><a href="#表头行转成列" class="headerlink" title="表头行转成列"></a>表头行转成列</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">head -1 *.txt | awk &#x27;&#123;for(i=1;i&lt;=NF;i++)a[NR,i]=$i&#125;END&#123;for(j=1;j&lt;=NF;j++)for(k=1;k&lt;=NR;k++)printf k==NR?a[k,j] RS:a[k,j] FS&#125;&#x27;|less -SN</span><br></pre></td></tr></table></figure>
 
 <h1 id="修改文件时间"><a href="#修改文件时间" class="headerlink" title="修改文件时间"></a>修改文件时间</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">touch -m -d &quot;20220411 1306&quot; File.txt</span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>Log</category>
+      </categories>
+      <tags>
+        <tag>Linux</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Linux用户管理</title>
+    <url>/2023/05/21/Linux%E7%94%A8%E6%88%B7%E7%AE%A1%E7%90%86/</url>
+    <content><![CDATA[<p>Linux系统的用户查看、创建、目录权限</p>
+<span id="more"></span>
+
+<h1 id="查看用户"><a href="#查看用户" class="headerlink" title="查看用户"></a>查看用户</h1><p>查看当前系统已存在的用户  </p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cat /etc/passwd | cut -d : -f 1</span><br></pre></td></tr></table></figure>
+
+<h1 id="创建用户"><a href="#创建用户" class="headerlink" title="创建用户"></a>创建用户</h1><h2 id="创建非正规新用户"><a href="#创建非正规新用户" class="headerlink" title="创建非正规新用户"></a>创建非正规新用户</h2><p>以下创建方法，不会创建home、无归属用户组  </p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 创建用户</span><br><span class="line">useradd -M -N [name]</span><br><span class="line"># 修改/创建用户密码（可用简单密码）</span><br><span class="line">echo [password] | passwd --stdin [name]</span><br></pre></td></tr></table></figure>
+<h2 id="创建正规新用户"><a href="#创建正规新用户" class="headerlink" title="创建正规新用户"></a>创建正规新用户</h2><p>以下创建方法，会同时创建该用户的home目录，主用户组为参数指定的group  </p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 创建用户</span><br><span class="line">useradd -m -g [group] [name]</span><br><span class="line"># 创建用户密码（不可用简单密码）</span><br><span class="line">passwd [name]</span><br></pre></td></tr></table></figure>
+
+<h1 id="操作用户组"><a href="#操作用户组" class="headerlink" title="操作用户组"></a>操作用户组</h1><h2 id="创建新用户组"><a href="#创建新用户组" class="headerlink" title="创建新用户组"></a>创建新用户组</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">groupadd [group]</span><br></pre></td></tr></table></figure>
+<h2 id="查看组内有哪些用户"><a href="#查看组内有哪些用户" class="headerlink" title="查看组内有哪些用户"></a>查看组内有哪些用户</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cat /etc/group|grep ^[group]</span><br></pre></td></tr></table></figure>
+<h2 id="将用户添加进组"><a href="#将用户添加进组" class="headerlink" title="将用户添加进组"></a>将用户添加进组</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">usermod -a -G [group] [name]</span><br></pre></td></tr></table></figure>
+<h2 id="查看用户的主用户组、所属用户组"><a href="#查看用户的主用户组、所属用户组" class="headerlink" title="查看用户的主用户组、所属用户组"></a>查看用户的主用户组、所属用户组</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">id [name]</span><br></pre></td></tr></table></figure>
+
+<h1 id="目录权限"><a href="#目录权限" class="headerlink" title="目录权限"></a>目录权限</h1><h2 id="改变文件或目录的所有者及用户组"><a href="#改变文件或目录的所有者及用户组" class="headerlink" title="改变文件或目录的所有者及用户组"></a>改变文件或目录的所有者及用户组</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># -R 递归目录内的所有文件  </span><br><span class="line">chown -R [name]:[group] [file/dir]</span><br></pre></td></tr></table></figure>
+<h2 id="改变文件或目录的权限"><a href="#改变文件或目录的权限" class="headerlink" title="改变文件或目录的权限"></a>改变文件或目录的权限</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 只有文件所有者和root用户可以修改文件或目录的权限</span><br><span class="line"># -R 递归目录内的所有文件</span><br><span class="line"># 指定权限（八进制语法）：读4，写2，操作1</span><br><span class="line">chmod -R [文件所有者权限、文件所有组内用户权限、其他用户权限] [file/dir]</span><br></pre></td></tr></table></figure>
 ]]></content>
       <categories>
         <category>Log</category>
@@ -271,35 +331,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Linux用户管理</title>
-    <url>/2023/05/21/Linux%E7%94%A8%E6%88%B7%E7%AE%A1%E7%90%86/</url>
-    <content><![CDATA[<p>Linux系统的用户查看、创建、目录权限</p>
-<span id="more"></span>
-
-<h1 id="查看用户"><a href="#查看用户" class="headerlink" title="查看用户"></a>查看用户</h1><p>查看当前系统已存在的用户  </p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cat /etc/passwd | cut -d : -f 1</span><br></pre></td></tr></table></figure>
-
-<h1 id="创建用户"><a href="#创建用户" class="headerlink" title="创建用户"></a>创建用户</h1><h2 id="创建非正规新用户"><a href="#创建非正规新用户" class="headerlink" title="创建非正规新用户"></a>创建非正规新用户</h2><p>以下创建方法，不会创建home、无归属用户组  </p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 创建用户</span><br><span class="line">useradd -M -N [name]</span><br><span class="line"># 修改/创建用户密码（可用简单密码）</span><br><span class="line">echo [password] | passwd --stdin [name]</span><br></pre></td></tr></table></figure>
-<h2 id="创建正规新用户"><a href="#创建正规新用户" class="headerlink" title="创建正规新用户"></a>创建正规新用户</h2><p>以下创建方法，会同时创建该用户的home目录，主用户组为参数指定的group  </p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 创建用户</span><br><span class="line">useradd -m -g [group] [name]</span><br><span class="line"># 创建用户密码（不可用简单密码）</span><br><span class="line">passwd [name]</span><br></pre></td></tr></table></figure>
-
-<h1 id="操作用户组"><a href="#操作用户组" class="headerlink" title="操作用户组"></a>操作用户组</h1><h2 id="创建新用户组"><a href="#创建新用户组" class="headerlink" title="创建新用户组"></a>创建新用户组</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">groupadd [group]</span><br></pre></td></tr></table></figure>
-<h2 id="查看组内有哪些用户"><a href="#查看组内有哪些用户" class="headerlink" title="查看组内有哪些用户"></a>查看组内有哪些用户</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cat /etc/group|grep ^[group]</span><br></pre></td></tr></table></figure>
-<h2 id="将用户添加进组"><a href="#将用户添加进组" class="headerlink" title="将用户添加进组"></a>将用户添加进组</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">usermod -a -G [group] [name]</span><br></pre></td></tr></table></figure>
-<h2 id="查看用户的主用户组、所属用户组"><a href="#查看用户的主用户组、所属用户组" class="headerlink" title="查看用户的主用户组、所属用户组"></a>查看用户的主用户组、所属用户组</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">id [name]</span><br></pre></td></tr></table></figure>
-
-<h1 id="目录权限"><a href="#目录权限" class="headerlink" title="目录权限"></a>目录权限</h1><h2 id="改变文件或目录的所有者及用户组"><a href="#改变文件或目录的所有者及用户组" class="headerlink" title="改变文件或目录的所有者及用户组"></a>改变文件或目录的所有者及用户组</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># -R 递归目录内的所有文件  </span><br><span class="line">chown -R [name]:[group] [file/dir]</span><br></pre></td></tr></table></figure>
-<h2 id="改变文件或目录的权限"><a href="#改变文件或目录的权限" class="headerlink" title="改变文件或目录的权限"></a>改变文件或目录的权限</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 只有文件所有者和root用户可以修改文件或目录的权限</span><br><span class="line"># -R 递归目录内的所有文件</span><br><span class="line"># 指定权限（八进制语法）：读4，写2，操作1</span><br><span class="line">chmod -R [文件所有者权限、文件所有组内用户权限、其他用户权限] [file/dir]</span><br></pre></td></tr></table></figure>
-]]></content>
-      <categories>
-        <category>Log</category>
-      </categories>
-      <tags>
-        <tag>Linux</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>MySQL操作</title>
     <url>/2023/05/22/MySQL%E6%93%8D%E4%BD%9C/</url>
     <content><![CDATA[<p>MySQL数据库的一些常用操作命令</p>
@@ -340,38 +371,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Pacbio三代数据SV分析</title>
-    <url>/2023/05/26/Pacbio%E4%B8%89%E4%BB%A3%E6%95%B0%E6%8D%AESV%E5%88%86%E6%9E%90/</url>
-    <content><![CDATA[<p>（未解决） Pacbio CCS(HIFI)数据，IGV能看到的Deletion，用三代SV软件call不出</p>
-<span id="more"></span>
-
-<h1 id="需求说明"><a href="#需求说明" class="headerlink" title="需求说明"></a>需求说明</h1><p>输入文件是一个Pacbio CCS(HIFI)数据，是用pbmm2 1.5.0 (commit v1.5.0-1-gadeb061)比对得到的Bam文件。<br>需要确认一个9.5k Deletion的情况，已在IGV明确找到softclip fragment比对位置。  </p>
-<h1 id="分析过程"><a href="#分析过程" class="headerlink" title="分析过程"></a>分析过程</h1><h2 id="pbsv"><a href="#pbsv" class="headerlink" title="pbsv"></a>pbsv</h2><p>因为是Pacbio的数据，所以一开始是用pbsv分析。但是出现以下问题：  </p>
-<h3 id="pbmm2特定版本结果只与pbsv特定版本兼容？"><a href="#pbmm2特定版本结果只与pbsv特定版本兼容？" class="headerlink" title="pbmm2特定版本结果只与pbsv特定版本兼容？"></a>pbmm2特定版本结果只与pbsv特定版本兼容？</h3><p>从bioconda找到<a href="https://anaconda.org/bioconda/pbsv/files">不同版本的pbsv</a>。<br>测试了2.3.0、2.4.0、2.4.1、2.6.0、2.6.2、2.9.0，不同版本的pbsv discover结果.svsig.gz文件都有差别。<br>但是只在2.4.1、2.6.0、2.6.2的pbsv call的TRACE级别Log中有看见一些cluster。所以pbmm2 1.5.0应该对应2.4.1、2.6.0、2.6.2版本的pbsv？<br>后续接着用2.6.2版本的pbsv分析。  </p>
-<h3 id="pbsv-call不出"><a href="#pbsv-call不出" class="headerlink" title="pbsv call不出"></a>pbsv call不出</h3><p>.svsig.gz中能看到支持该Deletion的记录，但最终call的结果里没有该Deletion。<br>pbsv call的TRACE级别Log文件中能看到：  </p>
-<ul>
-<li>有警告信息：Could not find parse function for type: s。但是<a href="https://github.com/PacificBiosciences/pbbioconda/issues/455">.svsig.gz文件不提供文件格式说明</a>，没法确认是不是这个警告导致没结果。</li>
-<li>看见的cluster都是Insertion的，而且都因为failed coverage被过滤掉。该Deletion连cluster都没有。</li>
-</ul>
-<h2 id="Sniffles2"><a href="#Sniffles2" class="headerlink" title="Sniffles2"></a>Sniffles2</h2><p>pbsv不行，于是试了下Sniffles2。</p>
-<h3 id="Sniffles-2-可能有bug"><a href="#Sniffles-2-可能有bug" class="headerlink" title="Sniffles 2 可能有bug"></a>Sniffles 2 可能有bug</h3><p>先用的Sniffles 2，发现github上有人说Sniffles2可能会漏检大片段缺失：<br><a href="https://github.com/fritzsedlazeck/Sniffles/issues/390">https://github.com/fritzsedlazeck/Sniffles/issues/390</a><br><a href="https://github.com/fritzsedlazeck/Sniffles/issues/367">https://github.com/fritzsedlazeck/Sniffles/issues/367</a><br>原因：未知。<br>可能的解决方法：（1）用sniffles 1；（2）用cuteSV。  </p>
-<h3 id="Sniffles-1-报错"><a href="#Sniffles-1-报错" class="headerlink" title="Sniffles 1 报错"></a>Sniffles 1 报错</h3><p><code>No MD string detected! Check bam file! Otherwise generate using e.g. samtools.</code><br><a href="https://github.com/fritzsedlazeck/Sniffles/issues/149">https://github.com/fritzsedlazeck/Sniffles/issues/149</a><br><a href="https://github.com/fritzsedlazeck/Sniffles/issues/58">https://github.com/fritzsedlazeck/Sniffles/issues/58</a><br><a href="https://github.com/lh3/minimap2/issues/142">https://github.com/lh3/minimap2/issues/142</a><br>原因：minimap2旧版本不输出XS标签。<br>解决方法：（1）用samtools calmd给Bam文件添加XS标签；（2）更新minimap2并在比对时添加–MD参数。  </p>
-<h3 id="Sniffles-1、Sniffles-2-都call不出"><a href="#Sniffles-1、Sniffles-2-都call不出" class="headerlink" title="Sniffles 1、Sniffles 2 都call不出"></a>Sniffles 1、Sniffles 2 都call不出</h3><p>Sniffles 2.0.7用–no-qc参数只找到一些Insertion的SV。<br>Sniffles 1.0.12用–ccs_reads –cs_string –min_support 1 –cluster_support 1也是只找到与Sniffles 2相同的Insertion。  </p>
-<h2 id="cuteSV"><a href="#cuteSV" class="headerlink" title="cuteSV"></a>cuteSV</h2><h3 id="cuteSV-call不出"><a href="#cuteSV-call不出" class="headerlink" title="cuteSV call不出"></a>cuteSV call不出</h3><p>使用的版本是cuteSV 2.0.2。<br>按<a href="https://github.com/tjiangHIT/cuteSV">github文档</a>的建议，用了For PacBio CCS(HIFI) data和For force calling两种参数组合都只call出两个Insertion。  </p>
-]]></content>
-      <categories>
-        <category>Unsolved</category>
-      </categories>
-      <tags>
-        <tag>Pacbio</tag>
-        <tag>三代</tag>
-        <tag>SV</tag>
-        <tag>pbsv</tag>
-        <tag>Sniffles</tag>
-        <tag>cuteSV</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Python文本及脚本加密</title>
     <url>/2023/05/29/Python%E6%96%87%E6%9C%AC%E5%8F%8A%E8%84%9A%E6%9C%AC%E5%8A%A0%E5%AF%86/</url>
     <content><![CDATA[<p>Python脚本实现异或方法加密和解密文本文件，通过Cython编译为so文件加密Python脚本</p>
@@ -409,6 +408,38 @@
         <tag>Python</tag>
         <tag>Cython</tag>
         <tag>加密</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Pacbio三代数据SV分析</title>
+    <url>/2023/05/26/Pacbio%E4%B8%89%E4%BB%A3%E6%95%B0%E6%8D%AESV%E5%88%86%E6%9E%90/</url>
+    <content><![CDATA[<p>（未解决） Pacbio CCS(HIFI)数据，IGV能看到的Deletion，用三代SV软件call不出</p>
+<span id="more"></span>
+
+<h1 id="需求说明"><a href="#需求说明" class="headerlink" title="需求说明"></a>需求说明</h1><p>输入文件是一个Pacbio CCS(HIFI)数据，是用pbmm2 1.5.0 (commit v1.5.0-1-gadeb061)比对得到的Bam文件。<br>需要确认一个9.5k Deletion的情况，已在IGV明确找到softclip fragment比对位置。  </p>
+<h1 id="分析过程"><a href="#分析过程" class="headerlink" title="分析过程"></a>分析过程</h1><h2 id="pbsv"><a href="#pbsv" class="headerlink" title="pbsv"></a>pbsv</h2><p>因为是Pacbio的数据，所以一开始是用pbsv分析。但是出现以下问题：  </p>
+<h3 id="pbmm2特定版本结果只与pbsv特定版本兼容？"><a href="#pbmm2特定版本结果只与pbsv特定版本兼容？" class="headerlink" title="pbmm2特定版本结果只与pbsv特定版本兼容？"></a>pbmm2特定版本结果只与pbsv特定版本兼容？</h3><p>从bioconda找到<a href="https://anaconda.org/bioconda/pbsv/files">不同版本的pbsv</a>。<br>测试了2.3.0、2.4.0、2.4.1、2.6.0、2.6.2、2.9.0，不同版本的pbsv discover结果.svsig.gz文件都有差别。<br>但是只在2.4.1、2.6.0、2.6.2的pbsv call的TRACE级别Log中有看见一些cluster。所以pbmm2 1.5.0应该对应2.4.1、2.6.0、2.6.2版本的pbsv？<br>后续接着用2.6.2版本的pbsv分析。  </p>
+<h3 id="pbsv-call不出"><a href="#pbsv-call不出" class="headerlink" title="pbsv call不出"></a>pbsv call不出</h3><p>.svsig.gz中能看到支持该Deletion的记录，但最终call的结果里没有该Deletion。<br>pbsv call的TRACE级别Log文件中能看到：  </p>
+<ul>
+<li>有警告信息：Could not find parse function for type: s。但是<a href="https://github.com/PacificBiosciences/pbbioconda/issues/455">.svsig.gz文件不提供文件格式说明</a>，没法确认是不是这个警告导致没结果。</li>
+<li>看见的cluster都是Insertion的，而且都因为failed coverage被过滤掉。该Deletion连cluster都没有。</li>
+</ul>
+<h2 id="Sniffles2"><a href="#Sniffles2" class="headerlink" title="Sniffles2"></a>Sniffles2</h2><p>pbsv不行，于是试了下Sniffles2。</p>
+<h3 id="Sniffles-2-可能有bug"><a href="#Sniffles-2-可能有bug" class="headerlink" title="Sniffles 2 可能有bug"></a>Sniffles 2 可能有bug</h3><p>先用的Sniffles 2，发现github上有人说Sniffles2可能会漏检大片段缺失：<br><a href="https://github.com/fritzsedlazeck/Sniffles/issues/390">https://github.com/fritzsedlazeck/Sniffles/issues/390</a><br><a href="https://github.com/fritzsedlazeck/Sniffles/issues/367">https://github.com/fritzsedlazeck/Sniffles/issues/367</a><br>原因：未知。<br>可能的解决方法：（1）用sniffles 1；（2）用cuteSV。  </p>
+<h3 id="Sniffles-1-报错"><a href="#Sniffles-1-报错" class="headerlink" title="Sniffles 1 报错"></a>Sniffles 1 报错</h3><p><code>No MD string detected! Check bam file! Otherwise generate using e.g. samtools.</code><br><a href="https://github.com/fritzsedlazeck/Sniffles/issues/149">https://github.com/fritzsedlazeck/Sniffles/issues/149</a><br><a href="https://github.com/fritzsedlazeck/Sniffles/issues/58">https://github.com/fritzsedlazeck/Sniffles/issues/58</a><br><a href="https://github.com/lh3/minimap2/issues/142">https://github.com/lh3/minimap2/issues/142</a><br>原因：minimap2旧版本不输出XS标签。<br>解决方法：（1）用samtools calmd给Bam文件添加XS标签；（2）更新minimap2并在比对时添加–MD参数。  </p>
+<h3 id="Sniffles-1、Sniffles-2-都call不出"><a href="#Sniffles-1、Sniffles-2-都call不出" class="headerlink" title="Sniffles 1、Sniffles 2 都call不出"></a>Sniffles 1、Sniffles 2 都call不出</h3><p>Sniffles 2.0.7用–no-qc参数只找到一些Insertion的SV。<br>Sniffles 1.0.12用–ccs_reads –cs_string –min_support 1 –cluster_support 1也是只找到与Sniffles 2相同的Insertion。  </p>
+<h2 id="cuteSV"><a href="#cuteSV" class="headerlink" title="cuteSV"></a>cuteSV</h2><h3 id="cuteSV-call不出"><a href="#cuteSV-call不出" class="headerlink" title="cuteSV call不出"></a>cuteSV call不出</h3><p>使用的版本是cuteSV 2.0.2。<br>按<a href="https://github.com/tjiangHIT/cuteSV">github文档</a>的建议，用了For PacBio CCS(HIFI) data和For force calling两种参数组合都只call出两个Insertion。  </p>
+]]></content>
+      <categories>
+        <category>Unsolved</category>
+      </categories>
+      <tags>
+        <tag>Pacbio</tag>
+        <tag>三代</tag>
+        <tag>SV</tag>
+        <tag>pbsv</tag>
+        <tag>Sniffles</tag>
+        <tag>cuteSV</tag>
       </tags>
   </entry>
   <entry>
@@ -512,6 +543,29 @@ cpan -i autodie
       </tags>
   </entry>
   <entry>
+    <title>WDL使用目录作为参数</title>
+    <url>/2023/04/26/WDL%E4%BD%BF%E7%94%A8%E7%9B%AE%E5%BD%95%E4%BD%9C%E4%B8%BA%E5%8F%82%E6%95%B0/</url>
+    <content><![CDATA[<p>写WDL时，调用目录作为参数传入</p>
+<span id="more"></span>
+
+<h1 id="需求"><a href="#需求" class="headerlink" title="需求"></a>需求</h1><p>WDL里用到了kraken2，其中有个参数--db需要数据库目录作为参数。  </p>
+<ul>
+<li>无法直接传目录。<br>WDL的数据类型只有File，没有Directory。<a href="https://github.com/openwdl/wdl/blob/main/versions/development/SPEC.md">WDL Version 1.1有Directory类型</a>，但目前的Cromwell版本目前不支持WDL Version 1.1。</li>
+<li>目录路径每次分析都会改变。<br>数据库没有放在镜像内，所以每次Cromwell投递都会将WDL中列出的一堆数据库文件硬链接到call-task中inputs的随机命名的目录，如86***2571-f*7b-476c-b3be-0bf***fe6cfe&#x2F;call-Kraken2&#x2F;inputs&#x2F;-159***78150。</li>
+</ul>
+<h1 id="错误方案"><a href="#错误方案" class="headerlink" title="错误方案"></a>错误方案</h1><p>Task中声明kraken2_db变量，然后通过<code>command&lt;&lt;&lt;`dirname 原数据库路径`&gt;&gt;&gt;</code>，再赋值kraken2_db变量。<br>不行，kraken2_db没有被修改，还是一开始声明的值。  </p>
+<h1 id="正确方案"><a href="#正确方案" class="headerlink" title="正确方案"></a>正确方案</h1><p>--db传参时，直接用<code>dirname</code>传入。  </p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># WDL</span><br><span class="line"></span><br><span class="line">task Kraken2&#123;</span><br><span class="line"></span><br><span class="line">	input &#123;</span><br><span class="line">		String Sample</span><br><span class="line">		File Read1</span><br><span class="line">		File Read2</span><br><span class="line">		Int Threads = 1</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	File kraken2_db_hash = &quot;/***/Database/Kraken2/hash.k2d&quot;</span><br><span class="line">	File kraken2_db_inspect = &quot;/***/Database/Kraken2/inspect.txt&quot;</span><br><span class="line">	File kraken2_db_opts = &quot;/***/Database/Kraken2/opts.k2d&quot;</span><br><span class="line">	File kraken2_db_seqid2taxid = &quot;/***/Database/Kraken2/seqid2taxid.map&quot;</span><br><span class="line">	File kraken2_db_taxo = &quot;/***/Database/Kraken2/taxo.k2d&quot;</span><br><span class="line">	File kraken2_db_kmer_distrib = &quot;/***/Database/Kraken2/database150mers.kmer_distrib&quot;</span><br><span class="line">	</span><br><span class="line">	command &lt;&lt;&lt;</span><br><span class="line">		kraken2 \</span><br><span class="line">			--threads ~&#123;Threads&#125; \</span><br><span class="line">			--confidence 0.8 \</span><br><span class="line">			--minimum-base-quality 20 \</span><br><span class="line">			--db `dirname ~&#123;kraken2_db_hash&#125;` \</span><br><span class="line">			--output ~&#123;Sample&#125;.output \</span><br><span class="line">			--report ~&#123;Sample&#125;.report \</span><br><span class="line">			--paired \</span><br><span class="line">			~&#123;Read1&#125; \</span><br><span class="line">			~&#123;Read2&#125;</span><br><span class="line"></span><br><span class="line">		bracken \</span><br><span class="line">			-r 150 \</span><br><span class="line">			-l S \</span><br><span class="line">			-t ~&#123;Threads&#125; \</span><br><span class="line">			-d `dirname ~&#123;kraken2_db_hash&#125;` \</span><br><span class="line">			-i ~&#123;Sample&#125;.report \</span><br><span class="line">			-o ~&#123;Sample&#125;.bracken</span><br><span class="line">	&gt;&gt;&gt;</span><br><span class="line">	</span><br><span class="line">	output &#123;</span><br><span class="line">		File k2_output = &quot;~&#123;Sample&#125;.output&quot;</span><br><span class="line">		File k2_report = &quot;~&#123;Sample&#125;.report&quot;</span><br><span class="line">		File bracken = &quot;~&#123;Sample&#125;.report&quot;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	runtime &#123;</span><br><span class="line">		docker: &quot;***/kraken2:v2.1.2&quot;</span><br><span class="line">		cpus: threads</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>Log</category>
+      </categories>
+      <tags>
+        <tag>WDL</tag>
+        <tag>Cromwell</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>VEP报错</title>
     <url>/2023/04/19/VEP%E6%8A%A5%E9%94%99/</url>
     <content><![CDATA[<p>一些VEP使用过程中的报错信息</p>
@@ -539,54 +593,6 @@ cpan -i autodie
         <tag>VEP</tag>
         <tag>注释</tag>
         <tag>Perl</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>WDL使用目录作为参数</title>
-    <url>/2023/04/26/WDL%E4%BD%BF%E7%94%A8%E7%9B%AE%E5%BD%95%E4%BD%9C%E4%B8%BA%E5%8F%82%E6%95%B0/</url>
-    <content><![CDATA[<p>写WDL时，调用目录作为参数传入</p>
-<span id="more"></span>
-
-<h1 id="需求"><a href="#需求" class="headerlink" title="需求"></a>需求</h1><p>WDL里用到了kraken2，其中有个参数--db需要数据库目录作为参数。  </p>
-<ul>
-<li>无法直接传目录。<br>WDL的数据类型只有File，没有Directory。<a href="https://github.com/openwdl/wdl/blob/main/versions/development/SPEC.md">WDL Version 1.1有Directory类型</a>，但目前的Cromwell版本目前不支持WDL Version 1.1。</li>
-<li>目录路径每次分析都会改变。<br>数据库没有放在镜像内，所以每次Cromwell投递都会将WDL中列出的一堆数据库文件硬链接到call-task中inputs的随机命名的目录，如86***2571-f*7b-476c-b3be-0bf***fe6cfe&#x2F;call-Kraken2&#x2F;inputs&#x2F;-159***78150。</li>
-</ul>
-<h1 id="错误方案"><a href="#错误方案" class="headerlink" title="错误方案"></a>错误方案</h1><p>Task中声明kraken2_db变量，然后通过<code>command&lt;&lt;&lt;`dirname 原数据库路径`&gt;&gt;&gt;</code>，再赋值kraken2_db变量。<br>不行，kraken2_db没有被修改，还是一开始声明的值。  </p>
-<h1 id="正确方案"><a href="#正确方案" class="headerlink" title="正确方案"></a>正确方案</h1><p>--db传参时，直接用<code>dirname</code>传入。  </p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># WDL</span><br><span class="line"></span><br><span class="line">task Kraken2&#123;</span><br><span class="line"></span><br><span class="line">	input &#123;</span><br><span class="line">		String Sample</span><br><span class="line">		File Read1</span><br><span class="line">		File Read2</span><br><span class="line">		Int Threads = 1</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	File kraken2_db_hash = &quot;/***/Database/Kraken2/hash.k2d&quot;</span><br><span class="line">	File kraken2_db_inspect = &quot;/***/Database/Kraken2/inspect.txt&quot;</span><br><span class="line">	File kraken2_db_opts = &quot;/***/Database/Kraken2/opts.k2d&quot;</span><br><span class="line">	File kraken2_db_seqid2taxid = &quot;/***/Database/Kraken2/seqid2taxid.map&quot;</span><br><span class="line">	File kraken2_db_taxo = &quot;/***/Database/Kraken2/taxo.k2d&quot;</span><br><span class="line">	File kraken2_db_kmer_distrib = &quot;/***/Database/Kraken2/database150mers.kmer_distrib&quot;</span><br><span class="line">	</span><br><span class="line">	command &lt;&lt;&lt;</span><br><span class="line">		kraken2 \</span><br><span class="line">			--threads ~&#123;Threads&#125; \</span><br><span class="line">			--confidence 0.8 \</span><br><span class="line">			--minimum-base-quality 20 \</span><br><span class="line">			--db `dirname ~&#123;kraken2_db_hash&#125;` \</span><br><span class="line">			--output ~&#123;Sample&#125;.output \</span><br><span class="line">			--report ~&#123;Sample&#125;.report \</span><br><span class="line">			--paired \</span><br><span class="line">			~&#123;Read1&#125; \</span><br><span class="line">			~&#123;Read2&#125;</span><br><span class="line"></span><br><span class="line">		bracken \</span><br><span class="line">			-r 150 \</span><br><span class="line">			-l S \</span><br><span class="line">			-t ~&#123;Threads&#125; \</span><br><span class="line">			-d `dirname ~&#123;kraken2_db_hash&#125;` \</span><br><span class="line">			-i ~&#123;Sample&#125;.report \</span><br><span class="line">			-o ~&#123;Sample&#125;.bracken</span><br><span class="line">	&gt;&gt;&gt;</span><br><span class="line">	</span><br><span class="line">	output &#123;</span><br><span class="line">		File k2_output = &quot;~&#123;Sample&#125;.output&quot;</span><br><span class="line">		File k2_report = &quot;~&#123;Sample&#125;.report&quot;</span><br><span class="line">		File bracken = &quot;~&#123;Sample&#125;.report&quot;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	runtime &#123;</span><br><span class="line">		docker: &quot;***/kraken2:v2.1.2&quot;</span><br><span class="line">		cpus: threads</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-]]></content>
-      <categories>
-        <category>Log</category>
-      </categories>
-      <tags>
-        <tag>WDL</tag>
-        <tag>Cromwell</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Xlsx转MySQL</title>
-    <url>/2023/04/21/Xlsx%E8%BD%ACMySQL/</url>
-    <content><![CDATA[<p>通过Python的openpyxl和MySQLdb模块，将.xlsx文件转为MySQL的Databse</p>
-<span id="more"></span>
-
-<h1 id="依赖"><a href="#依赖" class="headerlink" title="依赖"></a>依赖</h1><ul>
-<li>python 3.7.9  </li>
-<li>openpyxl模块 3.0.9  </li>
-<li>MySQLdb模块 2.1.1？</li>
-</ul>
-<h1 id="模块安装"><a href="#模块安装" class="headerlink" title="模块安装"></a>模块安装</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># openpyxl模块  </span><br><span class="line">python -m pip install openpyxl  </span><br><span class="line"># MySQLdb模块  </span><br><span class="line">python -m pip install mysqlclient  </span><br></pre></td></tr></table></figure>
-
-<h2 id="脚本"><a href="#脚本" class="headerlink" title="脚本"></a>脚本</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># python</span><br><span class="line"># -*- encoding: utf-8 -*-</span><br><span class="line"># Useage: 将xlsx文件导入为mysql的databse</span><br><span class="line"></span><br><span class="line">import os</span><br><span class="line">import sys</span><br><span class="line">import re</span><br><span class="line">import datetime</span><br><span class="line">import argparse</span><br><span class="line">import openpyxl</span><br><span class="line">import MySQLdb</span><br><span class="line"></span><br><span class="line">Charset = &quot;utf8&quot;</span><br><span class="line"></span><br><span class="line">def Xlsx2MySQLdb(Xlsx, User, Password):</span><br><span class="line">	Work_Book = openpyxl.load_workbook(Xlsx)</span><br><span class="line">	Database = re.search(&quot;.*\/(\S+)\.xlsx&quot;, Xlsx).group(1) + &quot;_&quot; + datetime.datetime.now().strftime(&quot;%Y%m%d_%H%M%S&quot;)</span><br><span class="line">	List_Sheet = Work_Book.sheetnames</span><br><span class="line">	# 提示信息</span><br><span class="line">	Time_Stamp = datetime.datetime.now().strftime(&quot;%Y-%m-%d %H:%M:%S&quot;)</span><br><span class="line">	sys.stdout.write(&quot;*&quot; + Time_Stamp + &quot;* [运行信息]\n&quot;)</span><br><span class="line">	sys.stdout.write(&quot;[输入文件] &quot; + Xlsx + &quot;\n&quot;)</span><br><span class="line">	sys.stdout.write(&quot;[子表数量] &quot; + str(len(List_Sheet)) + &quot;\n&quot;)</span><br><span class="line">	sys.stdout.write(&quot;[子表名称] &quot; + &quot;、&quot;.join(List_Sheet) + &quot;\n&quot;)</span><br><span class="line">	sys.stdout.write(&quot;[数据库名] &quot; + Database + &quot;\n&quot;)</span><br><span class="line">	sys.stdout.write(&quot;[字符编码] &quot; + Charset + &quot;\n&quot;)</span><br><span class="line">	sys.stdout.write(&quot;[表头字段] 每个子表的第1行会作为数据库的列名\n&quot;)</span><br><span class="line">	sys.stdout.write(&quot;[数据类型] 所有内容都保存为TEXT，如需修改，请在MySQL自行修改\n\n&quot;)</span><br><span class="line"></span><br><span class="line">	# 连接MySQL</span><br><span class="line">	SQL_Host = &quot;localhost&quot;</span><br><span class="line">	SQL_Connection = MySQLdb.connect(host = SQL_Host, user = User, passwd = Password, charset = Charset)</span><br><span class="line">	Cursor = SQL_Connection.cursor()</span><br><span class="line">	# 创建数据库</span><br><span class="line">	Cursor.execute(&quot;create database if not exists &quot; + Database)</span><br><span class="line">	Cursor.execute(&quot;use &quot; + Database)</span><br><span class="line">	# 逐个子表处理</span><br><span class="line">	for Sheet in List_Sheet:</span><br><span class="line">		List_Header = []</span><br><span class="line">		List_Table_Header = []</span><br><span class="line">		Data_Type = &quot;TEXT&quot;</span><br><span class="line">		Work_Sheet = Work_Book[Sheet]</span><br><span class="line">		for col_n in range(1, Work_Sheet.max_column+1):</span><br><span class="line">			Header = str(Work_Sheet.cell(row=1, column=col_n).value)</span><br><span class="line">			List_Header.append(&quot;`&quot; + Header + &quot;`&quot;)</span><br><span class="line">			List_Table_Header.append(&quot;`&quot; + Header + &quot;`&quot; + &quot; &quot; + Data_Type)</span><br><span class="line">		# 创建数据表</span><br><span class="line">		Table_Header = &quot;, &quot;.join(List_Table_Header)</span><br><span class="line">		Cursor.execute(&quot;create table if not exists &quot; + Sheet + &quot; (&quot; + Table_Header + &quot;)&quot;)</span><br><span class="line">		# 逐行存入数据</span><br><span class="line">		Header = &quot;, &quot;.join(List_Header)</span><br><span class="line">		for row_n in range(2, Work_Sheet.max_row+1):</span><br><span class="line">			List_Value = []</span><br><span class="line">			for col_n in range(1, Work_Sheet.max_column+1):</span><br><span class="line">				Value = str(Work_Sheet.cell(row = row_n, column = col_n).value)</span><br><span class="line">				List_Value.append(&quot;\&quot;&quot; + Value + &quot;\&quot;&quot;)</span><br><span class="line">			Value = &quot;, &quot;.join(List_Value)</span><br><span class="line">			Cursor.execute(&quot;insert into &quot; + Sheet + &quot; (&quot; + Header + &quot;) values(&quot; + Value + &quot;)&quot;)</span><br><span class="line">			# 提交MyQSL操作</span><br><span class="line">			SQL_Connection.commit()</span><br><span class="line">	# 关闭连接</span><br><span class="line">	Cursor.close()</span><br><span class="line">	SQL_Connection.close()</span><br><span class="line">	# 关闭Xlsx</span><br><span class="line">	Work_Book.close()</span><br></pre></td></tr></table></figure>
-]]></content>
-      <categories>
-        <category>Log</category>
-      </categories>
-      <tags>
-        <tag>数据库</tag>
-        <tag>MySQL</tag>
-        <tag>Python</tag>
-        <tag>Excel</tag>
       </tags>
   </entry>
   <entry>
@@ -767,6 +773,31 @@ cpan -i autodie
       <tags>
         <tag>画图</tag>
         <tag>ggplot2</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Xlsx转MySQL</title>
+    <url>/2023/04/21/Xlsx%E8%BD%ACMySQL/</url>
+    <content><![CDATA[<p>通过Python的openpyxl和MySQLdb模块，将.xlsx文件转为MySQL的Databse</p>
+<span id="more"></span>
+
+<h1 id="依赖"><a href="#依赖" class="headerlink" title="依赖"></a>依赖</h1><ul>
+<li>python 3.7.9  </li>
+<li>openpyxl模块 3.0.9  </li>
+<li>MySQLdb模块 2.1.1？</li>
+</ul>
+<h1 id="模块安装"><a href="#模块安装" class="headerlink" title="模块安装"></a>模块安装</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># openpyxl模块  </span><br><span class="line">python -m pip install openpyxl  </span><br><span class="line"># MySQLdb模块  </span><br><span class="line">python -m pip install mysqlclient  </span><br></pre></td></tr></table></figure>
+
+<h2 id="脚本"><a href="#脚本" class="headerlink" title="脚本"></a>脚本</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># python</span><br><span class="line"># -*- encoding: utf-8 -*-</span><br><span class="line"># Useage: 将xlsx文件导入为mysql的databse</span><br><span class="line"></span><br><span class="line">import os</span><br><span class="line">import sys</span><br><span class="line">import re</span><br><span class="line">import datetime</span><br><span class="line">import argparse</span><br><span class="line">import openpyxl</span><br><span class="line">import MySQLdb</span><br><span class="line"></span><br><span class="line">Charset = &quot;utf8&quot;</span><br><span class="line"></span><br><span class="line">def Xlsx2MySQLdb(Xlsx, User, Password):</span><br><span class="line">	Work_Book = openpyxl.load_workbook(Xlsx)</span><br><span class="line">	Database = re.search(&quot;.*\/(\S+)\.xlsx&quot;, Xlsx).group(1) + &quot;_&quot; + datetime.datetime.now().strftime(&quot;%Y%m%d_%H%M%S&quot;)</span><br><span class="line">	List_Sheet = Work_Book.sheetnames</span><br><span class="line">	# 提示信息</span><br><span class="line">	Time_Stamp = datetime.datetime.now().strftime(&quot;%Y-%m-%d %H:%M:%S&quot;)</span><br><span class="line">	sys.stdout.write(&quot;*&quot; + Time_Stamp + &quot;* [运行信息]\n&quot;)</span><br><span class="line">	sys.stdout.write(&quot;[输入文件] &quot; + Xlsx + &quot;\n&quot;)</span><br><span class="line">	sys.stdout.write(&quot;[子表数量] &quot; + str(len(List_Sheet)) + &quot;\n&quot;)</span><br><span class="line">	sys.stdout.write(&quot;[子表名称] &quot; + &quot;、&quot;.join(List_Sheet) + &quot;\n&quot;)</span><br><span class="line">	sys.stdout.write(&quot;[数据库名] &quot; + Database + &quot;\n&quot;)</span><br><span class="line">	sys.stdout.write(&quot;[字符编码] &quot; + Charset + &quot;\n&quot;)</span><br><span class="line">	sys.stdout.write(&quot;[表头字段] 每个子表的第1行会作为数据库的列名\n&quot;)</span><br><span class="line">	sys.stdout.write(&quot;[数据类型] 所有内容都保存为TEXT，如需修改，请在MySQL自行修改\n\n&quot;)</span><br><span class="line"></span><br><span class="line">	# 连接MySQL</span><br><span class="line">	SQL_Host = &quot;localhost&quot;</span><br><span class="line">	SQL_Connection = MySQLdb.connect(host = SQL_Host, user = User, passwd = Password, charset = Charset)</span><br><span class="line">	Cursor = SQL_Connection.cursor()</span><br><span class="line">	# 创建数据库</span><br><span class="line">	Cursor.execute(&quot;create database if not exists &quot; + Database)</span><br><span class="line">	Cursor.execute(&quot;use &quot; + Database)</span><br><span class="line">	# 逐个子表处理</span><br><span class="line">	for Sheet in List_Sheet:</span><br><span class="line">		List_Header = []</span><br><span class="line">		List_Table_Header = []</span><br><span class="line">		Data_Type = &quot;TEXT&quot;</span><br><span class="line">		Work_Sheet = Work_Book[Sheet]</span><br><span class="line">		for col_n in range(1, Work_Sheet.max_column+1):</span><br><span class="line">			Header = str(Work_Sheet.cell(row=1, column=col_n).value)</span><br><span class="line">			List_Header.append(&quot;`&quot; + Header + &quot;`&quot;)</span><br><span class="line">			List_Table_Header.append(&quot;`&quot; + Header + &quot;`&quot; + &quot; &quot; + Data_Type)</span><br><span class="line">		# 创建数据表</span><br><span class="line">		Table_Header = &quot;, &quot;.join(List_Table_Header)</span><br><span class="line">		Cursor.execute(&quot;create table if not exists &quot; + Sheet + &quot; (&quot; + Table_Header + &quot;)&quot;)</span><br><span class="line">		# 逐行存入数据</span><br><span class="line">		Header = &quot;, &quot;.join(List_Header)</span><br><span class="line">		for row_n in range(2, Work_Sheet.max_row+1):</span><br><span class="line">			List_Value = []</span><br><span class="line">			for col_n in range(1, Work_Sheet.max_column+1):</span><br><span class="line">				Value = str(Work_Sheet.cell(row = row_n, column = col_n).value)</span><br><span class="line">				List_Value.append(&quot;\&quot;&quot; + Value + &quot;\&quot;&quot;)</span><br><span class="line">			Value = &quot;, &quot;.join(List_Value)</span><br><span class="line">			Cursor.execute(&quot;insert into &quot; + Sheet + &quot; (&quot; + Header + &quot;) values(&quot; + Value + &quot;)&quot;)</span><br><span class="line">			# 提交MyQSL操作</span><br><span class="line">			SQL_Connection.commit()</span><br><span class="line">	# 关闭连接</span><br><span class="line">	Cursor.close()</span><br><span class="line">	SQL_Connection.close()</span><br><span class="line">	# 关闭Xlsx</span><br><span class="line">	Work_Book.close()</span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>Log</category>
+      </categories>
+      <tags>
+        <tag>数据库</tag>
+        <tag>MySQL</tag>
+        <tag>Python</tag>
+        <tag>Excel</tag>
       </tags>
   </entry>
   <entry>

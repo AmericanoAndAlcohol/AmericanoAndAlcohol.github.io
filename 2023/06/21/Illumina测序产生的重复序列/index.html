@@ -86,7 +86,7 @@
 <h2 id="预防"><a href="#预防" class="headerlink" title="预防"></a>预防</h2><p>其他研究者已经讨论过Patterned Flow Cell有产生更多重复序列的倾向性。在最近发表在 CRUK-CI Core Genomics 博客上的一篇<a target="_blank" rel="noopener" href="http://core-genomics.blogspot.co.uk/2016/05/increased-read-duplication-on-patterned.html">文章</a>中，James Hadfield 报告说，来自一个簇的文库分子可能会返回到周围的溶液中，然后作为相邻flow cell（应该是nanowell？）中第二个簇的种子。有人提出，可以通过增加上机文库浓度来最大程度地减少这些重新播种（re-seeding）事件，但是代价是会产生没有用的多克隆簇（指的应该是文库的experimental PCR duplicates？）。因此，需要在这两个相互竞争的问题之间取得平衡，使特异的有效的序列数量最大化。我们直接与Illumina讨论了这个问题，Illumina同意这一策略，并建议patterned flowcell测序仪可能需要逐个测序仪地进行校准，以确定最佳上机浓度。  </p>
 <h1 id="更多相关信息"><a href="#更多相关信息" class="headerlink" title="更多相关信息"></a>更多相关信息</h1><h2 id="Patterned-和-Nonpatterned-Flow-Cell"><a href="#Patterned-和-Nonpatterned-Flow-Cell" class="headerlink" title="Patterned 和 Nonpatterned Flow Cell"></a>Patterned 和 Nonpatterned Flow Cell</h2><p>这篇Illumina的官方文档，比较清楚地说明了Patterned 和 Nonpatterned Flow Cell在测序时的一些区别。<br><a target="_blank" rel="noopener" href="https://www.illumina.com/content/dam/illumina-marketing/documents/products/technotes/hiseq-x-percent-pf-technical-note-770-2014-043.pdf">Calculating Percent Passing Filter for Patterned and Nonpatterned Flow Cells</a>  </p>
 <h2 id="RTA软件"><a href="#RTA软件" class="headerlink" title="RTA软件"></a>RTA软件</h2><p>Patterned Flow Cell通过规律排布纳米孔，使测序芯片产生更多的簇，更多数据；同时也通过升级RTA（Real Time Analysis）软件，减少了从图像到序列转换的分析时间。<br><a target="_blank" rel="noopener" href="https://www.illumina.com/content/dam/illumina-marketing/documents/products/appnotes/novaseq-hiseq-q30-app-note-770-2017-010.pdf">NovaSeq™ 6000 System Quality Scores and RTA3 Software</a>  </p>
-<h2 id="过滤optical-duplicates序列"><a href="#过滤optical-duplicates序列" class="headerlink" title="过滤optical duplicates序列"></a>过滤optical duplicates序列</h2><p>在<a target="_blank" rel="noopener" href="https://sequencing.qcfail.com/articles/illumina-patterned-flow-cells-generate-duplicated-sequences/">Illumina Patterned Flow Cells Generate Duplicated Sequences</a>原文的Mitigation部分有提到Picard过滤optical duplicates的方法。<br>目前Picard已经被整合到了GATK中，相关模块和参数是MarkDuplicates (Picard)的–OPTICAL_DUPLICATE_PIXEL_DISTANCE。<br>GATK 4.4.0.0的<a target="_blank" rel="noopener" href="https://gatk.broadinstitute.org/hc/en-us/articles/13832748517275-MarkDuplicates-Picard-#--OPTICAL_DUPLICATE_PIXEL_DISTANCE">MarkDuplicates (Picard)</a>说明文档中有写：</p>
+<h2 id="过滤optical-duplicates序列"><a href="#过滤optical-duplicates序列" class="headerlink" title="过滤optical duplicates序列"></a>过滤optical duplicates序列</h2><p>在<a target="_blank" rel="noopener" href="https://sequencing.qcfail.com/articles/illumina-patterned-flow-cells-generate-duplicated-sequences/">Illumina Patterned Flow Cells Generate Duplicated Sequences</a>原文的Mitigation部分（没翻译这部分，有兴趣请看原文）有提到Picard过滤optical duplicates的方法。<br>目前Picard已经被整合到了GATK中，相关模块和参数是MarkDuplicates (Picard)的–OPTICAL_DUPLICATE_PIXEL_DISTANCE。<br>GATK 4.4.0.0的<a target="_blank" rel="noopener" href="https://gatk.broadinstitute.org/hc/en-us/articles/13832748517275-MarkDuplicates-Picard-#--OPTICAL_DUPLICATE_PIXEL_DISTANCE">MarkDuplicates (Picard)</a>说明文档中有写：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">For the patterned flowcell models, 2500 is moreappropriate. </span><br><span class="line">For other platforms and models, users should experiment to find what works best.</span><br></pre></td></tr></table></figure>
 <p>使用Patterned Flow Cell的测序平台，推荐–OPTICAL_DUPLICATE_PIXEL_DISTANCE参数设置为2500，但其实默认参数是100。<br>所以最好在分析前确认测序芯片类型，然后设置合适的参数。</p>
 
@@ -103,6 +103,15 @@
   
   
 <nav class="article-nav">
+  
+  <a href="/2023/06/27/Illumina-index-hopping-%E5%8E%9F%E7%90%86/" class="article-nav-link">
+    <strong class="article-nav-caption">前一篇</strong>
+    <div class="article-nav-title">
+      
+      Illumina index hopping 原理
+      
+    </div>
+  </a>
   
   
   <a href="/2023/05/29/Python%E6%96%87%E6%9C%AC%E5%8F%8A%E8%84%9A%E6%9C%AC%E5%8A%A0%E5%AF%86/" class="article-nav-link">

@@ -94,10 +94,10 @@
 </ul>
 <h1 id="具体参数"><a href="#具体参数" class="headerlink" title="具体参数"></a>具体参数</h1><h2 id="bedcov帮助文档"><a href="#bedcov帮助文档" class="headerlink" title="bedcov帮助文档"></a>bedcov帮助文档</h2><ul>
 <li>-d参数：设置此参数后，结果会多一列，是参考碱基超过-d设定的深度的数量</li>
-<li>-c参数：设置此参数后，结果会多一列，是这个区域内的Reads数量<br><img src="https://pic.imgdb.cn/item/654746bcc458853aefb69190.png" alt="bedcov帮助文档"></li>
+<li>-c参数：设置此参数后，结果会多一列，是这个区域内的Reads数量<br><img src="https://pic.imgdb.cn/item/654746bcc458853aefb69190.png" alt="bedcov"></li>
 </ul>
 <h2 id="coverage帮助文档"><a href="#coverage帮助文档" class="headerlink" title="coverage帮助文档"></a>coverage帮助文档</h2><ul>
-<li>-d参数：最大深度阈值，默认1000000（一百万），如果设置为0则阈值是整形变量的最大值，相当于没有任何深度限制。<br><img src="https://pic.imgdb.cn/item/654746cdc458853aefb6cc49.png" alt="coverage帮助文档"></li>
+<li>-d参数：最大深度阈值，默认1000000（一百万），如果设置为0则阈值是整形变量的最大值，相当于没有任何深度限制。<br><img src="https://pic.imgdb.cn/item/654746cdc458853aefb6cc49.png" alt="coverage"></li>
 </ul>
 <h1 id="详细说明"><a href="#详细说明" class="headerlink" title="详细说明"></a>详细说明</h1><ul>
 <li>bedcov的-d参数统计有多少个参考碱基超过-d设定的深度，没有注明默认值是多少，当-d有设置值时，会在第4列的总碱基数量后面多1列结果，是参考碱基超过-d设定的深度的数量。但实际上结果中第4列的总碱基数量以及-c统计出的Reads数，都会受到-d限制。  </li>
@@ -112,7 +112,7 @@
 </ul>
 <h1 id="测试代码"><a href="#测试代码" class="headerlink" title="测试代码"></a>测试代码</h1><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">echo &quot;# samtools coverage #&quot;</span><br><span class="line">/xxx/Software/samtools-1.18/bin/samtools coverage -r chr2:29446329-29446350 Test.bam</span><br><span class="line">/xxx/Software/samtools-1.18/bin/samtools coverage -r chr6:117650534-117650556 Test.bam</span><br><span class="line">echo &quot;&quot;</span><br><span class="line"></span><br><span class="line">echo &quot;# samtools bedcov -c #&quot;</span><br><span class="line">/xxx/Software/samtools-1.18/bin/samtools bedcov -c Test.bed Test.bam</span><br><span class="line">echo &quot;&quot;</span><br><span class="line"></span><br><span class="line">echo &quot;# samtools bedcov -c -d 1000000 #&quot;</span><br><span class="line">/xxx/Software/samtools-1.18/bin/samtools bedcov -c -d 10000000 Test.bed Test.bam</span><br><span class="line">echo &quot;&quot;</span><br><span class="line"></span><br><span class="line">echo &quot;# samtools bedcov -c -d 0  #&quot;</span><br><span class="line">/xxx/Software/samtools-1.18/bin/samtools bedcov -c -d 0 Test.bed Test.bam</span><br><span class="line">echo &quot;&quot;</span><br></pre></td></tr></table></figure>
 
-<h1 id="测试结果"><a href="#测试结果" class="headerlink" title="测试结果"></a>测试结果</h1><p><img src="https://pic.imgdb.cn/item/654746e3c458853aefb71529.png" alt="测试结果"></p>
+<h1 id="测试结果"><a href="#测试结果" class="headerlink" title="测试结果"></a>测试结果</h1><p><img src="https://pic.imgdb.cn/item/654746e3c458853aefb71529.png" alt="result"></p>
 
       
     </div>

@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  
+  <meta name="keywords" content="bioinfomatics,生物信息">
+  
+  
+  <meta name="description" content="bioinfomatics 生物信息">
+  
+  <title>
+    sambamba flagstat没有Primary Mapped Reads |
+    
+    A Blog
+  </title>
+  <!-- Icon -->
+  
+    <link rel="shortcut icon" href="/images/K_Letter_White.svg">
+    
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <main class="content">
+    <section class="outer">
+  <article id="post-sambamba-flagstat没有Primary-Mapped-Reads" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+      
+  
+  <h1 class="article-title" itemprop="name">
+    sambamba flagstat没有Primary Mapped Reads
+  </h1>
+  
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2023/11/05/sambamba-flagstat%E6%B2%A1%E6%9C%89Primary-Mapped-Reads/" class="article-date">
+  <time datetime="2023-11-05T07:16:45.000Z" itemprop="datePublished">2023-11-05</time>
+</a>
+      
+<div class="article-category">
+  <a class="article-category-link" href="/categories/Log/">Log</a>
+</div>
+
+    </div>
+    
+
+    
+    
+<div class="tocbot"></div>
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+      
+        <p>sambamba flagstat统计结果格式和samtools flagstat不一样，没有Primary Mapped Reads</p>
+<span id="more"></span>
+
+
+<h1 id="软件版本"><a href="#软件版本" class="headerlink" title="软件版本"></a>软件版本</h1><ul>
+<li>samtools 1.18</li>
+<li>sambamba 1.0.1</li>
+</ul>
+<h1 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h1><p>samtools flagstat与sambamba flagstat输出格式不一样，sambamba flagstat没有Primary Mapped Reads</p>
+<h1 id="结果示例"><a href="#结果示例" class="headerlink" title="结果示例"></a>结果示例</h1><h2 id="samtools-flagstat"><a href="#samtools-flagstat" class="headerlink" title="samtools flagstat"></a>samtools flagstat</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">4350490 + 0 in total (QC-passed reads + QC-failed reads)</span><br><span class="line">3501080 + 0 primary</span><br><span class="line">481096 + 0 secondary</span><br><span class="line">368314 + 0 supplementary</span><br><span class="line">0 + 0 duplicates</span><br><span class="line">0 + 0 primary duplicates</span><br><span class="line">4319560 + 0 mapped (99.29% : N/A)</span><br><span class="line">3470150 + 0 primary mapped (99.12% : N/A)</span><br><span class="line">3501080 + 0 paired in sequencing</span><br><span class="line">1750540 + 0 read1</span><br><span class="line">1750540 + 0 read2</span><br><span class="line">3469722 + 0 properly paired (99.10% : N/A)</span><br><span class="line">3470118 + 0 with itself and mate mapped</span><br><span class="line">32 + 0 singletons (0.00% : N/A)</span><br><span class="line">76 + 0 with mate mapped to a different chr</span><br><span class="line">20 + 0 with mate mapped to a different chr (mapQ&gt;=5)</span><br></pre></td></tr></table></figure>
+
+<h2 id="sambamba-flagstat"><a href="#sambamba-flagstat" class="headerlink" title="sambamba flagstat"></a>sambamba flagstat</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">4350490 + 0 in total (QC-passed reads + QC-failed reads)</span><br><span class="line">481096 + 0 secondary</span><br><span class="line">368314 + 0 supplementary</span><br><span class="line">0 + 0 duplicates</span><br><span class="line">4319560 + 0 mapped (99.29%:N/A)</span><br><span class="line">3501080 + 0 paired in sequencing</span><br><span class="line">1750540 + 0 read1</span><br><span class="line">1750540 + 0 read2</span><br><span class="line">3469722 + 0 properly paired (99.10%:N/A)</span><br><span class="line">3470118 + 0 with itself and mate mapped</span><br><span class="line">32 + 0 singletons (0.00%:N/A)</span><br><span class="line">76 + 0 with mate mapped to a different chr</span><br><span class="line">20 + 0 with mate mapped to a different chr (mapQ&gt;=5)</span><br></pre></td></tr></table></figure>
+
+<h1 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h1><ul>
+<li>samtools flagstat的primary mapped 等于 sambamba flagstat的mapped - secondary - supplementary</li>
+<li>samtools flagstat结果：3470150 + 0 primary mapped (99.12% : N&#x2F;A)</li>
+<li>sambamba flagstat结果：3470150 &#x3D; 4319560 - 481096 - 368314</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+<ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Sambamba/" rel="tag">Sambamba</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Samtools/" rel="tag">Samtools</a></li></ul>
+
+    </footer>
+
+  </div>
+
+  
+  
+<nav class="article-nav">
+  
+  <a href="/2023/11/05/samtools%E7%9A%84coverage%E5%92%8Cbedcov%E7%BB%93%E6%9E%9C%E4%B8%8D%E4%B8%80%E8%87%B4/" class="article-nav-link">
+    <strong class="article-nav-caption">前一篇</strong>
+    <div class="article-nav-title">
+      
+      samtools的coverage和bedcov结果不一致
+      
+    </div>
+  </a>
+  
+  
+  <a href="/2023/11/05/Docker-Windows%E6%A1%8C%E9%9D%A2%E7%AB%AF-%E9%87%8A%E6%94%BE%E5%8D%A0%E7%94%A8%E7%A9%BA%E9%97%B4/" class="article-nav-link">
+    <strong class="article-nav-caption">后一篇</strong>
+    <div class="article-nav-title">Docker Windows桌面端 释放占用空间</div>
+  </a>
+  
+</nav>
+
+  
+
+  
+  
+<div class="vcomments" id="vcomments"></div>
+
+<script src="https://unpkg.com/valine/dist/Valine.min.js"></script>
+
+<script>
+  new Valine({
+    el: '#vcomments',
+    appId: 'AbTah7Q6uUUamYA9gZ0ANnav-9Nh9j0Va',
+    appKey: 'Ue6meFW6ZFZ6VHHH8DIpct5h',
+    notify: 'false',
+    verify: 'true',
+    avatar: 'identicon',
+    pageSize: '10',
+    placeholder: '说点什么'
+  })
+</script>
+
+  
+  
+
+</article>
+</section>
+    <footer class="footer">
+  <div class="outer">
+    <ul class="list-inline">
+      <li>A Blog &copy; 2023</li>
+      
+        <li>
+          
+            <a href="https://beian.miit.gov.cn/" target="_blank"></a>
+            
+        </li>
+      
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>theme  <a target="_blank" rel="noopener" href="https://github.com/zhwangart/hexo-theme-ocean">Ocean</a></li>
+    </ul>
+    <p><ul class="list-inline">
+  
+  <li><i class="fe fe-smile-alt tooltip" data-tooltip="UV"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+  <li><i class="fe fe-bookmark tooltip" data-tooltip="PV"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul></p>
+  </div>
+</footer>
+  </main>
+  <aside class="sidebar">
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/K_Letter.svg" alt="A Blog"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">首页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">关于</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="搜索">
+        <i class="fe fe-search"></i>
+        搜索
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto',
+  });
+</script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+
+</html>

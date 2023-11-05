@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  
+  <meta name="keywords" content="bioinfomatics,生物信息">
+  
+  
+  <meta name="description" content="bioinfomatics 生物信息">
+  
+  <title>
+    samtools的coverage和bedcov结果不一致 |
+    
+    A Blog
+  </title>
+  <!-- Icon -->
+  
+    <link rel="shortcut icon" href="/images/K_Letter_White.svg">
+    
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <main class="content">
+    <section class="outer">
+  <article id="post-samtools的coverage和bedcov结果不一致" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+      
+  
+  <h1 class="article-title" itemprop="name">
+    samtools的coverage和bedcov结果不一致
+  </h1>
+  
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2023/11/05/samtools%E7%9A%84coverage%E5%92%8Cbedcov%E7%BB%93%E6%9E%9C%E4%B8%8D%E4%B8%80%E8%87%B4/" class="article-date">
+  <time datetime="2023-11-05T07:26:41.000Z" itemprop="datePublished">2023-11-05</time>
+</a>
+      
+<div class="article-category">
+  <a class="article-category-link" href="/categories/Log/">Log</a>
+</div>
+
+    </div>
+    
+
+    
+    
+<div class="tocbot"></div>
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+      
+        <p>分别用samtools coverage和bedtools bedcov计算区域内的Reads数，得到的结果不一致。</p>
+<span id="more"></span>
+
+
+<h1 id="软件版本"><a href="#软件版本" class="headerlink" title="软件版本"></a>软件版本</h1><ul>
+<li>samtools 1.18</li>
+</ul>
+<h1 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h1><ul>
+<li>samtools coverage的-r参数只能输入1个区域。</li>
+<li>samtools bedcov可以统计整个bed文件的所有区域。</li>
+<li>但是coverage和bedcov -c，统计同一个bam文件的同一个区域，得到的Reads数不一样。</li>
+</ul>
+<h1 id="原因"><a href="#原因" class="headerlink" title="原因"></a>原因</h1><ul>
+<li>bedcov和mpileup一样，受-d depth限制，只统计到设定的深度上限，再多的Reads就不统计了。</li>
+<li>coverage默认的-d是1000000。bedcov的帮助文档没写是多少。</li>
+</ul>
+<h1 id="具体参数"><a href="#具体参数" class="headerlink" title="具体参数"></a>具体参数</h1><h2 id="bedcov帮助文档"><a href="#bedcov帮助文档" class="headerlink" title="bedcov帮助文档"></a>bedcov帮助文档</h2><ul>
+<li>-d参数：设置此参数后，结果会多一列，是参考碱基超过-d设定的深度的数量</li>
+<li>-c参数：设置此参数后，结果会多一列，是这个区域内的Reads数量<br><img src="https://pic.imgdb.cn/item/654746bcc458853aefb69190.png" alt="bedcov帮助文档"></li>
+</ul>
+<h2 id="coverage帮助文档"><a href="#coverage帮助文档" class="headerlink" title="coverage帮助文档"></a>coverage帮助文档</h2><ul>
+<li>-d参数：最大深度阈值，默认1000000（一百万），如果设置为0则阈值是整形变量的最大值，相当于没有任何深度限制。<br><img src="https://pic.imgdb.cn/item/654746cdc458853aefb6cc49.png" alt="coverage帮助文档"></li>
+</ul>
+<h1 id="详细说明"><a href="#详细说明" class="headerlink" title="详细说明"></a>详细说明</h1><ul>
+<li>bedcov的-d参数统计有多少个参考碱基超过-d设定的深度，没有注明默认值是多少，当-d有设置值时，会在第4列的总碱基数量后面多1列结果，是参考碱基超过-d设定的深度的数量。但实际上结果中第4列的总碱基数量以及-c统计出的Reads数，都会受到-d限制。  </li>
+<li>在-d不设置的状态下，-c统计出的Reads数最高只会有64020，但是当-d设置为1000000时，Reads数会统计出更高的结果，而且数量与coverage模块的默认参数（-d 1000000）一样。  </li>
+<li>coverage模块的-d参数如果设置为0，会去除深度限制。但是如果bedcov模块的-d设置为0，不会去除深度限制，只是总碱基数量后面会多1列，统计有多少个参考碱基深度超过0。  </li>
+<li>查看bedcov的源码，<a target="_blank" rel="noopener" href="https://github.com/samtools/samtools/blob/1.18/bedcov.c">samtools&#x2F;bedcov.c at 1.18 · samtools&#x2F;samtools (github.com)</a><ul>
+<li>默认最大深度阈值应该是DEFAULT_DEPTH 64000（第43行）</li>
+<li>-d输入的参数应该是min_depth（第120行）</li>
+<li>如果min_depth &gt; 64000则用min_depth作为最大深度阈值，否则64000就是最大深度阈值（第223~226行）</li>
+</ul>
+</li>
+</ul>
+<h1 id="测试代码"><a href="#测试代码" class="headerlink" title="测试代码"></a>测试代码</h1><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">echo &quot;# samtools coverage #&quot;</span><br><span class="line">/xxx/Software/samtools-1.18/bin/samtools coverage -r chr2:29446329-29446350 Test.bam</span><br><span class="line">/xxx/Software/samtools-1.18/bin/samtools coverage -r chr6:117650534-117650556 Test.bam</span><br><span class="line">echo &quot;&quot;</span><br><span class="line"></span><br><span class="line">echo &quot;# samtools bedcov -c #&quot;</span><br><span class="line">/xxx/Software/samtools-1.18/bin/samtools bedcov -c Test.bed Test.bam</span><br><span class="line">echo &quot;&quot;</span><br><span class="line"></span><br><span class="line">echo &quot;# samtools bedcov -c -d 1000000 #&quot;</span><br><span class="line">/xxx/Software/samtools-1.18/bin/samtools bedcov -c -d 10000000 Test.bed Test.bam</span><br><span class="line">echo &quot;&quot;</span><br><span class="line"></span><br><span class="line">echo &quot;# samtools bedcov -c -d 0  #&quot;</span><br><span class="line">/xxx/Software/samtools-1.18/bin/samtools bedcov -c -d 0 Test.bed Test.bam</span><br><span class="line">echo &quot;&quot;</span><br></pre></td></tr></table></figure>
+
+<h1 id="测试结果"><a href="#测试结果" class="headerlink" title="测试结果"></a>测试结果</h1><p><img src="https://pic.imgdb.cn/item/654746e3c458853aefb71529.png" alt="测试结果"></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+<ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Samtools/" rel="tag">Samtools</a></li></ul>
+
+    </footer>
+
+  </div>
+
+  
+  
+<nav class="article-nav">
+  
+  
+  <a href="/2023/11/05/sambamba-flagstat%E6%B2%A1%E6%9C%89Primary-Mapped-Reads/" class="article-nav-link">
+    <strong class="article-nav-caption">后一篇</strong>
+    <div class="article-nav-title">sambamba flagstat没有Primary Mapped Reads</div>
+  </a>
+  
+</nav>
+
+  
+
+  
+  
+<div class="vcomments" id="vcomments"></div>
+
+<script src="https://unpkg.com/valine/dist/Valine.min.js"></script>
+
+<script>
+  new Valine({
+    el: '#vcomments',
+    appId: 'AbTah7Q6uUUamYA9gZ0ANnav-9Nh9j0Va',
+    appKey: 'Ue6meFW6ZFZ6VHHH8DIpct5h',
+    notify: 'false',
+    verify: 'true',
+    avatar: 'identicon',
+    pageSize: '10',
+    placeholder: '说点什么'
+  })
+</script>
+
+  
+  
+
+</article>
+</section>
+    <footer class="footer">
+  <div class="outer">
+    <ul class="list-inline">
+      <li>A Blog &copy; 2023</li>
+      
+        <li>
+          
+            <a href="https://beian.miit.gov.cn/" target="_blank"></a>
+            
+        </li>
+      
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>theme  <a target="_blank" rel="noopener" href="https://github.com/zhwangart/hexo-theme-ocean">Ocean</a></li>
+    </ul>
+    <p><ul class="list-inline">
+  
+  <li><i class="fe fe-smile-alt tooltip" data-tooltip="UV"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+  <li><i class="fe fe-bookmark tooltip" data-tooltip="PV"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul></p>
+  </div>
+</footer>
+  </main>
+  <aside class="sidebar">
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/K_Letter.svg" alt="A Blog"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">首页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">关于</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="搜索">
+        <i class="fe fe-search"></i>
+        搜索
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto',
+  });
+</script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+
+</html>

@@ -144,6 +144,42 @@
       </tags>
   </entry>
   <entry>
+    <title>Docker Windows桌面端 释放占用空间</title>
+    <url>/2023/11/05/Docker-Windows%E6%A1%8C%E9%9D%A2%E7%AB%AF-%E9%87%8A%E6%94%BE%E5%8D%A0%E7%94%A8%E7%A9%BA%E9%97%B4/</url>
+    <content><![CDATA[<p>Docker Windows桌面端，删除容器后，占用空间没有释放</p>
+<span id="more"></span>
+
+
+<h1 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h1><p>Docker Windows桌面端，删除容器后，占用空间没有释放</p>
+<h1 id="原因"><a href="#原因" class="headerlink" title="原因"></a>原因</h1><p>ext4.vhdx磁盘空间会根据加载的数据自动增长，但是无法自动回收。</p>
+<h1 id="解决"><a href="#解决" class="headerlink" title="解决"></a>解决</h1><p>注：Docker的ext4.vhdx可能在以下路径：C:\Users\YOURNAME\AppData\Local\Docker\wsl\data  </p>
+<ol>
+<li>退出Docker Windows桌面端  </li>
+<li>PowerShell运行：wsl –shutdown  </li>
+<li>【可选用diskpart】<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># PowerShell运行以下命令</span><br><span class="line"># 进入diskpart</span><br><span class="line">diskpart</span><br><span class="line"># 选择虚拟机文件</span><br><span class="line">select vdisk file=&quot;【填写ext4.vhdx绝对路径】&quot;</span><br><span class="line">attach vdisk readonly</span><br><span class="line"># 回收虚拟机文件无用空间</span><br><span class="line">compact vdisk</span><br><span class="line"># 断开虚拟机文件</span><br><span class="line">detach vdisk</span><br><span class="line"># 退出diskpart</span><br><span class="line">exit</span><br></pre></td></tr></table></figure>
+【可选用optimize-vhd，需要已安装Hyper-V】  <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># PowerShell运行以下命令</span><br><span class="line">optimize-vhd -Path 【填写ext4.vhdx绝对路径】 -Mode full</span><br></pre></td></tr></table></figure></li>
+</ol>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><p>diskpart</p>
+<ol>
+<li><a href="https://zhuanlan.zhihu.com/p/437983382">https://zhuanlan.zhihu.com/p/437983382</a></li>
+<li><a href="https://blog.csdn.net/Caoyang_He/article/details/120507716">https://blog.csdn.net/Caoyang_He/article/details/120507716</a></li>
+</ol>
+<p>optimize-vhd</p>
+<ol>
+<li><a href="https://learn.microsoft.com/zh-hk/powershell/module/hyper-v/optimize-vhd?view=windowsserver2022-ps&viewFallbackFrom=win10-ps">https://learn.microsoft.com/zh-hk/powershell/module/hyper-v/optimize-vhd?view=windowsserver2022-ps&amp;viewFallbackFrom=win10-ps</a></li>
+<li><a href="https://www.cnblogs.com/cccy0/p/16918476.html">https://www.cnblogs.com/cccy0/p/16918476.html</a></li>
+<li><a href="https://www.hanselman.com/blog/shrink-your-wsl2-virtual-disks-and-docker-images-and-reclaim-disk-space">https://www.hanselman.com/blog/shrink-your-wsl2-virtual-disks-and-docker-images-and-reclaim-disk-space</a></li>
+<li><a href="https://zhuanlan.zhihu.com/p/538805830">https://zhuanlan.zhihu.com/p/538805830</a></li>
+</ol>
+]]></content>
+      <categories>
+        <category>Log</category>
+      </categories>
+      <tags>
+        <tag>Docker</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Cutadapt拆分MGI数据</title>
     <url>/2023/05/27/Cutadapt%E6%8B%86%E5%88%86MGI%E6%95%B0%E6%8D%AE/</url>
     <content><![CDATA[<p>用Cutadapt拆分MGI测序仪的下机数据</p>
@@ -861,6 +897,162 @@ cpan -i autodie
       <tags>
         <tag>画图</tag>
         <tag>ggplot2</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>pandas数据操作</title>
+    <url>/2023/08/21/pandas%E6%95%B0%E6%8D%AE%E6%93%8D%E4%BD%9C/</url>
+    <content><![CDATA[<p>一些以panda为主的数据分析操作</p>
+<span id="more"></span>
+
+
+<h1 id="运行环境"><a href="#运行环境" class="headerlink" title="运行环境"></a>运行环境</h1><ul>
+<li>Python      3.8.8rc1</li>
+<li>numpy       1.24.4</li>
+<li>pandas      2.0.3</li>
+<li>matplotlib  3.7.2</li>
+<li>seaborn     0.12.2</li>
+</ul>
+<h1 id="导入Python包"><a href="#导入Python包" class="headerlink" title="导入Python包"></a>导入Python包</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">import pandas as pd</span><br><span class="line">import numpy as np</span><br><span class="line">import matplotlib.pylab as plt</span><br><span class="line">import seaborn as sns</span><br><span class="line"># 设置matplotlib样式为ggplot</span><br><span class="line">plt.style.use(&#x27;ggplot&#x27;)</span><br><span class="line"># 使数据列数超过200时，才用省略号跳过显示部分列</span><br><span class="line">pd.set_option(&#x27;max_columns&#x27;, 200)</span><br></pre></td></tr></table></figure>
+
+<h1 id="数据读入"><a href="#数据读入" class="headerlink" title="数据读入"></a>数据读入</h1><h2 id="csv或tsv格式的输入文件"><a href="#csv或tsv格式的输入文件" class="headerlink" title="csv或tsv格式的输入文件"></a>csv或tsv格式的输入文件</h2><h3 id="简单示例"><a href="#简单示例" class="headerlink" title="简单示例"></a>简单示例</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># csv格式</span><br><span class="line">df = pd.read_csv(&#x27;xxx/xxx.csv&#x27;)</span><br><span class="line"></span><br><span class="line"># tsv格式</span><br><span class="line">df = pd.read_csv(&#x27;xxx/xxx.tsv&#x27;, sep=&#x27;\t&#x27;)</span><br></pre></td></tr></table></figure>
+<h3 id="参数说明"><a href="#参数说明" class="headerlink" title="参数说明"></a>参数说明</h3><ul>
+<li>完整参数列表：<a href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.read_csv.html">pandas.read_csv</a></li>
+<li>可能常用参数：<ol>
+<li>sep：指定作为分隔符的符号或正则表达式，默认是‘,’。当输入值大于1个字符或不是’\s+’时，会被解析为正则表达式。</li>
+<li>delimiter：和sep一样。</li>
+<li>header:整数，表头所在行。当names参数有设置时，默认是从列名自动判断；如果names参数没有设置，则默认是header&#x3D;0。注：如果skip_blank_lines&#x3D;True，会忽略注释行和空行，因此header&#x3D;0表示数据的第一行而不是文件的第一行。</li>
+<li>names：用于指定列名的列表。如果设置了此参数，相当于指定了header &#x3D; None。此列表中不允许有重复项。</li>
+<li>index_col：整数，用作行标签的列。</li>
+<li>usecols：要选择的列的子集，输入值是列名或列索引的列表。</li>
+<li>dtype：字典，指定整个数据集或某一列的数据类型。例如{‘a’: np.float64, ‘b’: np.int32, ‘c’: ‘Int64’}。</li>
+<li>true_values：列表，除了不分大小写的‘True’外，还有哪些值会认为是True。</li>
+<li>false_values：列表，除了不分大小写的‘False’外，还有哪些值会认为是False。</li>
+<li>skipinitialspace：跳过分隔符后的空格，默认是False。</li>
+<li>skiprows：文件开头要跳过的第几号（从 0 开始索引）或要跳过的多少行 (int)。如跳过第2和4行：skiprows &#x3D; [2, 4]；跳过前2行：skiprows&#x3D;2。</li>
+<li>nrows：整数，指定要读取的文件行数。对于读取大文件很有用。</li>
+<li>na_values：除了NA和NaN外，还有哪些值会认为是NA。</li>
+<li>keep_default_na：解析数据时，识别的NA符号是否包含默认NaN值（NA和NaN）。</li>
+<li>na_filter：是否需要检测缺失值标记（空字符串和na_values指定的值），默认True。在没有任何NA值的数据中，指定na_filter&#x3D;False可以提高读取大文件的性能。</li>
+<li>skip_blank_lines：如果为True，则跳过空白行而不是解析为NaN值。</li>
+</ol>
+</li>
+</ul>
+<h2 id="xls或xlsx格式的输入文件"><a href="#xls或xlsx格式的输入文件" class="headerlink" title="xls或xlsx格式的输入文件"></a>xls或xlsx格式的输入文件</h2><h3 id="简单示例-1"><a href="#简单示例-1" class="headerlink" title="简单示例"></a>简单示例</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># xls格式</span><br><span class="line">df = pd.read_excel(&#x27;xxx/xxx.xls&#x27;, sheet_name=&#x27;xxx&#x27;)</span><br><span class="line"></span><br><span class="line"># xlsx格式</span><br><span class="line">df = pd.read_excel(&#x27;xxx/xxx.xlsx&#x27;, sheet_name=&#x27;xxx&#x27;)</span><br></pre></td></tr></table></figure>
+<h3 id="参数说明-1"><a href="#参数说明-1" class="headerlink" title="参数说明"></a>参数说明</h3><ul>
+<li>完整参数列表：<a href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.read_excel.html">pandas.read_excel</a></li>
+<li>支持文件格式： xls xlsx xlsm xlsb odf ods odt</li>
+<li>可能常用参数：<ol>
+<li>sheet_name：字符串，整数，列表或None，默认为0。指定要读取的工作表。设置为None时，读取所有工作表。</li>
+<li>header：整数或整数列表，默认为0。用于指定表头所在行。如果没有标题，请使用None。</li>
+<li>names：列表，默认为None。指定列名的列表。如果文件不包含标题行，则应显式传递 header&#x3D;None。</li>
+<li>index_col：字符串，整数，整数列表，默认为None。用于指定行名所在列。设置为None代表没有行名。</li>
+<li>usecols：要选择的列的子集，输入值是列名或列索引的列表。</li>
+<li>dtype：字典，指定整个数据集或某一列的数据类型。例如{‘a’: np.float64, ‘b’: np.int32, ‘c’: ‘Int64’}。</li>
+<li>engine：文件解析引擎。“xlrd”支持.xls文件，在1.2.0版本后xlrd只支持.xls文件。“openpyxl”支持更新的Excel文件。“odf”支持OpenDocument文件 .odf, .ods, .odt。“pyxlsb”支持Binary Excel文件。</li>
+<li>true_values：列表，除了不分大小写的‘True’外，还有哪些值会认为是True。</li>
+<li>false_values：列表，除了不分大小写的‘False’外，还有哪些值会认为是False。</li>
+<li>skiprows：文件开头要跳过的第几号（从 0 开始索引）或要跳过的多少行 (int)。如跳过第2和4行：skiprows &#x3D; [2, 4]；跳过前2行：skiprows&#x3D;2。</li>
+<li>nrows：整数，指定要读取的文件行数。对于读取大文件很有用。</li>
+<li>na_values：除了NA和NaN外，还有哪些值会认为是NA。</li>
+<li>keep_default_na：解析数据时，识别的NA符号是否包含默认NaN值（NA和NaN）。</li>
+<li>na_filter：是否需要检测缺失值标记（空字符串和na_values指定的值），默认True。在没有任何NA值的数据中，指定na_filter&#x3D;False可以提高读取大文件的性能。</li>
+</ol>
+</li>
+</ul>
+<h1 id="数据观察"><a href="#数据观察" class="headerlink" title="数据观察"></a>数据观察</h1><h1 id="数据预处理"><a href="#数据预处理" class="headerlink" title="数据预处理"></a>数据预处理</h1><h1 id="特征观察"><a href="#特征观察" class="headerlink" title="特征观察"></a>特征观察</h1><h1 id="特征之间关系"><a href="#特征之间关系" class="headerlink" title="特征之间关系"></a>特征之间关系</h1><h1 id="结果输出"><a href="#结果输出" class="headerlink" title="结果输出"></a>结果输出</h1><p>完整参数列表：<br><a href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.to_csv.html">pandas.DataFrame.to_csv</a><br><a href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.to_excel.html">pandas.DataFrame.to_excel</a></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># csv格式</span><br><span class="line">df.to_csv(&#x27;xxx/output.csv&#x27;, index=False)</span><br><span class="line"></span><br><span class="line"># xlsx格式</span><br><span class="line">df.to_excel(&quot;xxx/output.xlsx&quot;, sheet_name=&#x27;Sheet_1&#x27;)</span><br></pre></td></tr></table></figure>
+
+<h1 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h1><ol>
+<li><a href="https://pandas.pydata.org/pandas-docs/stable/user_guide/index.html#user-guide">pandas User Guide</a></li>
+<li><a href="https://www.kaggle.com/code/robikscube/introduction-to-exploratory-data-analysis/notebook">Introduction to Exploratory Data Analysis</a></li>
+</ol>
+]]></content>
+      <categories>
+        <category>Log</category>
+      </categories>
+      <tags>
+        <tag>Python</tag>
+        <tag>pandas</tag>
+        <tag>seaborn</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>sambamba flagstat没有Primary Mapped Reads</title>
+    <url>/2023/11/05/sambamba-flagstat%E6%B2%A1%E6%9C%89Primary-Mapped-Reads/</url>
+    <content><![CDATA[<p>sambamba flagstat统计结果格式和samtools flagstat不一样，没有Primary Mapped Reads</p>
+<span id="more"></span>
+
+
+<h1 id="软件版本"><a href="#软件版本" class="headerlink" title="软件版本"></a>软件版本</h1><ul>
+<li>samtools 1.18</li>
+<li>sambamba 1.0.1</li>
+</ul>
+<h1 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h1><p>samtools flagstat与sambamba flagstat输出格式不一样，sambamba flagstat没有Primary Mapped Reads</p>
+<h1 id="结果示例"><a href="#结果示例" class="headerlink" title="结果示例"></a>结果示例</h1><h2 id="samtools-flagstat"><a href="#samtools-flagstat" class="headerlink" title="samtools flagstat"></a>samtools flagstat</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">4350490 + 0 in total (QC-passed reads + QC-failed reads)</span><br><span class="line">3501080 + 0 primary</span><br><span class="line">481096 + 0 secondary</span><br><span class="line">368314 + 0 supplementary</span><br><span class="line">0 + 0 duplicates</span><br><span class="line">0 + 0 primary duplicates</span><br><span class="line">4319560 + 0 mapped (99.29% : N/A)</span><br><span class="line">3470150 + 0 primary mapped (99.12% : N/A)</span><br><span class="line">3501080 + 0 paired in sequencing</span><br><span class="line">1750540 + 0 read1</span><br><span class="line">1750540 + 0 read2</span><br><span class="line">3469722 + 0 properly paired (99.10% : N/A)</span><br><span class="line">3470118 + 0 with itself and mate mapped</span><br><span class="line">32 + 0 singletons (0.00% : N/A)</span><br><span class="line">76 + 0 with mate mapped to a different chr</span><br><span class="line">20 + 0 with mate mapped to a different chr (mapQ&gt;=5)</span><br></pre></td></tr></table></figure>
+
+<h2 id="sambamba-flagstat"><a href="#sambamba-flagstat" class="headerlink" title="sambamba flagstat"></a>sambamba flagstat</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">4350490 + 0 in total (QC-passed reads + QC-failed reads)</span><br><span class="line">481096 + 0 secondary</span><br><span class="line">368314 + 0 supplementary</span><br><span class="line">0 + 0 duplicates</span><br><span class="line">4319560 + 0 mapped (99.29%:N/A)</span><br><span class="line">3501080 + 0 paired in sequencing</span><br><span class="line">1750540 + 0 read1</span><br><span class="line">1750540 + 0 read2</span><br><span class="line">3469722 + 0 properly paired (99.10%:N/A)</span><br><span class="line">3470118 + 0 with itself and mate mapped</span><br><span class="line">32 + 0 singletons (0.00%:N/A)</span><br><span class="line">76 + 0 with mate mapped to a different chr</span><br><span class="line">20 + 0 with mate mapped to a different chr (mapQ&gt;=5)</span><br></pre></td></tr></table></figure>
+
+<h1 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h1><ul>
+<li>samtools flagstat的primary mapped 等于 sambamba flagstat的mapped - secondary - supplementary</li>
+<li>samtools flagstat结果：3470150 + 0 primary mapped (99.12% : N&#x2F;A)</li>
+<li>sambamba flagstat结果：3470150 &#x3D; 4319560 - 481096 - 368314</li>
+</ul>
+]]></content>
+      <categories>
+        <category>Log</category>
+      </categories>
+      <tags>
+        <tag>Sambamba</tag>
+        <tag>Samtools</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>samtools的coverage和bedcov结果不一致</title>
+    <url>/2023/11/05/samtools%E7%9A%84coverage%E5%92%8Cbedcov%E7%BB%93%E6%9E%9C%E4%B8%8D%E4%B8%80%E8%87%B4/</url>
+    <content><![CDATA[<p>分别用samtools coverage和bedtools bedcov计算区域内的Reads数，得到的结果不一致。</p>
+<span id="more"></span>
+
+
+<h1 id="软件版本"><a href="#软件版本" class="headerlink" title="软件版本"></a>软件版本</h1><ul>
+<li>samtools 1.18</li>
+</ul>
+<h1 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h1><ul>
+<li>samtools coverage的-r参数只能输入1个区域。</li>
+<li>samtools bedcov可以统计整个bed文件的所有区域。</li>
+<li>但是coverage和bedcov -c，统计同一个bam文件的同一个区域，得到的Reads数不一样。</li>
+</ul>
+<h1 id="原因"><a href="#原因" class="headerlink" title="原因"></a>原因</h1><ul>
+<li>bedcov和mpileup一样，受-d depth限制，只统计到设定的深度上限，再多的Reads就不统计了。</li>
+<li>coverage默认的-d是1000000。bedcov的帮助文档没写是多少。</li>
+</ul>
+<h1 id="具体参数"><a href="#具体参数" class="headerlink" title="具体参数"></a>具体参数</h1><h2 id="bedcov帮助文档"><a href="#bedcov帮助文档" class="headerlink" title="bedcov帮助文档"></a>bedcov帮助文档</h2><ul>
+<li>-d参数：设置此参数后，结果会多一列，是参考碱基超过-d设定的深度的数量</li>
+<li>-c参数：设置此参数后，结果会多一列，是这个区域内的Reads数量<br><img src="https://pic.imgdb.cn/item/654746bcc458853aefb69190.png" alt="bedcov帮助文档"></li>
+</ul>
+<h2 id="coverage帮助文档"><a href="#coverage帮助文档" class="headerlink" title="coverage帮助文档"></a>coverage帮助文档</h2><ul>
+<li>-d参数：最大深度阈值，默认1000000（一百万），如果设置为0则阈值是整形变量的最大值，相当于没有任何深度限制。<br><img src="https://pic.imgdb.cn/item/654746cdc458853aefb6cc49.png" alt="coverage帮助文档"></li>
+</ul>
+<h1 id="详细说明"><a href="#详细说明" class="headerlink" title="详细说明"></a>详细说明</h1><ul>
+<li>bedcov的-d参数统计有多少个参考碱基超过-d设定的深度，没有注明默认值是多少，当-d有设置值时，会在第4列的总碱基数量后面多1列结果，是参考碱基超过-d设定的深度的数量。但实际上结果中第4列的总碱基数量以及-c统计出的Reads数，都会受到-d限制。  </li>
+<li>在-d不设置的状态下，-c统计出的Reads数最高只会有64020，但是当-d设置为1000000时，Reads数会统计出更高的结果，而且数量与coverage模块的默认参数（-d 1000000）一样。  </li>
+<li>coverage模块的-d参数如果设置为0，会去除深度限制。但是如果bedcov模块的-d设置为0，不会去除深度限制，只是总碱基数量后面会多1列，统计有多少个参考碱基深度超过0。  </li>
+<li>查看bedcov的源码，<a href="https://github.com/samtools/samtools/blob/1.18/bedcov.c">samtools&#x2F;bedcov.c at 1.18 · samtools&#x2F;samtools (github.com)</a><ul>
+<li>默认最大深度阈值应该是DEFAULT_DEPTH 64000（第43行）</li>
+<li>-d输入的参数应该是min_depth（第120行）</li>
+<li>如果min_depth &gt; 64000则用min_depth作为最大深度阈值，否则64000就是最大深度阈值（第223~226行）</li>
+</ul>
+</li>
+</ul>
+<h1 id="测试代码"><a href="#测试代码" class="headerlink" title="测试代码"></a>测试代码</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">echo &quot;# samtools coverage #&quot;</span><br><span class="line">/xxx/Software/samtools-1.18/bin/samtools coverage -r chr2:29446329-29446350 Test.bam</span><br><span class="line">/xxx/Software/samtools-1.18/bin/samtools coverage -r chr6:117650534-117650556 Test.bam</span><br><span class="line">echo &quot;&quot;</span><br><span class="line"></span><br><span class="line">echo &quot;# samtools bedcov -c #&quot;</span><br><span class="line">/xxx/Software/samtools-1.18/bin/samtools bedcov -c Test.bed Test.bam</span><br><span class="line">echo &quot;&quot;</span><br><span class="line"></span><br><span class="line">echo &quot;# samtools bedcov -c -d 1000000 #&quot;</span><br><span class="line">/xxx/Software/samtools-1.18/bin/samtools bedcov -c -d 10000000 Test.bed Test.bam</span><br><span class="line">echo &quot;&quot;</span><br><span class="line"></span><br><span class="line">echo &quot;# samtools bedcov -c -d 0  #&quot;</span><br><span class="line">/xxx/Software/samtools-1.18/bin/samtools bedcov -c -d 0 Test.bed Test.bam</span><br><span class="line">echo &quot;&quot;</span><br></pre></td></tr></table></figure>
+
+<h1 id="测试结果"><a href="#测试结果" class="headerlink" title="测试结果"></a>测试结果</h1><p><img src="https://pic.imgdb.cn/item/654746e3c458853aefb71529.png" alt="测试结果"></p>
+]]></content>
+      <categories>
+        <category>Log</category>
+      </categories>
+      <tags>
+        <tag>Samtools</tag>
       </tags>
   </entry>
   <entry>

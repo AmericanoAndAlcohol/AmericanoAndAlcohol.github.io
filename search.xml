@@ -284,6 +284,35 @@
       </tags>
   </entry>
   <entry>
+    <title>Falco测试</title>
+    <url>/2023/12/03/Falco%E6%B5%8B%E8%AF%95/</url>
+    <content><![CDATA[<p>Falco软件测试，主要看与FastQC的分析时间、结果一致性、报告界面的差异。</p>
+<span id="more"></span>
+
+<h1 id="软件版本"><a href="#软件版本" class="headerlink" title="软件版本"></a>软件版本</h1><ul>
+<li>falco 1.2.1</li>
+<li>FastQC v0.11.8</li>
+</ul>
+<h1 id="软件简介"><a href="#软件简介" class="headerlink" title="软件简介"></a>软件简介</h1><p><a href="https://github.com/smithlabcode/falco">Falco</a>是对FastQC的emulation（仿真？），基本上是把FastQC重新实现了一遍，应该是用的C++？<br>然后它比FastQC多了些参数，说明文档里有写[Falco only]的例如-subsample、-bisulfite、-reverse-complement等。</p>
+<h1 id="测试结果"><a href="#测试结果" class="headerlink" title="测试结果"></a>测试结果</h1><ul>
+<li>用一对Fastq文件做了测试，每个Fastq是53692232条序列，读长150。</li>
+<li>两个软件的统计结果是一样的。但是Falco的分析时间没有减少很多。考虑到FastQC本身有大部分模块是只抽前100,000条序列计算，计算量不大，时间相差不多也可以理解。<br><img src="https://pic.imgdb.cn/item/656c3886c458853aef95e9ce.png" alt="分析时间比较"></li>
+<li>主要问题是，它的html报告需要加载一些在线资源（应该是css还有plotly？），然后动态生成报告和图。但是这些资源在国内访问不了或者加载速度很慢，就变成没图，甚至连报告打不开；但是用了魔法就没问题了。</li>
+<li>22年5月的一个Issue有提到这个问题，<a href="https://github.com/smithlabcode/falco/issues/33">add CSS and javascript to HTML page source code</a>，但是没人回复。<br>能打开的时候是这样的，好处是鼠标放图上，能显示具体的值。<br><img src="https://pic.imgdb.cn/item/656c38edc458853aef974722.png" alt="Falco报告界面"></li>
+</ul>
+<h1 id="测试代码"><a href="#测试代码" class="headerlink" title="测试代码"></a>测试代码</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># shell</span><br><span class="line"></span><br><span class="line">Test_Dir=&quot;/xxx/Software_Test/Falco_QC&quot;</span><br><span class="line">Falco_Result_Dir=&quot;$Test_Dir/Result_Falco&quot;</span><br><span class="line">FastQC_Result_Dir=&quot;$Test_Dir/Result_FastQC&quot;</span><br><span class="line"></span><br><span class="line">Data_R1=&quot;Sample_R1.fastq.gz&quot;</span><br><span class="line">Data_R2=&quot;Sample_R2.fastq.gz&quot;</span><br><span class="line"></span><br><span class="line">rm -fr $Falco_Result_Dir $FastQC_Result_Dir</span><br><span class="line">mkdir $Falco_Result_Dir $FastQC_Result_Dir</span><br><span class="line"></span><br><span class="line">echo &quot;[Falco] Start : `date`&quot;</span><br><span class="line">time /xxx/Software/falco/bin/falco --quiet --extract --nogroup --threads 4 -o $Falco_Result_Dir $Data_R1 $Data_R2</span><br><span class="line">echo &quot;[Falco] Finish : `date`&quot;</span><br><span class="line"></span><br><span class="line">echo &quot;-----------------------------------------------------------------------------------------------&quot;</span><br><span class="line"></span><br><span class="line">echo &quot;[FastQC] Start : `date`&quot;</span><br><span class="line">time /xxx/fastqc --quiet --extract --nogroup --threads 4 -o $FastQC_Result_Dir $Data_R1 $Data_R2</span><br><span class="line">echo &quot;[FastQC] Finish : `date`&quot;</span><br></pre></td></tr></table></figure>
+<h1 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h1><p>这个软件在国内是个鸡肋：分析时间没减少很多，报告还打不开。<br>除非是有在线云平台想给客户一个有交互的报告界面。但是也要先把那些资源本地化，再修改html文件。还不如自己直接实现一个类似的界面。</p>
+]]></content>
+      <categories>
+        <category>Log</category>
+      </categories>
+      <tags>
+        <tag>Falco</tag>
+        <tag>FastQC</tag>
+        <tag>质控</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Illumina index hopping 原理</title>
     <url>/2023/06/27/Illumina-index-hopping-%E5%8E%9F%E7%90%86/</url>
     <content><![CDATA[<p>Illumina的Patterned Flow Cell使用了更易产生index hopping的化学反应。通过更谨慎的实验​​准备，可能改善这种情况，可以忽略对大多数下游应用的影响。</p>
@@ -342,6 +371,48 @@
       </tags>
   </entry>
   <entry>
+    <title>Linux配置Samba</title>
+    <url>/2023/05/01/Linux%E9%85%8D%E7%BD%AESamba/</url>
+    <content><![CDATA[<p>Linux系统配置Samba服务，Windows系统设置网络映射，实现共享目录</p>
+<span id="more"></span>
+
+<p><a href="https://blog.51cto.com/aby028/1830125">参考文档</a></p>
+<h1 id="安装Samba"><a href="#安装Samba" class="headerlink" title="安装Samba"></a>安装Samba</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">yum install samba</span><br></pre></td></tr></table></figure>
+<p>这个服务器之前已经安装过了，所以截图里是yum list，看看版本<br><img src="https://pic2.imgdb.cn/item/644f98820d2dde57774b9feb.png" alt="安装Samba"></p>
+<h1 id="修改配置文件"><a href="#修改配置文件" class="headerlink" title="修改配置文件"></a>修改配置文件</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 备份旧的配置文件</span><br><span class="line">cp /etc/samba/smb.conf /etc/samba/smb.conf.bak</span><br><span class="line"># 修改配置文件，添加一段映射目录的设置信息，如下图</span><br><span class="line">vi /etc/samba/smb.conf</span><br></pre></td></tr></table></figure>
+<p><img src="https://pic2.imgdb.cn/item/644f98750d2dde57774b9724.png" alt="Samba配置文件">  </p>
+<ul>
+<li>[blast]是windows系统设置网络映射时要填的目录名称</li>
+<li>comment是注释信息</li>
+<li>path是Linux本地要映射出去的实际路径</li>
+<li>public和browseable是路径是否公共&#x2F;可见？具体区别不太清楚</li>
+<li>writeable是可写权限</li>
+<li>write list是设置可写用户，用“@用户组名”可以设置可写用户组</li>
+<li>creat mask是设置上传的文件读写权限</li>
+<li>directory mask是设置上传的文件夹读写权限</li>
+</ul>
+<h1 id="testparm测试配置文件是否错误"><a href="#testparm测试配置文件是否错误" class="headerlink" title="testparm测试配置文件是否错误"></a>testparm测试配置文件是否错误</h1><p>testparm专门用于测试 &#x2F;etc&#x2F;samba&#x2F;smb.conf 文件格式是否正确<br>命令行输testparm ，回车即可<br><img src="https://pic2.imgdb.cn/item/644f98620d2dde57774b8854.png" alt="testparm测试"></p>
+<h1 id="修改Linux要映射的目录权限"><a href="#修改Linux要映射的目录权限" class="headerlink" title="修改Linux要映射的目录权限"></a>修改Linux要映射的目录权限</h1><p>可能不改权限，也能正常写入文件？  </p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">chmod 777 /xxx/data/xxx_BLAST  </span><br></pre></td></tr></table></figure>
+
+<h1 id="关闭防火墙和SElinux"><a href="#关闭防火墙和SElinux" class="headerlink" title="关闭防火墙和SElinux"></a>关闭防火墙和SElinux</h1><p>这个服务器本来就关了，所以下面这2条命令没有测试过<br>不确定是不是不关也可以正常映射  </p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 关闭防火墙的ip包过滤服务？</span><br><span class="line">service iptables stop</span><br><span class="line"># 也可以直接修改/etc/sysconfig/selinux文件</span><br><span class="line">setenforce  0</span><br></pre></td></tr></table></figure>
+
+<h1 id="设置访问用户信息"><a href="#设置访问用户信息" class="headerlink" title="设置访问用户信息"></a>设置访问用户信息</h1><p>samba的访问用户是Linux系统中已存在的用户，只需设置该用户的samba服务密码即可<br>注意该用户名或该用户组，在Samba配置时是不是在write list里  </p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># [user]是用户名，回车后，输2次密码，完成设置</span><br><span class="line">smbpasswd -a [user]</span><br><span class="line"># 重启samba服务</span><br><span class="line">service smb restart</span><br></pre></td></tr></table></figure>
+
+<h1 id="Windows设置网络映射"><a href="#Windows设置网络映射" class="headerlink" title="Windows设置网络映射"></a>Windows设置网络映射</h1><p>我的电脑，右键，映射网络驱动器<br>驱动器随便选一个盘符，映射成功之后，我的电脑里会出现这个盘<br>文件夹格式：\\[服务器ip]\[Samba配置文件设置的目录名称，如上面的blast]<br><img src="https://pic2.imgdb.cn/item/644f98320d2dde57774b61ec.jpg" alt="设置网络映射1"><br>输入samba访问用户和密码，点击确定，完成映射<br><img src="https://pic2.imgdb.cn/item/644f98520d2dde57774b78e1.png" alt="设置网络映射2"></p>
+]]></content>
+      <categories>
+        <category>Log</category>
+      </categories>
+      <tags>
+        <tag>Samba</tag>
+        <tag>网络映射</tag>
+        <tag>共享目录</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Linux命令行文本文件操作</title>
     <url>/2023/05/22/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E6%96%87%E6%9C%AC%E6%96%87%E4%BB%B6%E6%93%8D%E4%BD%9C/</url>
     <content><![CDATA[<p>Linux命令对文本文件的操作</p>
@@ -385,48 +456,6 @@
       </categories>
       <tags>
         <tag>Linux</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Linux配置Samba</title>
-    <url>/2023/05/01/Linux%E9%85%8D%E7%BD%AESamba/</url>
-    <content><![CDATA[<p>Linux系统配置Samba服务，Windows系统设置网络映射，实现共享目录</p>
-<span id="more"></span>
-
-<p><a href="https://blog.51cto.com/aby028/1830125">参考文档</a></p>
-<h1 id="安装Samba"><a href="#安装Samba" class="headerlink" title="安装Samba"></a>安装Samba</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">yum install samba</span><br></pre></td></tr></table></figure>
-<p>这个服务器之前已经安装过了，所以截图里是yum list，看看版本<br><img src="https://pic2.imgdb.cn/item/644f98820d2dde57774b9feb.png" alt="安装Samba"></p>
-<h1 id="修改配置文件"><a href="#修改配置文件" class="headerlink" title="修改配置文件"></a>修改配置文件</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 备份旧的配置文件</span><br><span class="line">cp /etc/samba/smb.conf /etc/samba/smb.conf.bak</span><br><span class="line"># 修改配置文件，添加一段映射目录的设置信息，如下图</span><br><span class="line">vi /etc/samba/smb.conf</span><br></pre></td></tr></table></figure>
-<p><img src="https://pic2.imgdb.cn/item/644f98750d2dde57774b9724.png" alt="Samba配置文件">  </p>
-<ul>
-<li>[blast]是windows系统设置网络映射时要填的目录名称</li>
-<li>comment是注释信息</li>
-<li>path是Linux本地要映射出去的实际路径</li>
-<li>public和browseable是路径是否公共&#x2F;可见？具体区别不太清楚</li>
-<li>writeable是可写权限</li>
-<li>write list是设置可写用户，用“@用户组名”可以设置可写用户组</li>
-<li>creat mask是设置上传的文件读写权限</li>
-<li>directory mask是设置上传的文件夹读写权限</li>
-</ul>
-<h1 id="testparm测试配置文件是否错误"><a href="#testparm测试配置文件是否错误" class="headerlink" title="testparm测试配置文件是否错误"></a>testparm测试配置文件是否错误</h1><p>testparm专门用于测试 &#x2F;etc&#x2F;samba&#x2F;smb.conf 文件格式是否正确<br>命令行输testparm ，回车即可<br><img src="https://pic2.imgdb.cn/item/644f98620d2dde57774b8854.png" alt="testparm测试"></p>
-<h1 id="修改Linux要映射的目录权限"><a href="#修改Linux要映射的目录权限" class="headerlink" title="修改Linux要映射的目录权限"></a>修改Linux要映射的目录权限</h1><p>可能不改权限，也能正常写入文件？  </p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">chmod 777 /xxx/data/xxx_BLAST  </span><br></pre></td></tr></table></figure>
-
-<h1 id="关闭防火墙和SElinux"><a href="#关闭防火墙和SElinux" class="headerlink" title="关闭防火墙和SElinux"></a>关闭防火墙和SElinux</h1><p>这个服务器本来就关了，所以下面这2条命令没有测试过<br>不确定是不是不关也可以正常映射  </p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 关闭防火墙的ip包过滤服务？</span><br><span class="line">service iptables stop</span><br><span class="line"># 也可以直接修改/etc/sysconfig/selinux文件</span><br><span class="line">setenforce  0</span><br></pre></td></tr></table></figure>
-
-<h1 id="设置访问用户信息"><a href="#设置访问用户信息" class="headerlink" title="设置访问用户信息"></a>设置访问用户信息</h1><p>samba的访问用户是Linux系统中已存在的用户，只需设置该用户的samba服务密码即可<br>注意该用户名或该用户组，在Samba配置时是不是在write list里  </p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># [user]是用户名，回车后，输2次密码，完成设置</span><br><span class="line">smbpasswd -a [user]</span><br><span class="line"># 重启samba服务</span><br><span class="line">service smb restart</span><br></pre></td></tr></table></figure>
-
-<h1 id="Windows设置网络映射"><a href="#Windows设置网络映射" class="headerlink" title="Windows设置网络映射"></a>Windows设置网络映射</h1><p>我的电脑，右键，映射网络驱动器<br>驱动器随便选一个盘符，映射成功之后，我的电脑里会出现这个盘<br>文件夹格式：\\[服务器ip]\[Samba配置文件设置的目录名称，如上面的blast]<br><img src="https://pic2.imgdb.cn/item/644f98320d2dde57774b61ec.jpg" alt="设置网络映射1"><br>输入samba访问用户和密码，点击确定，完成映射<br><img src="https://pic2.imgdb.cn/item/644f98520d2dde57774b78e1.png" alt="设置网络映射2"></p>
-]]></content>
-      <categories>
-        <category>Log</category>
-      </categories>
-      <tags>
-        <tag>Samba</tag>
-        <tag>网络映射</tag>
-        <tag>共享目录</tag>
       </tags>
   </entry>
   <entry>
@@ -695,28 +724,34 @@ cpan -i autodie
       </tags>
   </entry>
   <entry>
-    <title>Xlsx转MySQL</title>
-    <url>/2023/04/21/Xlsx%E8%BD%ACMySQL/</url>
-    <content><![CDATA[<p>通过Python的openpyxl和MySQLdb模块，将.xlsx文件转为MySQL的Databse</p>
+    <title>bamdst软件Raw Reads错误导致比对率低</title>
+    <url>/2023/12/03/bamdst%E8%BD%AF%E4%BB%B6Raw-Reads%E9%94%99%E8%AF%AF%E5%AF%BC%E8%87%B4%E6%AF%94%E5%AF%B9%E7%8E%87%E4%BD%8E/</url>
+    <content><![CDATA[<p>bamdst的旧版本（21年9月，软件后来有更新，但版本号没变），统计的[Total] Raw Reads (All Reads)错误，导致某些情况下的比对率偏低，On Target Rate也会受影响。</p>
 <span id="more"></span>
 
-<h1 id="依赖"><a href="#依赖" class="headerlink" title="依赖"></a>依赖</h1><ul>
-<li>python 3.7.9  </li>
-<li>openpyxl模块 3.0.9  </li>
-<li>MySQLdb模块 2.1.1？</li>
-</ul>
-<h1 id="模块安装"><a href="#模块安装" class="headerlink" title="模块安装"></a>模块安装</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># openpyxl模块  </span><br><span class="line">python -m pip install openpyxl  </span><br><span class="line"># MySQLdb模块  </span><br><span class="line">python -m pip install mysqlclient  </span><br></pre></td></tr></table></figure>
 
-<h2 id="脚本"><a href="#脚本" class="headerlink" title="脚本"></a>脚本</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># python</span><br><span class="line"># -*- encoding: utf-8 -*-</span><br><span class="line"># Useage: 将xlsx文件导入为mysql的databse</span><br><span class="line"></span><br><span class="line">import os</span><br><span class="line">import sys</span><br><span class="line">import re</span><br><span class="line">import datetime</span><br><span class="line">import argparse</span><br><span class="line">import openpyxl</span><br><span class="line">import MySQLdb</span><br><span class="line"></span><br><span class="line">Charset = &quot;utf8&quot;</span><br><span class="line"></span><br><span class="line">def Xlsx2MySQLdb(Xlsx, User, Password):</span><br><span class="line">	Work_Book = openpyxl.load_workbook(Xlsx)</span><br><span class="line">	Database = re.search(&quot;.*\/(\S+)\.xlsx&quot;, Xlsx).group(1) + &quot;_&quot; + datetime.datetime.now().strftime(&quot;%Y%m%d_%H%M%S&quot;)</span><br><span class="line">	List_Sheet = Work_Book.sheetnames</span><br><span class="line">	# 提示信息</span><br><span class="line">	Time_Stamp = datetime.datetime.now().strftime(&quot;%Y-%m-%d %H:%M:%S&quot;)</span><br><span class="line">	sys.stdout.write(&quot;*&quot; + Time_Stamp + &quot;* [运行信息]\n&quot;)</span><br><span class="line">	sys.stdout.write(&quot;[输入文件] &quot; + Xlsx + &quot;\n&quot;)</span><br><span class="line">	sys.stdout.write(&quot;[子表数量] &quot; + str(len(List_Sheet)) + &quot;\n&quot;)</span><br><span class="line">	sys.stdout.write(&quot;[子表名称] &quot; + &quot;、&quot;.join(List_Sheet) + &quot;\n&quot;)</span><br><span class="line">	sys.stdout.write(&quot;[数据库名] &quot; + Database + &quot;\n&quot;)</span><br><span class="line">	sys.stdout.write(&quot;[字符编码] &quot; + Charset + &quot;\n&quot;)</span><br><span class="line">	sys.stdout.write(&quot;[表头字段] 每个子表的第1行会作为数据库的列名\n&quot;)</span><br><span class="line">	sys.stdout.write(&quot;[数据类型] 所有内容都保存为TEXT，如需修改，请在MySQL自行修改\n\n&quot;)</span><br><span class="line"></span><br><span class="line">	# 连接MySQL</span><br><span class="line">	SQL_Host = &quot;localhost&quot;</span><br><span class="line">	SQL_Connection = MySQLdb.connect(host = SQL_Host, user = User, passwd = Password, charset = Charset)</span><br><span class="line">	Cursor = SQL_Connection.cursor()</span><br><span class="line">	# 创建数据库</span><br><span class="line">	Cursor.execute(&quot;create database if not exists &quot; + Database)</span><br><span class="line">	Cursor.execute(&quot;use &quot; + Database)</span><br><span class="line">	# 逐个子表处理</span><br><span class="line">	for Sheet in List_Sheet:</span><br><span class="line">		List_Header = []</span><br><span class="line">		List_Table_Header = []</span><br><span class="line">		Data_Type = &quot;TEXT&quot;</span><br><span class="line">		Work_Sheet = Work_Book[Sheet]</span><br><span class="line">		for col_n in range(1, Work_Sheet.max_column+1):</span><br><span class="line">			Header = str(Work_Sheet.cell(row=1, column=col_n).value)</span><br><span class="line">			List_Header.append(&quot;`&quot; + Header + &quot;`&quot;)</span><br><span class="line">			List_Table_Header.append(&quot;`&quot; + Header + &quot;`&quot; + &quot; &quot; + Data_Type)</span><br><span class="line">		# 创建数据表</span><br><span class="line">		Table_Header = &quot;, &quot;.join(List_Table_Header)</span><br><span class="line">		Cursor.execute(&quot;create table if not exists &quot; + Sheet + &quot; (&quot; + Table_Header + &quot;)&quot;)</span><br><span class="line">		# 逐行存入数据</span><br><span class="line">		Header = &quot;, &quot;.join(List_Header)</span><br><span class="line">		for row_n in range(2, Work_Sheet.max_row+1):</span><br><span class="line">			List_Value = []</span><br><span class="line">			for col_n in range(1, Work_Sheet.max_column+1):</span><br><span class="line">				Value = str(Work_Sheet.cell(row = row_n, column = col_n).value)</span><br><span class="line">				List_Value.append(&quot;\&quot;&quot; + Value + &quot;\&quot;&quot;)</span><br><span class="line">			Value = &quot;, &quot;.join(List_Value)</span><br><span class="line">			Cursor.execute(&quot;insert into &quot; + Sheet + &quot; (&quot; + Header + &quot;) values(&quot; + Value + &quot;)&quot;)</span><br><span class="line">			# 提交MyQSL操作</span><br><span class="line">			SQL_Connection.commit()</span><br><span class="line">	# 关闭连接</span><br><span class="line">	Cursor.close()</span><br><span class="line">	SQL_Connection.close()</span><br><span class="line">	# 关闭Xlsx</span><br><span class="line">	Work_Book.close()</span><br></pre></td></tr></table></figure>
+<h1 id="软件版本"><a href="#软件版本" class="headerlink" title="软件版本"></a>软件版本</h1><ul>
+<li><a href="https://github.com/shiquan/bamdst">bamdst</a> 1.0.9</li>
+</ul>
+<h1 id="问题定位"><a href="#问题定位" class="headerlink" title="问题定位"></a>问题定位</h1><ul>
+<li>bamdst把primary + secondary当作分母去算比对率了，Reads和Base都是。假如1条Reads在参考基因组上Multiple Mapping到了2个位置，分母是算+2的。导致当Multiple Mapping的Reads较多时，这个软件算出来的比对率（Read和Base）会偏低。<br><img src="https://pic.imgdb.cn/item/656c3e87c458853aefaab25b.png" alt="Bamdst错误结果"></li>
+<li>一般比对率，按Read算，是&#x3D;Mapped Reads &#x2F; (Clean R1 Reads + Clean R2 Reads) * 100</li>
+<li>这个样本是：4688627 &#x2F; （2344520 + 2344520）* 100 &#x3D; 99.99%。samtools flagstats算出的比对率就是99.99%。<br><img src="https://pic.imgdb.cn/item/656c3e87c458853aefaab2b0.png" alt="Samtools Flagstats结果"></li>
+<li>以上错误的比对率结果是调用21年9月安装的bamdst得到的。2019年12月有个Issue有提到这个问题：<a href="https://github.com/shiquan/bamdst/issues/18">Raw Reads (All reads) are a bit off</a>。</li>
+<li>以下是2023年11月重新安装的bamdst，算出来的Raw Reads是对的。</li>
+<li>但是这两个的软件版本都是1.0.9，Github上也没有Change Log，那就没法知道具体是什么时候修改成正确的了。<br> <img src="https://pic.imgdb.cn/item/656c3e87c458853aefaab319.png" alt="Bamdst正确结果"></li>
+</ul>
+<h1 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h1><ol>
+<li>如果bamdst太旧，建议重新从Github下载再编译安装bamdst。</li>
+<li>或者直接用samtools flagstats提取比对率。</li>
+</ol>
 ]]></content>
       <categories>
-        <category>Log</category>
+        <category>Bug</category>
       </categories>
       <tags>
-        <tag>数据库</tag>
-        <tag>MySQL</tag>
-        <tag>Python</tag>
-        <tag>Excel</tag>
+        <tag>比对</tag>
+        <tag>Bamdst</tag>
       </tags>
   </entry>
   <entry>
@@ -751,6 +786,63 @@ cpan -i autodie
         <tag>MySQL</tag>
         <tag>Python</tag>
         <tag>Excel</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>bcl2fastq数据拆分报错</title>
+    <url>/2023/05/25/bcl2fastq%E6%95%B0%E6%8D%AE%E6%8B%86%E5%88%86%E6%8A%A5%E9%94%99/</url>
+    <content><![CDATA[<p>bcl2fastq数据拆分报错，拆分过程中报错中断</p>
+<span id="more"></span>
+
+<h1 id="报错信息"><a href="#报错信息" class="headerlink" title="报错信息"></a>报错信息</h1><p>有可能出现下面两种报错：</p>
+<ul>
+<li><p>报错信息 1<br><img src="https://pic1.imgdb.cn/item/646f2ab8f024cca173865ddd.png" alt="报错信息1"><br><code>ERROR: Thread: xxx caught an exception first: ...... bytes_read=0 bytes_expected=xxxxxx</code></p>
+</li>
+<li><p>报错信息 2<br><img src="https://pic1.imgdb.cn/item/646f2ac6f024cca173867090.png" alt="报错信息1"><br><code>Mismatching cluster count in BCL file: Cycle #xxx, Tile#xxx: bytes_read=0 bytes_expected=xxxxxx</code></p>
+</li>
+</ul>
+<h1 id="可能原因"><a href="#可能原因" class="headerlink" title="可能原因"></a>可能原因</h1><p>可能是该测序批次数据量太大，缓存读写跟不上，导致有些Cycle文件在写出前就从缓存被丢弃了，文件大小为0，最后导致报错。  </p>
+<h1 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h1><p>让读写线程大于加载和处理线程，看下是否能避免报错。  </p>
+<h1 id="测试方案"><a href="#测试方案" class="headerlink" title="测试方案"></a>测试方案</h1><h2 id="重复报错信息"><a href="#重复报错信息" class="headerlink" title="重复报错信息"></a>重复报错信息</h2><ul>
+<li>bcl2fastq参数设置<br><code>--loading-threads 10 --processing-threads 10 --writing-threads 10</code></li>
+<li>测试结果<br>报错，出现上述报错信息 1</li>
+</ul>
+<h2 id="测试解决方案（较少线程）"><a href="#测试解决方案（较少线程）" class="headerlink" title="测试解决方案（较少线程）"></a>测试解决方案（较少线程）</h2><ul>
+<li>bcl2fastq参数设置<br><code>--loading-threads 6 --processing-threads 6 --writing-threads 8</code></li>
+<li>测试结果<br>拆分成功，耗时 1 hour 7 min</li>
+</ul>
+<h2 id="测试解决方案（较多线程）"><a href="#测试解决方案（较多线程）" class="headerlink" title="测试解决方案（较多线程）"></a>测试解决方案（较多线程）</h2><ul>
+<li>bcl2fastq参数设置<br><code>--loading-threads 14 --processing-threads 14 --writing-threads 18</code></li>
+<li>测试结果<br>拆分成功，耗时 29min</li>
+</ul>
+]]></content>
+      <categories>
+        <category>Bug</category>
+      </categories>
+      <tags>
+        <tag>数据拆分</tag>
+        <tag>bcl2fastq</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>ggplot2设置坐标轴字体颜色</title>
+    <url>/2023/05/24/ggplot2%E8%AE%BE%E7%BD%AE%E5%9D%90%E6%A0%87%E8%BD%B4%E5%AD%97%E4%BD%93%E9%A2%9C%E8%89%B2/</url>
+    <content><![CDATA[<p>通过ggplot2的theme()指定坐标轴的每个刻度标签的字体颜色</p>
+<span id="more"></span>
+
+<h1 id="关键代码"><a href="#关键代码" class="headerlink" title="关键代码"></a>关键代码</h1><p>设置X轴：<code>theme(axis.text.x = element_text(colour = Data$Color))</code><br>设置Y轴：<code>theme(axis.text.y = element_text(colour = Data$Color))</code></p>
+<h1 id="需求说明"><a href="#需求说明" class="headerlink" title="需求说明"></a>需求说明</h1><p>有若干个样本都检出某个物种，需要画检出Reads数的柱状图，当前样本字体颜色和填充颜色为蓝色，其他样本为灰色。</p>
+<h1 id="完成示例"><a href="#完成示例" class="headerlink" title="完成示例"></a>完成示例</h1><p><img src="https://pic1.imgdb.cn/item/646db75d0d2dde5777e0998b.png" alt="坐标轴字体颜色"></p>
+<h1 id="代码示例"><a href="#代码示例" class="headerlink" title="代码示例"></a>代码示例</h1><figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>ggplot2<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">args<span class="operator">&lt;-</span>commandArgs<span class="punctuation">(</span><span class="built_in">T</span><span class="punctuation">)</span></span><br><span class="line"><span class="comment"># 数据表</span></span><br><span class="line">Reads_Table<span class="operator">=</span>args<span class="punctuation">[</span><span class="number">1</span><span class="punctuation">]</span></span><br><span class="line"><span class="comment"># 输出目录</span></span><br><span class="line">Result_Dir<span class="operator">=</span>args<span class="punctuation">[</span><span class="number">2</span><span class="punctuation">]</span></span><br><span class="line"><span class="comment"># 当前样本</span></span><br><span class="line">Plot_Sample <span class="operator">=</span> args<span class="punctuation">[</span><span class="number">3</span><span class="punctuation">]</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 读入数据表</span></span><br><span class="line">Data <span class="operator">=</span> read.table<span class="punctuation">(</span>Reads_Table<span class="punctuation">,</span> head<span class="operator">=</span><span class="built_in">T</span><span class="punctuation">,</span> sep<span class="operator">=</span><span class="string">&quot;\t&quot;</span><span class="punctuation">,</span> comment.char<span class="operator">=</span><span class="string">&quot;#&quot;</span><span class="punctuation">,</span> stringsAsFactors<span class="operator">=</span><span class="literal">FALSE</span><span class="punctuation">,</span> check.names<span class="operator">=</span><span class="literal">FALSE</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 设置其他样本和当前样本的分组、颜色信息</span></span><br><span class="line">List_Color <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;#808080&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#1e90ff&quot;</span><span class="punctuation">)</span></span><br><span class="line">Data<span class="operator">$</span>Group <span class="operator">=</span> <span class="built_in">rep</span><span class="punctuation">(</span><span class="string">&quot;Other Sample&quot;</span><span class="punctuation">,</span> nrow<span class="punctuation">(</span>Data<span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">Data<span class="operator">$</span>Group<span class="punctuation">[</span>with<span class="punctuation">(</span>Data<span class="punctuation">,</span> Sample<span class="operator">==</span>Plot_Sample<span class="punctuation">)</span><span class="punctuation">]</span> <span class="operator">=</span> <span class="string">&quot;This Sample&quot;</span></span><br><span class="line">Data<span class="operator">$</span>Color <span class="operator">=</span> <span class="built_in">rep</span><span class="punctuation">(</span>List_Color<span class="punctuation">[</span><span class="number">1</span><span class="punctuation">]</span><span class="punctuation">,</span> nrow<span class="punctuation">(</span>Data<span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">Data<span class="operator">$</span>Color<span class="punctuation">[</span>with<span class="punctuation">(</span>Data<span class="punctuation">,</span> Sample<span class="operator">==</span>Plot_Sample<span class="punctuation">)</span><span class="punctuation">]</span> <span class="operator">=</span> List_Color<span class="punctuation">[</span><span class="number">2</span><span class="punctuation">]</span></span><br><span class="line"><span class="keyword">if</span> <span class="punctuation">(</span>nrow<span class="punctuation">(</span>Data<span class="punctuation">)</span> <span class="operator">==</span> <span class="number">1</span><span class="punctuation">)</span><span class="punctuation">&#123;</span></span><br><span class="line">	List_Color <span class="operator">=</span> List_Color<span class="punctuation">[</span><span class="number">2</span><span class="punctuation">]</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 通用主题</span></span><br><span class="line">plot_font_size<span class="operator">=</span><span class="number">10</span></span><br><span class="line"><span class="keyword">if</span> <span class="punctuation">(</span>plot_font_size <span class="operator">&lt;</span> <span class="number">10</span><span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">	plot_font_size <span class="operator">=</span> <span class="number">10</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br><span class="line">universal_theme<span class="operator">=</span>theme_bw<span class="punctuation">(</span>base_size<span class="operator">=</span>plot_font_size<span class="punctuation">)</span><span class="operator">+</span></span><br><span class="line">	theme<span class="punctuation">(</span>axis.line<span class="operator">=</span>element_line<span class="punctuation">(</span>size<span class="operator">=</span><span class="number">0.5</span><span class="punctuation">,</span>colour<span class="operator">=</span><span class="string">&#x27;black&#x27;</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="operator">+</span></span><br><span class="line">	theme<span class="punctuation">(</span>axis.title.x<span class="operator">=</span>element_text<span class="punctuation">(</span>size<span class="operator">=</span>plot_font_size<span class="operator">-</span><span class="number">2</span><span class="punctuation">)</span><span class="punctuation">,</span>axis.title.y<span class="operator">=</span>element_text<span class="punctuation">(</span>size<span class="operator">=</span>plot_font_size<span class="operator">-</span><span class="number">2</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="operator">+</span></span><br><span class="line">	theme<span class="punctuation">(</span>axis.text.x<span class="operator">=</span>element_text<span class="punctuation">(</span>size<span class="operator">=</span>plot_font_size<span class="operator">-</span><span class="number">3</span><span class="punctuation">,</span>colour<span class="operator">=</span><span class="string">&#x27;black&#x27;</span><span class="punctuation">)</span><span class="punctuation">,</span>axis.text.y<span class="operator">=</span>element_text<span class="punctuation">(</span>size<span class="operator">=</span>plot_font_size<span class="operator">-</span><span class="number">3</span><span class="punctuation">,</span>colour<span class="operator">=</span><span class="string">&#x27;black&#x27;</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="operator">+</span></span><br><span class="line">	theme<span class="punctuation">(</span>legend.key.size<span class="operator">=</span>unit<span class="punctuation">(</span><span class="number">20</span><span class="punctuation">,</span><span class="string">&quot;pt&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span>legend.title<span class="operator">=</span>element_text<span class="punctuation">(</span>size<span class="operator">=</span>plot_font_size<span class="operator">-</span><span class="number">2</span><span class="punctuation">)</span><span class="punctuation">,</span>legend.text<span class="operator">=</span>element_text<span class="punctuation">(</span>size<span class="operator">=</span>plot_font_size<span class="operator">-</span><span class="number">3</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="operator">+</span></span><br><span class="line">	theme<span class="punctuation">(</span>panel.border<span class="operator">=</span>element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="operator">+</span></span><br><span class="line">	theme<span class="punctuation">(</span>plot.title<span class="operator">=</span>element_text<span class="punctuation">(</span>hjust<span class="operator">=</span><span class="number">0.5</span><span class="punctuation">,</span>size<span class="operator">=</span>plot_font_size<span class="punctuation">)</span><span class="punctuation">)</span><span class="operator">+</span></span><br><span class="line">	theme<span class="punctuation">(</span>legend.position<span class="operator">=</span><span class="string">&quot;none&quot;</span><span class="punctuation">)</span><span class="operator">+</span></span><br><span class="line">	theme<span class="punctuation">(</span>panel.grid<span class="operator">=</span>element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 画柱状图</span></span><br><span class="line">picture <span class="operator">=</span> ggplot<span class="punctuation">(</span>data<span class="operator">=</span>Data<span class="punctuation">,</span> aes<span class="punctuation">(</span>x<span class="operator">=</span>Sample<span class="punctuation">,</span> y<span class="operator">=</span>Reads<span class="punctuation">,</span> fill<span class="operator">=</span>Group<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">	geom_bar<span class="punctuation">(</span>stat<span class="operator">=</span><span class="string">&quot;identity&quot;</span><span class="punctuation">,</span> width<span class="operator">=</span><span class="number">0.7</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">	labs<span class="punctuation">(</span>x<span class="operator">=</span><span class="string">&quot;&quot;</span><span class="punctuation">,</span> y<span class="operator">=</span><span class="string">&quot;&quot;</span><span class="punctuation">,</span> title<span class="operator">=</span><span class="string">&quot;无乳链球菌&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">	scale_y_continuous<span class="punctuation">(</span>expand <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="number">0</span><span class="punctuation">,</span><span class="number">0</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">	scale_fill_manual<span class="punctuation">(</span>values <span class="operator">=</span> List_Color<span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">	universal_theme <span class="operator">+</span> </span><br><span class="line">	theme<span class="punctuation">(</span>axis.text.y <span class="operator">=</span> element_text<span class="punctuation">(</span>colour <span class="operator">=</span> rev<span class="punctuation">(</span>Data<span class="operator">$</span>Color<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">	coord_flip<span class="punctuation">(</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 保存图片</span></span><br><span class="line">output_png <span class="operator">=</span> paste<span class="punctuation">(</span>Result_Dir<span class="punctuation">,</span> <span class="string">&quot;/&quot;</span><span class="punctuation">,</span> <span class="string">&quot;无乳链球菌.png&quot;</span><span class="punctuation">,</span> sep<span class="operator">=</span><span class="string">&quot;&quot;</span><span class="punctuation">,</span> collapse<span class="operator">=</span><span class="string">&quot;&quot;</span><span class="punctuation">)</span></span><br><span class="line">ggsave<span class="punctuation">(</span>output_png<span class="punctuation">,</span> picture<span class="punctuation">,</span> width<span class="operator">=</span><span class="number">8</span><span class="punctuation">,</span> height<span class="operator">=</span><span class="number">10</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<h1 id="警告信息"><a href="#警告信息" class="headerlink" title="警告信息"></a>警告信息</h1><p>使用以上代码画图，会出现警告信息。<br>这是因为用向量变量在element_text中指定颜色并不是官方支持的标准用法，算是个workaround。<br>目前是能正常使用的，但在将来的ggplot2版本不一定依然支持这样的用法。  </p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Warning message:</span><br><span class="line">Vectorized input to `element_text()` is not officially supported.</span><br><span class="line">Results may be unexpected or may change in future versions of ggplot2.</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Log</category>
+      </categories>
+      <tags>
+        <tag>ggplot2</tag>
+        <tag>画图</tag>
       </tags>
   </entry>
   <entry>
@@ -836,67 +928,10 @@ cpan -i autodie
       </categories>
       <tags>
         <tag>R</tag>
+        <tag>画图</tag>
         <tag>clusterProfiler</tag>
         <tag>GO</tag>
         <tag>KEGG</tag>
-        <tag>画图</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>bcl2fastq数据拆分报错</title>
-    <url>/2023/05/25/bcl2fastq%E6%95%B0%E6%8D%AE%E6%8B%86%E5%88%86%E6%8A%A5%E9%94%99/</url>
-    <content><![CDATA[<p>bcl2fastq数据拆分报错，拆分过程中报错中断</p>
-<span id="more"></span>
-
-<h1 id="报错信息"><a href="#报错信息" class="headerlink" title="报错信息"></a>报错信息</h1><p>有可能出现下面两种报错：</p>
-<ul>
-<li><p>报错信息 1<br><img src="https://pic1.imgdb.cn/item/646f2ab8f024cca173865ddd.png" alt="报错信息1"><br><code>ERROR: Thread: xxx caught an exception first: ...... bytes_read=0 bytes_expected=xxxxxx</code></p>
-</li>
-<li><p>报错信息 2<br><img src="https://pic1.imgdb.cn/item/646f2ac6f024cca173867090.png" alt="报错信息1"><br><code>Mismatching cluster count in BCL file: Cycle #xxx, Tile#xxx: bytes_read=0 bytes_expected=xxxxxx</code></p>
-</li>
-</ul>
-<h1 id="可能原因"><a href="#可能原因" class="headerlink" title="可能原因"></a>可能原因</h1><p>可能是该测序批次数据量太大，缓存读写跟不上，导致有些Cycle文件在写出前就从缓存被丢弃了，文件大小为0，最后导致报错。  </p>
-<h1 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h1><p>让读写线程大于加载和处理线程，看下是否能避免报错。  </p>
-<h1 id="测试方案"><a href="#测试方案" class="headerlink" title="测试方案"></a>测试方案</h1><h2 id="重复报错信息"><a href="#重复报错信息" class="headerlink" title="重复报错信息"></a>重复报错信息</h2><ul>
-<li>bcl2fastq参数设置<br><code>--loading-threads 10 --processing-threads 10 --writing-threads 10</code></li>
-<li>测试结果<br>报错，出现上述报错信息 1</li>
-</ul>
-<h2 id="测试解决方案（较少线程）"><a href="#测试解决方案（较少线程）" class="headerlink" title="测试解决方案（较少线程）"></a>测试解决方案（较少线程）</h2><ul>
-<li>bcl2fastq参数设置<br><code>--loading-threads 6 --processing-threads 6 --writing-threads 8</code></li>
-<li>测试结果<br>拆分成功，耗时 1 hour 7 min</li>
-</ul>
-<h2 id="测试解决方案（较多线程）"><a href="#测试解决方案（较多线程）" class="headerlink" title="测试解决方案（较多线程）"></a>测试解决方案（较多线程）</h2><ul>
-<li>bcl2fastq参数设置<br><code>--loading-threads 14 --processing-threads 14 --writing-threads 18</code></li>
-<li>测试结果<br>拆分成功，耗时 29min</li>
-</ul>
-]]></content>
-      <categories>
-        <category>Bug</category>
-      </categories>
-      <tags>
-        <tag>数据拆分</tag>
-        <tag>bcl2fastq</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>ggplot2设置坐标轴字体颜色</title>
-    <url>/2023/05/24/ggplot2%E8%AE%BE%E7%BD%AE%E5%9D%90%E6%A0%87%E8%BD%B4%E5%AD%97%E4%BD%93%E9%A2%9C%E8%89%B2/</url>
-    <content><![CDATA[<p>通过ggplot2的theme()指定坐标轴的每个刻度标签的字体颜色</p>
-<span id="more"></span>
-
-<h1 id="关键代码"><a href="#关键代码" class="headerlink" title="关键代码"></a>关键代码</h1><p>设置X轴：<code>theme(axis.text.x = element_text(colour = Data$Color))</code><br>设置Y轴：<code>theme(axis.text.y = element_text(colour = Data$Color))</code></p>
-<h1 id="需求说明"><a href="#需求说明" class="headerlink" title="需求说明"></a>需求说明</h1><p>有若干个样本都检出某个物种，需要画检出Reads数的柱状图，当前样本字体颜色和填充颜色为蓝色，其他样本为灰色。</p>
-<h1 id="完成示例"><a href="#完成示例" class="headerlink" title="完成示例"></a>完成示例</h1><p><img src="https://pic1.imgdb.cn/item/646db75d0d2dde5777e0998b.png" alt="坐标轴字体颜色"></p>
-<h1 id="代码示例"><a href="#代码示例" class="headerlink" title="代码示例"></a>代码示例</h1><figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>ggplot2<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">args<span class="operator">&lt;-</span>commandArgs<span class="punctuation">(</span><span class="built_in">T</span><span class="punctuation">)</span></span><br><span class="line"><span class="comment"># 数据表</span></span><br><span class="line">Reads_Table<span class="operator">=</span>args<span class="punctuation">[</span><span class="number">1</span><span class="punctuation">]</span></span><br><span class="line"><span class="comment"># 输出目录</span></span><br><span class="line">Result_Dir<span class="operator">=</span>args<span class="punctuation">[</span><span class="number">2</span><span class="punctuation">]</span></span><br><span class="line"><span class="comment"># 当前样本</span></span><br><span class="line">Plot_Sample <span class="operator">=</span> args<span class="punctuation">[</span><span class="number">3</span><span class="punctuation">]</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 读入数据表</span></span><br><span class="line">Data <span class="operator">=</span> read.table<span class="punctuation">(</span>Reads_Table<span class="punctuation">,</span> head<span class="operator">=</span><span class="built_in">T</span><span class="punctuation">,</span> sep<span class="operator">=</span><span class="string">&quot;\t&quot;</span><span class="punctuation">,</span> comment.char<span class="operator">=</span><span class="string">&quot;#&quot;</span><span class="punctuation">,</span> stringsAsFactors<span class="operator">=</span><span class="literal">FALSE</span><span class="punctuation">,</span> check.names<span class="operator">=</span><span class="literal">FALSE</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 设置其他样本和当前样本的分组、颜色信息</span></span><br><span class="line">List_Color <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;#808080&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#1e90ff&quot;</span><span class="punctuation">)</span></span><br><span class="line">Data<span class="operator">$</span>Group <span class="operator">=</span> <span class="built_in">rep</span><span class="punctuation">(</span><span class="string">&quot;Other Sample&quot;</span><span class="punctuation">,</span> nrow<span class="punctuation">(</span>Data<span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">Data<span class="operator">$</span>Group<span class="punctuation">[</span>with<span class="punctuation">(</span>Data<span class="punctuation">,</span> Sample<span class="operator">==</span>Plot_Sample<span class="punctuation">)</span><span class="punctuation">]</span> <span class="operator">=</span> <span class="string">&quot;This Sample&quot;</span></span><br><span class="line">Data<span class="operator">$</span>Color <span class="operator">=</span> <span class="built_in">rep</span><span class="punctuation">(</span>List_Color<span class="punctuation">[</span><span class="number">1</span><span class="punctuation">]</span><span class="punctuation">,</span> nrow<span class="punctuation">(</span>Data<span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">Data<span class="operator">$</span>Color<span class="punctuation">[</span>with<span class="punctuation">(</span>Data<span class="punctuation">,</span> Sample<span class="operator">==</span>Plot_Sample<span class="punctuation">)</span><span class="punctuation">]</span> <span class="operator">=</span> List_Color<span class="punctuation">[</span><span class="number">2</span><span class="punctuation">]</span></span><br><span class="line"><span class="keyword">if</span> <span class="punctuation">(</span>nrow<span class="punctuation">(</span>Data<span class="punctuation">)</span> <span class="operator">==</span> <span class="number">1</span><span class="punctuation">)</span><span class="punctuation">&#123;</span></span><br><span class="line">	List_Color <span class="operator">=</span> List_Color<span class="punctuation">[</span><span class="number">2</span><span class="punctuation">]</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 通用主题</span></span><br><span class="line">plot_font_size<span class="operator">=</span><span class="number">10</span></span><br><span class="line"><span class="keyword">if</span> <span class="punctuation">(</span>plot_font_size <span class="operator">&lt;</span> <span class="number">10</span><span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">	plot_font_size <span class="operator">=</span> <span class="number">10</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br><span class="line">universal_theme<span class="operator">=</span>theme_bw<span class="punctuation">(</span>base_size<span class="operator">=</span>plot_font_size<span class="punctuation">)</span><span class="operator">+</span></span><br><span class="line">	theme<span class="punctuation">(</span>axis.line<span class="operator">=</span>element_line<span class="punctuation">(</span>size<span class="operator">=</span><span class="number">0.5</span><span class="punctuation">,</span>colour<span class="operator">=</span><span class="string">&#x27;black&#x27;</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="operator">+</span></span><br><span class="line">	theme<span class="punctuation">(</span>axis.title.x<span class="operator">=</span>element_text<span class="punctuation">(</span>size<span class="operator">=</span>plot_font_size<span class="operator">-</span><span class="number">2</span><span class="punctuation">)</span><span class="punctuation">,</span>axis.title.y<span class="operator">=</span>element_text<span class="punctuation">(</span>size<span class="operator">=</span>plot_font_size<span class="operator">-</span><span class="number">2</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="operator">+</span></span><br><span class="line">	theme<span class="punctuation">(</span>axis.text.x<span class="operator">=</span>element_text<span class="punctuation">(</span>size<span class="operator">=</span>plot_font_size<span class="operator">-</span><span class="number">3</span><span class="punctuation">,</span>colour<span class="operator">=</span><span class="string">&#x27;black&#x27;</span><span class="punctuation">)</span><span class="punctuation">,</span>axis.text.y<span class="operator">=</span>element_text<span class="punctuation">(</span>size<span class="operator">=</span>plot_font_size<span class="operator">-</span><span class="number">3</span><span class="punctuation">,</span>colour<span class="operator">=</span><span class="string">&#x27;black&#x27;</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="operator">+</span></span><br><span class="line">	theme<span class="punctuation">(</span>legend.key.size<span class="operator">=</span>unit<span class="punctuation">(</span><span class="number">20</span><span class="punctuation">,</span><span class="string">&quot;pt&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span>legend.title<span class="operator">=</span>element_text<span class="punctuation">(</span>size<span class="operator">=</span>plot_font_size<span class="operator">-</span><span class="number">2</span><span class="punctuation">)</span><span class="punctuation">,</span>legend.text<span class="operator">=</span>element_text<span class="punctuation">(</span>size<span class="operator">=</span>plot_font_size<span class="operator">-</span><span class="number">3</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="operator">+</span></span><br><span class="line">	theme<span class="punctuation">(</span>panel.border<span class="operator">=</span>element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="operator">+</span></span><br><span class="line">	theme<span class="punctuation">(</span>plot.title<span class="operator">=</span>element_text<span class="punctuation">(</span>hjust<span class="operator">=</span><span class="number">0.5</span><span class="punctuation">,</span>size<span class="operator">=</span>plot_font_size<span class="punctuation">)</span><span class="punctuation">)</span><span class="operator">+</span></span><br><span class="line">	theme<span class="punctuation">(</span>legend.position<span class="operator">=</span><span class="string">&quot;none&quot;</span><span class="punctuation">)</span><span class="operator">+</span></span><br><span class="line">	theme<span class="punctuation">(</span>panel.grid<span class="operator">=</span>element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 画柱状图</span></span><br><span class="line">picture <span class="operator">=</span> ggplot<span class="punctuation">(</span>data<span class="operator">=</span>Data<span class="punctuation">,</span> aes<span class="punctuation">(</span>x<span class="operator">=</span>Sample<span class="punctuation">,</span> y<span class="operator">=</span>Reads<span class="punctuation">,</span> fill<span class="operator">=</span>Group<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">	geom_bar<span class="punctuation">(</span>stat<span class="operator">=</span><span class="string">&quot;identity&quot;</span><span class="punctuation">,</span> width<span class="operator">=</span><span class="number">0.7</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">	labs<span class="punctuation">(</span>x<span class="operator">=</span><span class="string">&quot;&quot;</span><span class="punctuation">,</span> y<span class="operator">=</span><span class="string">&quot;&quot;</span><span class="punctuation">,</span> title<span class="operator">=</span><span class="string">&quot;无乳链球菌&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">	scale_y_continuous<span class="punctuation">(</span>expand <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="number">0</span><span class="punctuation">,</span><span class="number">0</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">	scale_fill_manual<span class="punctuation">(</span>values <span class="operator">=</span> List_Color<span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">	universal_theme <span class="operator">+</span> </span><br><span class="line">	theme<span class="punctuation">(</span>axis.text.y <span class="operator">=</span> element_text<span class="punctuation">(</span>colour <span class="operator">=</span> rev<span class="punctuation">(</span>Data<span class="operator">$</span>Color<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">	coord_flip<span class="punctuation">(</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 保存图片</span></span><br><span class="line">output_png <span class="operator">=</span> paste<span class="punctuation">(</span>Result_Dir<span class="punctuation">,</span> <span class="string">&quot;/&quot;</span><span class="punctuation">,</span> <span class="string">&quot;无乳链球菌.png&quot;</span><span class="punctuation">,</span> sep<span class="operator">=</span><span class="string">&quot;&quot;</span><span class="punctuation">,</span> collapse<span class="operator">=</span><span class="string">&quot;&quot;</span><span class="punctuation">)</span></span><br><span class="line">ggsave<span class="punctuation">(</span>output_png<span class="punctuation">,</span> picture<span class="punctuation">,</span> width<span class="operator">=</span><span class="number">8</span><span class="punctuation">,</span> height<span class="operator">=</span><span class="number">10</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
-
-<h1 id="警告信息"><a href="#警告信息" class="headerlink" title="警告信息"></a>警告信息</h1><p>使用以上代码画图，会出现警告信息。<br>这是因为用向量变量在element_text中指定颜色并不是官方支持的标准用法，算是个workaround。<br>目前是能正常使用的，但在将来的ggplot2版本不一定依然支持这样的用法。  </p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Warning message:</span><br><span class="line">Vectorized input to `element_text()` is not officially supported.</span><br><span class="line">Results may be unexpected or may change in future versions of ggplot2.</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Log</category>
-      </categories>
-      <tags>
-        <tag>画图</tag>
-        <tag>ggplot2</tag>
       </tags>
   </entry>
   <entry>
@@ -975,6 +1010,31 @@ cpan -i autodie
         <tag>Python</tag>
         <tag>pandas</tag>
         <tag>seaborn</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Xlsx转MySQL</title>
+    <url>/2023/04/21/Xlsx%E8%BD%ACMySQL/</url>
+    <content><![CDATA[<p>通过Python的openpyxl和MySQLdb模块，将.xlsx文件转为MySQL的Databse</p>
+<span id="more"></span>
+
+<h1 id="依赖"><a href="#依赖" class="headerlink" title="依赖"></a>依赖</h1><ul>
+<li>python 3.7.9  </li>
+<li>openpyxl模块 3.0.9  </li>
+<li>MySQLdb模块 2.1.1？</li>
+</ul>
+<h1 id="模块安装"><a href="#模块安装" class="headerlink" title="模块安装"></a>模块安装</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># openpyxl模块  </span><br><span class="line">python -m pip install openpyxl  </span><br><span class="line"># MySQLdb模块  </span><br><span class="line">python -m pip install mysqlclient  </span><br></pre></td></tr></table></figure>
+
+<h2 id="脚本"><a href="#脚本" class="headerlink" title="脚本"></a>脚本</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># python</span><br><span class="line"># -*- encoding: utf-8 -*-</span><br><span class="line"># Useage: 将xlsx文件导入为mysql的databse</span><br><span class="line"></span><br><span class="line">import os</span><br><span class="line">import sys</span><br><span class="line">import re</span><br><span class="line">import datetime</span><br><span class="line">import argparse</span><br><span class="line">import openpyxl</span><br><span class="line">import MySQLdb</span><br><span class="line"></span><br><span class="line">Charset = &quot;utf8&quot;</span><br><span class="line"></span><br><span class="line">def Xlsx2MySQLdb(Xlsx, User, Password):</span><br><span class="line">	Work_Book = openpyxl.load_workbook(Xlsx)</span><br><span class="line">	Database = re.search(&quot;.*\/(\S+)\.xlsx&quot;, Xlsx).group(1) + &quot;_&quot; + datetime.datetime.now().strftime(&quot;%Y%m%d_%H%M%S&quot;)</span><br><span class="line">	List_Sheet = Work_Book.sheetnames</span><br><span class="line">	# 提示信息</span><br><span class="line">	Time_Stamp = datetime.datetime.now().strftime(&quot;%Y-%m-%d %H:%M:%S&quot;)</span><br><span class="line">	sys.stdout.write(&quot;*&quot; + Time_Stamp + &quot;* [运行信息]\n&quot;)</span><br><span class="line">	sys.stdout.write(&quot;[输入文件] &quot; + Xlsx + &quot;\n&quot;)</span><br><span class="line">	sys.stdout.write(&quot;[子表数量] &quot; + str(len(List_Sheet)) + &quot;\n&quot;)</span><br><span class="line">	sys.stdout.write(&quot;[子表名称] &quot; + &quot;、&quot;.join(List_Sheet) + &quot;\n&quot;)</span><br><span class="line">	sys.stdout.write(&quot;[数据库名] &quot; + Database + &quot;\n&quot;)</span><br><span class="line">	sys.stdout.write(&quot;[字符编码] &quot; + Charset + &quot;\n&quot;)</span><br><span class="line">	sys.stdout.write(&quot;[表头字段] 每个子表的第1行会作为数据库的列名\n&quot;)</span><br><span class="line">	sys.stdout.write(&quot;[数据类型] 所有内容都保存为TEXT，如需修改，请在MySQL自行修改\n\n&quot;)</span><br><span class="line"></span><br><span class="line">	# 连接MySQL</span><br><span class="line">	SQL_Host = &quot;localhost&quot;</span><br><span class="line">	SQL_Connection = MySQLdb.connect(host = SQL_Host, user = User, passwd = Password, charset = Charset)</span><br><span class="line">	Cursor = SQL_Connection.cursor()</span><br><span class="line">	# 创建数据库</span><br><span class="line">	Cursor.execute(&quot;create database if not exists &quot; + Database)</span><br><span class="line">	Cursor.execute(&quot;use &quot; + Database)</span><br><span class="line">	# 逐个子表处理</span><br><span class="line">	for Sheet in List_Sheet:</span><br><span class="line">		List_Header = []</span><br><span class="line">		List_Table_Header = []</span><br><span class="line">		Data_Type = &quot;TEXT&quot;</span><br><span class="line">		Work_Sheet = Work_Book[Sheet]</span><br><span class="line">		for col_n in range(1, Work_Sheet.max_column+1):</span><br><span class="line">			Header = str(Work_Sheet.cell(row=1, column=col_n).value)</span><br><span class="line">			List_Header.append(&quot;`&quot; + Header + &quot;`&quot;)</span><br><span class="line">			List_Table_Header.append(&quot;`&quot; + Header + &quot;`&quot; + &quot; &quot; + Data_Type)</span><br><span class="line">		# 创建数据表</span><br><span class="line">		Table_Header = &quot;, &quot;.join(List_Table_Header)</span><br><span class="line">		Cursor.execute(&quot;create table if not exists &quot; + Sheet + &quot; (&quot; + Table_Header + &quot;)&quot;)</span><br><span class="line">		# 逐行存入数据</span><br><span class="line">		Header = &quot;, &quot;.join(List_Header)</span><br><span class="line">		for row_n in range(2, Work_Sheet.max_row+1):</span><br><span class="line">			List_Value = []</span><br><span class="line">			for col_n in range(1, Work_Sheet.max_column+1):</span><br><span class="line">				Value = str(Work_Sheet.cell(row = row_n, column = col_n).value)</span><br><span class="line">				List_Value.append(&quot;\&quot;&quot; + Value + &quot;\&quot;&quot;)</span><br><span class="line">			Value = &quot;, &quot;.join(List_Value)</span><br><span class="line">			Cursor.execute(&quot;insert into &quot; + Sheet + &quot; (&quot; + Header + &quot;) values(&quot; + Value + &quot;)&quot;)</span><br><span class="line">			# 提交MyQSL操作</span><br><span class="line">			SQL_Connection.commit()</span><br><span class="line">	# 关闭连接</span><br><span class="line">	Cursor.close()</span><br><span class="line">	SQL_Connection.close()</span><br><span class="line">	# 关闭Xlsx</span><br><span class="line">	Work_Book.close()</span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>Log</category>
+      </categories>
+      <tags>
+        <tag>数据库</tag>
+        <tag>MySQL</tag>
+        <tag>Python</tag>
+        <tag>Excel</tag>
       </tags>
   </entry>
   <entry>

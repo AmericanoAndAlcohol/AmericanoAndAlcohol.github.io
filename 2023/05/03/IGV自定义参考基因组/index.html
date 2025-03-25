@@ -85,20 +85,31 @@
 <h2 id="官方文档"><a href="#官方文档" class="headerlink" title="官方文档"></a>官方文档</h2><p><a target="_blank" rel="noopener" href="https://github.com/igvteam/igv/wiki/JSON-Genome-Format">格式说明</a> <code>https://github.com/igvteam/igv/wiki/JSON-Genome-Format</code><br><a target="_blank" rel="noopener" href="https://github.com/igvteam/igv.js/wiki/Reference-Genome">属性说明</a> <code>https://github.com/igvteam/igv.js/wiki/Reference-Genome</code>  </p>
 <h2 id="参数说明"><a href="#参数说明" class="headerlink" title="参数说明"></a>参数说明</h2><p>IGV 2.11.0版本以上自定义参考基因组JSON文件，只有是fastaURL必填，其他都是可选。<br>所有URL都可以是在线资源或本地路径。  </p>
 <ul>
-<li>id：该参考基因组的名称，可选。就是在Genome下拉框里显示的基因组名称。</li>
-<li>name：描述信息，可选。</li>
-<li>fastaURL：参考基因组Fasta的URL，必填。可以是线上的，如UCSC等数据库中的fasta文件；也可以是本地的，如服务器上的fasta文件路径。</li>
-<li>indexURL：参考基因组Fasta的索引（.fai）文件，可选。但如果不提供.fai文件，会一次性加载整个fasta文件。</li>
-<li>cytobandURL：UCSC格式的cytoBand文件的URL，可选。是用于画染色体示意图的，可以在UCSC的goldenPath找到cytoBand.txt.gz，例如<a target="_blank" rel="noopener" href="https://hgdownload.cse.ucsc.edu/goldenPath/hg19/database/">hg19</a>的。UCSC上有<a target="_blank" rel="noopener" href="https://genome.ucsc.edu/cgi-bin/hgTables?db=hg38&hgta_group=map&hgta_track=cytoBand&hgta_table=cytoBand&hgta_doSchema=describe+table+schema">cytoBand文件格式说明</a>。</li>
+<li>id：该参考基因组的名称，可选。<del>就是在Genome下拉框里显示的基因组名称。</del>需要是hs1、hg38、hg19、hg18、hg17、hg16其中之一，否则IGV的BLAT功能会没反应。具体原因见<code>IGV的BLAT</code>。  </li>
+<li>name：描述信息，可选。就是在Genome下拉框里显示的基因组名称。  </li>
+<li>fastaURL：参考基因组Fasta的URL，必填。可以是线上的，如UCSC等数据库中的fasta文件；也可以是本地的，如服务器上的fasta文件路径。  </li>
+<li>indexURL：参考基因组Fasta的索引（.fai）文件，可选。但如果不提供.fai文件，会一次性加载整个fasta文件。  </li>
+<li>cytobandURL：UCSC格式的cytoBand文件的URL，可选。是用于画染色体示意图的，可以在UCSC的goldenPath找到cytoBand.txt.gz，例如<a target="_blank" rel="noopener" href="https://hgdownload.cse.ucsc.edu/goldenPath/hg19/database/">hg19</a>的。UCSC上有<a target="_blank" rel="noopener" href="https://genome.ucsc.edu/cgi-bin/hgTables?db=hg38&hgta_group=map&hgta_track=cytoBand&hgta_table=cytoBand&hgta_doSchema=describe+table+schema">cytoBand文件格式说明</a>。  </li>
 <li>tracks：加载参考基因组时，同时加载的一系列Tracks，例如默认的hg19基因组的RefSeq Gene描述信息，可选。IGV的Github有<a target="_blank" rel="noopener" href="https://github.com/igvteam/igv.js/wiki/Tracks-2.0">tracks格式说明</a>。</li>
 </ul>
 <h2 id="加载方法"><a href="#加载方法" class="headerlink" title="加载方法"></a>加载方法</h2><p>写完JSON文件后，在软件中加载自定义参考基因组的方法：Genomes -&gt; Load Genome from File… -&gt; 选择参考基因组json文件</p>
 <h1 id="JSON示例"><a href="#JSON示例" class="headerlink" title="JSON示例"></a>JSON示例</h1><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  &quot;id&quot;: &quot;b37chr&quot;,</span><br><span class="line">  &quot;name&quot;: &quot;Human (b37 with chr)&quot;,</span><br><span class="line">  &quot;fastaURL&quot;: &quot;/xxx/database/b37chr/human_g1k_v37_decoy_chr.fasta&quot;,</span><br><span class="line">  &quot;indexURL&quot;: &quot;/xxx/database/b37chr/human_g1k_v37_decoy_chr.fasta.fai&quot;,</span><br><span class="line">  &quot;cytobandURL&quot;: &quot;/xxx/database/b37chr/cytoBand.txt&quot;,</span><br><span class="line">  &quot;tracks&quot;: [</span><br><span class="line">    &#123;</span><br><span class="line">      &quot;name&quot;: &quot;Refseq Genes&quot;,</span><br><span class="line">      &quot;format&quot;: &quot;refgene&quot;,</span><br><span class="line">      &quot;url&quot;: &quot;/xxx/database/b37chr/ncbiRefSeq.sorted.txt.gz&quot;,</span><br><span class="line">      &quot;indexURL&quot;: &quot;/xxx/database/b37chr/ncbiRefSeq.sorted.txt.gz.tbi&quot;</span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      &quot;name&quot;: &quot;Target 1&quot;,</span><br><span class="line">      &quot;format&quot;: &quot;bed&quot;,</span><br><span class="line">      &quot;url&quot;: &quot;/xxx/database/b37chr/bed/Target_1.bed&quot;</span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      &quot;name&quot;: &quot;Target 2&quot;,</span><br><span class="line">      &quot;format&quot;: &quot;bed&quot;,</span><br><span class="line">      &quot;url&quot;: &quot;/xxx/database/b37chr/bed/Target_2.bed&quot;</span><br><span class="line">    &#125;</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h1 id="IGV的BLAT"><a href="#IGV的BLAT" class="headerlink" title="IGV的BLAT"></a>IGV的BLAT</h1><ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/igvteam/igv/wiki/Customizing-BLAT/f1cc79c0b3c8c27c1d612e4a025a1eee94bd8f56">Customizing BLAT</a></li>
+<li><a target="_blank" rel="noopener" href="https://igv.org/doc/desktop/#UserGuide/tools/blat/">BLAT</a><br>从以上官方文档可以知道，IGV的BLAT功能，本质是将待查询序列形成一个命令，传到UCSC的网页服务进行分析。<br>所以如果命令中的某些参数不对，会导致BLAT功能失效，例如指定数据库的db参数。经过测试发现JSON文件的id就是命令中的db参数。<br>从<a target="_blank" rel="noopener" href="https://igv.org/services/blatUCSC.php">https://igv.org/services/blatUCSC.php</a>的<code>&lt;SELECT NAME=&#39;db&#39;&gt;</code>这部分，可以看到UCSC在线服务<a target="_blank" rel="noopener" href="https://genome.ucsc.edu/cgi-bin/hgBlat">Human BLAT Search</a>的5个人类基因组对应的db参数取值。<br>如果需要转为使用本地服务器的BLAT功能，或者其他物种的数据库，可以看这篇文章：<a target="_blank" rel="noopener" href="https://www.jianshu.com/p/e5aceeb98a98">如何在IGV上使用BLAT搜索非模式物种</a>。</li>
+</ul>
+<hr>
+<h1 id="文章更新记录"><a href="#文章更新记录" class="headerlink" title="文章更新记录"></a>文章更新记录</h1><h2 id="2025-03-25"><a href="#2025-03-25" class="headerlink" title="2025.03.25"></a>2025.03.25</h2><ol>
+<li><code>参数说明</code>中id和name的说明有误，已更正。</li>
+<li>新增<code>IGV的BLAT</code>相关信息。</li>
+</ol>
+
       
     </div>
     <footer class="article-footer">
       
-<ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/IGV/" rel="tag">IGV</a></li></ul>
+<ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/BLAT/" rel="tag">BLAT</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/IGV/" rel="tag">IGV</a></li></ul>
 
     </footer>
 
@@ -154,7 +165,7 @@
     <footer class="footer">
   <div class="outer">
     <ul class="list-inline">
-      <li>A Blog &copy; 2023</li>
+      <li>A Blog &copy; 2025</li>
       
         <li>
           

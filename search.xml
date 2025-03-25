@@ -1,86 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>BLAST及NT库本地化</title>
-    <url>/2023/04/16/BLAST%E5%8F%8ANT%E5%BA%93%E6%9C%AC%E5%9C%B0%E5%8C%96/</url>
-    <content><![CDATA[<p>下载NCBI的NT数据库到服务器本地<br>Blast比对结果中输出物种信息<br>用TaxonKit、blastdbcmd、makeblastdb建立子库  </p>
-<span id="more"></span>  
-
-<h1 id="NT库本地化"><a href="#NT库本地化" class="headerlink" title="NT库本地化"></a>NT库本地化</h1><h2 id="下载文件"><a href="#下载文件" class="headerlink" title="下载文件"></a>下载文件</h2><ol>
-<li><p>可选文件格式</p>
-<ol>
-<li>blast index文件<br> <code>https://ftp.ncbi.nlm.nih.gov/blast/db</code>中的nt.*.tar.gz 。<br> 下载完成后，MD5验证，解压文件，就可以直接用于blast。index中已经包含物种Taxonomy信息。但是压缩包中没有Fasta文件，需要的话可以用blastdbcmd提取。</li>
-<li>Fasta文件<br><code>https://ftp.ncbi.nlm.nih.gov/blast/db/FASTA</code>中的nt.gz 。<br>下载完成并解压后，需要自建blast index；如果结果中还需要物种Taxonomy信息，建index前还需要准备好TaxIDMapFile文件。</li>
-</ol>
-</li>
-<li><p>下载blast index文件<br> wget下载有点问题，不知道是服务器还是网络问题，wget下载的文件总是MD5校验失败；有时候重新下又能校验成功。<br> aspera下载不行，链接NCBI失败，可能是必须开放某个指定端口。<br> 最后是用的rsync下载。  </p>
-<ol>
-<li>文件列表下载   <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">rsync --no-motd --files-from=&lt;文件列表&gt; &lt;文件源&gt; &lt;下载存放路径&gt;</span><br><span class="line"># 示例</span><br><span class="line">rsync --no-motd --files-from=***/File.list rsync://ftp.ncbi.nlm.nih.gov/blast/db/ ***/NT_Database</span><br></pre></td></tr></table></figure>
- File.list（每个文件1列）<br> <img src="https://pic.imgdb.cn/item/643c01890d2dde57770d7686.jpg" alt="File.list"></li>
-</ol>
-<ul>
-<li>实际下载文件路径是&lt;文件源&gt;加上File.list中的内容，完整路径如：rsync:&#x2F;&#x2F;ftp.ncbi.nlm.nih.gov&#x2F;blast&#x2F;db&#x2F;nt.22.tar.gz。</li>
-<li>当File.list中的内容包含子目录，&lt;下载存放路径&gt;中会自动生成对应层级目录，例如File.list中的内容是“blast&#x2F;db&#x2F;nt.22.tar.gz”，则下载的nt.22.tar.gz会保存在<code>&lt;下载存放路径&gt;/blast/db</code>中。</li>
-</ul>
-<ol start="2">
-<li>并行下载<br> 推荐这种方式，文件列表逐个下载太慢，这个每行加“&amp;”后台并行下载文件比较快。   <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">rsync --no-motd &lt;文件源&gt; &lt;下载存放路径&gt;</span><br><span class="line"># 示例</span><br><span class="line">rsync --no-motd rsync://ftp.ncbi.nlm.nih.gov/blast/db/nt.22.tar.gz ***/NT_Database &amp;</span><br><span class="line">rsync --no-motd rsync://ftp.ncbi.nlm.nih.gov/blast/db/nt.23.tar.gz ***/NT_Database &amp;</span><br></pre></td></tr></table></figure></li>
-</ol>
-</li>
-</ol>
-<h2 id="MD5验证"><a href="#MD5验证" class="headerlink" title="MD5验证"></a>MD5验证</h2><p><code>https://ftp.ncbi.nlm.nih.gov/blast/db</code>中还有nt.*.tar.gz.md5文件，用于MD5验证。<br>全部nt.<em>.tar.gz和nt.</em>.tar.gz.md5文件都下载完后，md5文件合并一起验证。<br>nt.all.md5.check中，文件名后是OK即文件完整；如果是Fail，则不完整，需要重新下载该文件。  </p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 合并所有md5文件</span><br><span class="line">cat nt.*.tar.gz.md5 &gt; nt.all.md5</span><br><span class="line"># md5验证</span><br><span class="line">md5sum -c nt.all.md5 &gt; nt.all.md5.check</span><br></pre></td></tr></table></figure>
-
-<h2 id="解压文件"><a href="#解压文件" class="headerlink" title="解压文件"></a>解压文件</h2><p><code>tar -zxvf nt.*.tar.gz</code><br>解压后，nt.*.tar.gz文件删除或者备份都可以。<br>一般是删除？除了需要迁移到别的服务器，好像也没有能再用到的地方了。  </p>
-<h2 id="Blast比对"><a href="#Blast比对" class="headerlink" title="Blast比对"></a>Blast比对</h2><p>blast结果中Subject Seq-id（NT库的序列ID）格式为“gi|384474605|emb|HE793683.1|”，含有<a href="https://www.ncbi.nlm.nih.gov/genbank/sequenceids/">GI numbers</a>和<a href="https://support.nlm.nih.gov/knowledgebase/article/KA-03436/en-us">GenBank accession numbers</a>；不包含Taxid信息。<br>如果blast index中有Taxonomy信息，可以在输出格式增加staxids sscinames，使结果额外输出物种的Taxid和物种名称。  </p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># Shell</span><br><span class="line"></span><br><span class="line">sample=&quot;Input&quot;</span><br><span class="line">query_fa=&quot;Input.fa&quot;</span><br><span class="line"></span><br><span class="line">database=&quot;&lt;NT库目录&gt;/nt&quot;</span><br><span class="line">identity=&quot;98&quot;</span><br><span class="line">cov_hsp=&quot;90&quot;</span><br><span class="line">evalue=&quot;1e-5&quot;</span><br><span class="line"></span><br><span class="line">threads=&quot;8&quot;</span><br><span class="line"></span><br><span class="line"># 如果不export BLASTDB的话，要在bashrc声明BLASTDB，否则报错</span><br><span class="line"># 在-outfmt添加staxids sscinames，使结果额外输出物种Taxid、物种名称</span><br><span class="line">export BLASTDB=&lt;NT库目录&gt; &amp;&amp; blastn -query $&#123;query_fa&#125; -db $&#123;database&#125; -out $&#123;sample&#125;.noheader -outfmt &quot;6  qaccver saccver pident length mismatch gapopen qstart qend sstart send evalue bitscore staxids sscinames stitle&quot; -num_threads $&#123;threads&#125; -evalue $&#123;evalue&#125; -perc_identity $&#123;identity&#125; -qcov_hsp_perc $&#123;cov_hsp&#125;</span><br><span class="line"></span><br><span class="line"># 表头</span><br><span class="line">echo -e &quot;Query Seq-id\tSubject Seq-id\tIdentity\tAlignment length\tMismatch\tGap Open\tQuery Start\tQuery End\tSubject Start\tSubject End\tEvalue\tBitscore\tTaxonomy ID\tScientific Name\tSeq Title&quot; &gt; $&#123;sample&#125;.tsv</span><br><span class="line"></span><br><span class="line"># 合并blast结果和表头</span><br><span class="line">cat $&#123;sample&#125;.noheader &gt;&gt; $&#123;sample&#125;.tsv</span><br><span class="line"></span><br><span class="line"># 删除没有表头的blast结果</span><br><span class="line">rm -f $&#123;sample&#125;.noheader</span><br></pre></td></tr></table></figure>
-
-<h1 id="构建子库"><a href="#构建子库" class="headerlink" title="构建子库"></a>构建子库</h1><ul>
-<li>用blastdbcmd可以根据Taxid从NT库抽取相关序列，从而构建子库。  </li>
-<li>用<a href="https://bioinf.shenwei.me/taxonkit/">TaxonKit</a>可以获取某个Taxid节点以下所有Taxid，也就是说不止可以抽取单个物种的序列，还可以提供Taxid列表来抽取整个目、科、属…的序列。  </li>
-<li>TaxonKit需要<a href="https://ftp.ncbi.nih.gov/pub/taxonomy/taxdump.tar.gz">taxdump.tar.gz</a>。NT库和taxdump.tar.gz最好日期一致，因为Taxonomy会更新，可能导致NT库的Taxid和TaxonKit提取的有区别。具体见TaxonKit的<a href="https://bioinf.shenwei.me/taxonkit/chinese/#taxid-changelog-taxid">TaxID changelog</a>。  </li>
-<li>如果要用Taxid统计blast结果中的物种信息，需要注意有些亚种&#x2F;株的Taxid与物种（Species）等级Taxid不一样。如Streptococcus parasanguinis ATCC 903（Taxid 888048）的Rank是strain；它是属于Streptococcus parasanguinis（Taxid 1318）这个物种的。用taxonkit lineage可以获取某个Taxid在物种等级的名称和Taxid。如<code>echo 888048 | taxonkit lineage | taxonkit reformat -t -f \&quot;&#123;s&#125;\&quot; | cut -f 3,4</code>。  </li>
-<li>用子库作为参考序列blast时，将-db参数换成{Index_Dir}&#x2F;${Name}.fa即可。</li>
-</ul>
-<p>以链球菌属举例，在NCBI的<a href="https://www.ncbi.nlm.nih.gov/taxonomy">Taxonomy数据库</a>可以找到Streptococcus的Taxid是1301。  </p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># Shell</span><br><span class="line"></span><br><span class="line">Name=&quot;Streptococcus&quot;</span><br><span class="line">Taxid=&quot;1301&quot;</span><br><span class="line">Index_Dir=&quot;Streptococcus_Index&quot;</span><br><span class="line"></span><br><span class="line"># 获取该Taxid节点以下所有子节点的Taxid</span><br><span class="line">taxonkit list -I &quot;&quot; --ids $Taxid &gt; $&#123;Index_Dir&#125;/$&#123;Name&#125;.taxid</span><br><span class="line"></span><br><span class="line"># 提取相关序列</span><br><span class="line">blastdbcmd -db &lt;NT库目录&gt;/nt -taxidlist $&#123;Index_Dir&#125;/$&#123;Name&#125;.taxid &gt; $&#123;Index_Dir&#125;/$&#123;Name&#125;.fa</span><br><span class="line"></span><br><span class="line"># 提取GenBank accession numbers（GI号也可以）和Taxid的对应关系文件</span><br><span class="line">blastdbcmd -db &lt;NT库目录&gt;/nt -taxidlist $&#123;Index_Dir&#125;/$&#123;Name&#125;.taxid -outfmt &quot;%a %T&quot; &gt; $&#123;Index_Dir&#125;/taxid_map.txt</span><br><span class="line"></span><br><span class="line"># 建blast index，通过-parse_seqids -taxid_map在index中附加物种Taxonomy信息</span><br><span class="line">makeblastdb -dbtype nucl -in $&#123;Index_Dir&#125;/$&#123;Name&#125;.fa -out $&#123;Index_Dir&#125;/$&#123;Name&#125;.fa -parse_seqids -taxid_map $&#123;Index_Dir&#125;/taxid_map.txt</span><br><span class="line"></span><br><span class="line"># 提取序列的GenBank accession numbers、Taxid、物种名称（比对用不上，就是看看参考里有什么）</span><br><span class="line">blastdbcmd -db &lt;NT库目录&gt;/nt -taxidlist $&#123;Index_Dir&#125;/$&#123;Name&#125;.taxid -outfmt &quot;%a  %T  %S&quot; &gt; $&#123;Index_Dir&#125;/$&#123;Name&#125;.Name.tsv</span><br></pre></td></tr></table></figure>
-<p>taxid_map.txt（第1列GenBank accession numbers，第2列Taxid）<br><img src="https://pic.imgdb.cn/item/643c01cc0d2dde57770dcff5.jpg" alt="taxid_map.txt"><br>Name.tsv（第1列GenBank accession numbers，第2列Taxid，第3列物种名称）<br><img src="https://pic.imgdb.cn/item/643c01b20d2dde57770dad98.jpg" alt="Name.tsv">  </p>
-<h1 id="假如用nt-gz建库"><a href="#假如用nt-gz建库" class="headerlink" title="假如用nt.gz建库"></a>假如用nt.gz建库</h1><ul>
-<li>nt.gz解压后是NT库的fasta文件。如果不需要物种信息的话，直接makeblastdb建库就行。如果balst结果要有物种信息，则需要提供GenBank accession numbers和Taxid对应关系，类似上面的子库构建的-parse_seqids -taxid_map方式。  </li>
-<li>GenBank accession numbers和Taxid对应关系文件可以用<a href="https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/accession2taxid/nucl_gb.accession2taxid.gz">nucl_gb.accession2taxid.gz</a>。和taxdump.tar.gz一样原因，accession2taxid最好与NT库日期一致。  </li>
-<li>nucl_gb.accession2taxid.gz格式是tsv，第一列Accession，第二列Accession.version，第三列TaxId，第四列GI；整理成taxid_map格式后，用makeblastdb加-parse_seqids -taxid_map建库就行。</li>
-</ul>
-<h1 id="一些blastn参数"><a href="#一些blastn参数" class="headerlink" title="一些blastn参数"></a>一些blastn参数</h1><p>-task：默认是megablast，可选blastn、blastn-short、dc-megablast、megablast、rmblastn<br>-query：需要比对的fasta序列<br>-db：数据库路径，写到fasta前缀为止，如***&#x2F;NT_Database&#x2F;nt<br>-out：输出文件<br>-outfmt：输出格式，6是tab分割且无表头的格式，其他格式见blastn帮助文档<br>-num_threads：线程数，默认1；与-mt_mode相关，具体见<a href="https://www.ncbi.nlm.nih.gov/books/NBK571452/">这里</a><br>-evalue：e值过滤阈值，默认10<br>-perc_identity：identity百分比过滤阈值，取值0 ~ 100<br>-qcov_hsp_perc：hsp覆盖度百分比过滤阈值，取值0 ~ 100<br>-max_target_seqs：输出结果保留多少比对上的subject序列，默认500，建议大于等于5<br>-max_hsps：每个query序列比对上的每个subject序列保留多少个HSP，需要填写大于等于1，无默认值  </p>
-]]></content>
-      <categories>
-        <category>Log</category>
-      </categories>
-      <tags>
-        <tag>NT</tag>
-        <tag>BLAST</tag>
-        <tag>数据库</tag>
-        <tag>TaxonKit</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Bam文件操作</title>
-    <url>/2023/05/22/Bam%E6%96%87%E4%BB%B6%E6%93%8D%E4%BD%9C/</url>
-    <content><![CDATA[<p>用Linux命令行或软件对Bam文件进行操作</p>
-<span id="more"></span>
-
-<h1 id="统计CIGAR，从多到少排序"><a href="#统计CIGAR，从多到少排序" class="headerlink" title="统计CIGAR，从多到少排序"></a>统计CIGAR，从多到少排序</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sambamba view -F &quot;ref_name==&#x27;******&#x27; and not secondary_alignment and not supplementary&quot; ******.bam | cut -f 6 | sort | uniq -c | sed -r &#x27;s/^\s+//&#x27; | sed -r &#x27;s/\s+/\t/&#x27; | sort -k 1 -nr &gt; CIGAR.tsv</span><br></pre></td></tr></table></figure>
-
-<h1 id="提取Reads，转fasta"><a href="#提取Reads，转fasta" class="headerlink" title="提取Reads，转fasta"></a>提取Reads，转fasta</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sambamba view -F &quot;ref_name==&#x27;******&#x27; and not secondary_alignment and not supplementary&quot; ******.bam | cut -f 1,10 | sed &#x27;s/^/&gt;/&#x27; | sed -r &#x27;s/\t/\n/&#x27; &gt; Target.fa</span><br></pre></td></tr></table></figure>
-]]></content>
-      <categories>
-        <category>Log</category>
-      </categories>
-      <tags>
-        <tag>Bam</tag>
-        <tag>Sambamba</tag>
-        <tag>Linux</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>BLAST短序列比对没有结果</title>
     <url>/2023/08/03/BLAST%E7%9F%AD%E5%BA%8F%E5%88%97%E6%AF%94%E5%AF%B9%E6%B2%A1%E6%9C%89%E7%BB%93%E6%9E%9C/</url>
     <content><![CDATA[<p>BLAST短序列比对hg19，没有比对结果。需要设置特定参数。</p>
@@ -141,6 +61,86 @@
         <tag>BLAST</tag>
         <tag>Mapping</tag>
         <tag>比对</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>BLAST及NT库本地化</title>
+    <url>/2023/04/16/BLAST%E5%8F%8ANT%E5%BA%93%E6%9C%AC%E5%9C%B0%E5%8C%96/</url>
+    <content><![CDATA[<p>下载NCBI的NT数据库到服务器本地<br>Blast比对结果中输出物种信息<br>用TaxonKit、blastdbcmd、makeblastdb建立子库  </p>
+<span id="more"></span>  
+
+<h1 id="NT库本地化"><a href="#NT库本地化" class="headerlink" title="NT库本地化"></a>NT库本地化</h1><h2 id="下载文件"><a href="#下载文件" class="headerlink" title="下载文件"></a>下载文件</h2><ol>
+<li><p>可选文件格式</p>
+<ol>
+<li>blast index文件<br> <code>https://ftp.ncbi.nlm.nih.gov/blast/db</code>中的nt.*.tar.gz 。<br> 下载完成后，MD5验证，解压文件，就可以直接用于blast。index中已经包含物种Taxonomy信息。但是压缩包中没有Fasta文件，需要的话可以用blastdbcmd提取。</li>
+<li>Fasta文件<br><code>https://ftp.ncbi.nlm.nih.gov/blast/db/FASTA</code>中的nt.gz 。<br>下载完成并解压后，需要自建blast index；如果结果中还需要物种Taxonomy信息，建index前还需要准备好TaxIDMapFile文件。</li>
+</ol>
+</li>
+<li><p>下载blast index文件<br> wget下载有点问题，不知道是服务器还是网络问题，wget下载的文件总是MD5校验失败；有时候重新下又能校验成功。<br> aspera下载不行，链接NCBI失败，可能是必须开放某个指定端口。<br> 最后是用的rsync下载。  </p>
+<ol>
+<li>文件列表下载   <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">rsync --no-motd --files-from=&lt;文件列表&gt; &lt;文件源&gt; &lt;下载存放路径&gt;</span><br><span class="line"># 示例</span><br><span class="line">rsync --no-motd --files-from=***/File.list rsync://ftp.ncbi.nlm.nih.gov/blast/db/ ***/NT_Database</span><br></pre></td></tr></table></figure>
+ File.list（每个文件1列）<br> <img src="https://pic.imgdb.cn/item/643c01890d2dde57770d7686.jpg" alt="File.list"></li>
+</ol>
+<ul>
+<li>实际下载文件路径是&lt;文件源&gt;加上File.list中的内容，完整路径如：rsync:&#x2F;&#x2F;ftp.ncbi.nlm.nih.gov&#x2F;blast&#x2F;db&#x2F;nt.22.tar.gz。</li>
+<li>当File.list中的内容包含子目录，&lt;下载存放路径&gt;中会自动生成对应层级目录，例如File.list中的内容是“blast&#x2F;db&#x2F;nt.22.tar.gz”，则下载的nt.22.tar.gz会保存在<code>&lt;下载存放路径&gt;/blast/db</code>中。</li>
+</ul>
+<ol start="2">
+<li>并行下载<br> 推荐这种方式，文件列表逐个下载太慢，这个每行加“&amp;”后台并行下载文件比较快。   <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">rsync --no-motd &lt;文件源&gt; &lt;下载存放路径&gt;</span><br><span class="line"># 示例</span><br><span class="line">rsync --no-motd rsync://ftp.ncbi.nlm.nih.gov/blast/db/nt.22.tar.gz ***/NT_Database &amp;</span><br><span class="line">rsync --no-motd rsync://ftp.ncbi.nlm.nih.gov/blast/db/nt.23.tar.gz ***/NT_Database &amp;</span><br></pre></td></tr></table></figure></li>
+</ol>
+</li>
+</ol>
+<h2 id="MD5验证"><a href="#MD5验证" class="headerlink" title="MD5验证"></a>MD5验证</h2><p><code>https://ftp.ncbi.nlm.nih.gov/blast/db</code>中还有nt.*.tar.gz.md5文件，用于MD5验证。<br>全部nt.<em>.tar.gz和nt.</em>.tar.gz.md5文件都下载完后，md5文件合并一起验证。<br>nt.all.md5.check中，文件名后是OK即文件完整；如果是Fail，则不完整，需要重新下载该文件。  </p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 合并所有md5文件</span><br><span class="line">cat nt.*.tar.gz.md5 &gt; nt.all.md5</span><br><span class="line"># md5验证</span><br><span class="line">md5sum -c nt.all.md5 &gt; nt.all.md5.check</span><br></pre></td></tr></table></figure>
+
+<h2 id="解压文件"><a href="#解压文件" class="headerlink" title="解压文件"></a>解压文件</h2><p><code>tar -zxvf nt.*.tar.gz</code><br>解压后，nt.*.tar.gz文件删除或者备份都可以。<br>一般是删除？除了需要迁移到别的服务器，好像也没有能再用到的地方了。  </p>
+<h2 id="Blast比对"><a href="#Blast比对" class="headerlink" title="Blast比对"></a>Blast比对</h2><p>blast结果中Subject Seq-id（NT库的序列ID）格式为“gi|384474605|emb|HE793683.1|”，含有<a href="https://www.ncbi.nlm.nih.gov/genbank/sequenceids/">GI numbers</a>和<a href="https://support.nlm.nih.gov/knowledgebase/article/KA-03436/en-us">GenBank accession numbers</a>；不包含Taxid信息。<br>如果blast index中有Taxonomy信息，可以在输出格式增加staxids sscinames，使结果额外输出物种的Taxid和物种名称。  </p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># Shell</span><br><span class="line"></span><br><span class="line">sample=&quot;Input&quot;</span><br><span class="line">query_fa=&quot;Input.fa&quot;</span><br><span class="line"></span><br><span class="line">database=&quot;&lt;NT库目录&gt;/nt&quot;</span><br><span class="line">identity=&quot;98&quot;</span><br><span class="line">cov_hsp=&quot;90&quot;</span><br><span class="line">evalue=&quot;1e-5&quot;</span><br><span class="line"></span><br><span class="line">threads=&quot;8&quot;</span><br><span class="line"></span><br><span class="line"># 如果不export BLASTDB的话，要在bashrc声明BLASTDB，否则报错</span><br><span class="line"># 在-outfmt添加staxids sscinames，使结果额外输出物种Taxid、物种名称</span><br><span class="line">export BLASTDB=&lt;NT库目录&gt; &amp;&amp; blastn -query $&#123;query_fa&#125; -db $&#123;database&#125; -out $&#123;sample&#125;.noheader -outfmt &quot;6  qaccver saccver pident length mismatch gapopen qstart qend sstart send evalue bitscore staxids sscinames stitle&quot; -num_threads $&#123;threads&#125; -evalue $&#123;evalue&#125; -perc_identity $&#123;identity&#125; -qcov_hsp_perc $&#123;cov_hsp&#125;</span><br><span class="line"></span><br><span class="line"># 表头</span><br><span class="line">echo -e &quot;Query Seq-id\tSubject Seq-id\tIdentity\tAlignment length\tMismatch\tGap Open\tQuery Start\tQuery End\tSubject Start\tSubject End\tEvalue\tBitscore\tTaxonomy ID\tScientific Name\tSeq Title&quot; &gt; $&#123;sample&#125;.tsv</span><br><span class="line"></span><br><span class="line"># 合并blast结果和表头</span><br><span class="line">cat $&#123;sample&#125;.noheader &gt;&gt; $&#123;sample&#125;.tsv</span><br><span class="line"></span><br><span class="line"># 删除没有表头的blast结果</span><br><span class="line">rm -f $&#123;sample&#125;.noheader</span><br></pre></td></tr></table></figure>
+
+<h1 id="构建子库"><a href="#构建子库" class="headerlink" title="构建子库"></a>构建子库</h1><ul>
+<li>用blastdbcmd可以根据Taxid从NT库抽取相关序列，从而构建子库。  </li>
+<li>用<a href="https://bioinf.shenwei.me/taxonkit/">TaxonKit</a>可以获取某个Taxid节点以下所有Taxid，也就是说不止可以抽取单个物种的序列，还可以提供Taxid列表来抽取整个目、科、属…的序列。  </li>
+<li>TaxonKit需要<a href="https://ftp.ncbi.nih.gov/pub/taxonomy/taxdump.tar.gz">taxdump.tar.gz</a>。NT库和taxdump.tar.gz最好日期一致，因为Taxonomy会更新，可能导致NT库的Taxid和TaxonKit提取的有区别。具体见TaxonKit的<a href="https://bioinf.shenwei.me/taxonkit/chinese/#taxid-changelog-taxid">TaxID changelog</a>。  </li>
+<li>如果要用Taxid统计blast结果中的物种信息，需要注意有些亚种&#x2F;株的Taxid与物种（Species）等级Taxid不一样。如Streptococcus parasanguinis ATCC 903（Taxid 888048）的Rank是strain；它是属于Streptococcus parasanguinis（Taxid 1318）这个物种的。用taxonkit lineage可以获取某个Taxid在物种等级的名称和Taxid。如<code>echo 888048 | taxonkit lineage | taxonkit reformat -t -f \&quot;&#123;s&#125;\&quot; | cut -f 3,4</code>。  </li>
+<li>用子库作为参考序列blast时，将-db参数换成{Index_Dir}&#x2F;${Name}.fa即可。</li>
+</ul>
+<p>以链球菌属举例，在NCBI的<a href="https://www.ncbi.nlm.nih.gov/taxonomy">Taxonomy数据库</a>可以找到Streptococcus的Taxid是1301。  </p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># Shell</span><br><span class="line"></span><br><span class="line">Name=&quot;Streptococcus&quot;</span><br><span class="line">Taxid=&quot;1301&quot;</span><br><span class="line">Index_Dir=&quot;Streptococcus_Index&quot;</span><br><span class="line"></span><br><span class="line"># 获取该Taxid节点以下所有子节点的Taxid</span><br><span class="line">taxonkit list -I &quot;&quot; --ids $Taxid &gt; $&#123;Index_Dir&#125;/$&#123;Name&#125;.taxid</span><br><span class="line"></span><br><span class="line"># 提取相关序列</span><br><span class="line">blastdbcmd -db &lt;NT库目录&gt;/nt -taxidlist $&#123;Index_Dir&#125;/$&#123;Name&#125;.taxid &gt; $&#123;Index_Dir&#125;/$&#123;Name&#125;.fa</span><br><span class="line"></span><br><span class="line"># 提取GenBank accession numbers（GI号也可以）和Taxid的对应关系文件</span><br><span class="line">blastdbcmd -db &lt;NT库目录&gt;/nt -taxidlist $&#123;Index_Dir&#125;/$&#123;Name&#125;.taxid -outfmt &quot;%a %T&quot; &gt; $&#123;Index_Dir&#125;/taxid_map.txt</span><br><span class="line"></span><br><span class="line"># 建blast index，通过-parse_seqids -taxid_map在index中附加物种Taxonomy信息</span><br><span class="line">makeblastdb -dbtype nucl -in $&#123;Index_Dir&#125;/$&#123;Name&#125;.fa -out $&#123;Index_Dir&#125;/$&#123;Name&#125;.fa -parse_seqids -taxid_map $&#123;Index_Dir&#125;/taxid_map.txt</span><br><span class="line"></span><br><span class="line"># 提取序列的GenBank accession numbers、Taxid、物种名称（比对用不上，就是看看参考里有什么）</span><br><span class="line">blastdbcmd -db &lt;NT库目录&gt;/nt -taxidlist $&#123;Index_Dir&#125;/$&#123;Name&#125;.taxid -outfmt &quot;%a  %T  %S&quot; &gt; $&#123;Index_Dir&#125;/$&#123;Name&#125;.Name.tsv</span><br></pre></td></tr></table></figure>
+<p>taxid_map.txt（第1列GenBank accession numbers，第2列Taxid）<br><img src="https://pic.imgdb.cn/item/643c01cc0d2dde57770dcff5.jpg" alt="taxid_map.txt"><br>Name.tsv（第1列GenBank accession numbers，第2列Taxid，第3列物种名称）<br><img src="https://pic.imgdb.cn/item/643c01b20d2dde57770dad98.jpg" alt="Name.tsv">  </p>
+<h1 id="假如用nt-gz建库"><a href="#假如用nt-gz建库" class="headerlink" title="假如用nt.gz建库"></a>假如用nt.gz建库</h1><ul>
+<li>nt.gz解压后是NT库的fasta文件。如果不需要物种信息的话，直接makeblastdb建库就行。如果balst结果要有物种信息，则需要提供GenBank accession numbers和Taxid对应关系，类似上面的子库构建的-parse_seqids -taxid_map方式。  </li>
+<li>GenBank accession numbers和Taxid对应关系文件可以用<a href="https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/accession2taxid/nucl_gb.accession2taxid.gz">nucl_gb.accession2taxid.gz</a>。和taxdump.tar.gz一样原因，accession2taxid最好与NT库日期一致。  </li>
+<li>nucl_gb.accession2taxid.gz格式是tsv，第一列Accession，第二列Accession.version，第三列TaxId，第四列GI；整理成taxid_map格式后，用makeblastdb加-parse_seqids -taxid_map建库就行。</li>
+</ul>
+<h1 id="一些blastn参数"><a href="#一些blastn参数" class="headerlink" title="一些blastn参数"></a>一些blastn参数</h1><p>-task：默认是megablast，可选blastn、blastn-short、dc-megablast、megablast、rmblastn<br>-query：需要比对的fasta序列<br>-db：数据库路径，写到fasta前缀为止，如***&#x2F;NT_Database&#x2F;nt<br>-out：输出文件<br>-outfmt：输出格式，6是tab分割且无表头的格式，其他格式见blastn帮助文档<br>-num_threads：线程数，默认1；与-mt_mode相关，具体见<a href="https://www.ncbi.nlm.nih.gov/books/NBK571452/">这里</a><br>-evalue：e值过滤阈值，默认10<br>-perc_identity：identity百分比过滤阈值，取值0 ~ 100<br>-qcov_hsp_perc：hsp覆盖度百分比过滤阈值，取值0 ~ 100<br>-max_target_seqs：输出结果保留多少比对上的subject序列，默认500，建议大于等于5<br>-max_hsps：每个query序列比对上的每个subject序列保留多少个HSP，需要填写大于等于1，无默认值  </p>
+]]></content>
+      <categories>
+        <category>Log</category>
+      </categories>
+      <tags>
+        <tag>BLAST</tag>
+        <tag>NT</tag>
+        <tag>数据库</tag>
+        <tag>TaxonKit</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Bam文件操作</title>
+    <url>/2023/05/22/Bam%E6%96%87%E4%BB%B6%E6%93%8D%E4%BD%9C/</url>
+    <content><![CDATA[<p>用Linux命令行或软件对Bam文件进行操作</p>
+<span id="more"></span>
+
+<h1 id="统计CIGAR，从多到少排序"><a href="#统计CIGAR，从多到少排序" class="headerlink" title="统计CIGAR，从多到少排序"></a>统计CIGAR，从多到少排序</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sambamba view -F &quot;ref_name==&#x27;******&#x27; and not secondary_alignment and not supplementary&quot; ******.bam | cut -f 6 | sort | uniq -c | sed -r &#x27;s/^\s+//&#x27; | sed -r &#x27;s/\s+/\t/&#x27; | sort -k 1 -nr &gt; CIGAR.tsv</span><br></pre></td></tr></table></figure>
+
+<h1 id="提取Reads，转fasta"><a href="#提取Reads，转fasta" class="headerlink" title="提取Reads，转fasta"></a>提取Reads，转fasta</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sambamba view -F &quot;ref_name==&#x27;******&#x27; and not secondary_alignment and not supplementary&quot; ******.bam | cut -f 1,10 | sed &#x27;s/^/&gt;/&#x27; | sed -r &#x27;s/\t/\n/&#x27; &gt; Target.fa</span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>Log</category>
+      </categories>
+      <tags>
+        <tag>Bam</tag>
+        <tag>Sambamba</tag>
+        <tag>Linux</tag>
       </tags>
   </entry>
   <entry>
@@ -285,35 +285,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Hexo常用命令</title>
-    <url>/2025/03/25/Hexo%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/</url>
-    <content><![CDATA[<p>Hexo搭建博客常用的命令</p>
-<span id="more"></span>
-
-<h1 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h1><p>以下第1.2.步可以参考以下一些文章，会更详细清晰<br><a href="https://blog.csdn.net/itcast_cn/article/details/129876490">Hexo+github搭建个人博客网站</a><br><a href="https://blog.csdn.net/lang_xw/article/details/143050877">GitHub+Hexo搭建个人博客 - 详细教程</a><br><a href="https://zhuanlan.zhihu.com/p/688561305">【2024】从零开始用Hexo+GithubPage搭建个人网站（保姆级）</a>  </p>
-<h1 id="1-部署GitHub仓库-x2F-Pages"><a href="#1-部署GitHub仓库-x2F-Pages" class="headerlink" title="1. 部署GitHub仓库&#x2F;Pages"></a>1. 部署GitHub仓库&#x2F;Pages</h1><ol>
-<li>注册 GitHub 账号  </li>
-<li>在 GitHub 创建仓库，命名为 <code>&lt;username&gt;.github.io</code>（个人主页）或自定义仓库。  </li>
-<li>安装 Hexo 部署插件  <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm install hexo-deployer-git --save</span><br></pre></td></tr></table></figure></li>
-<li>修改 Hexo 的 <code>_config.yml</code>，添加部署配置  <figure class="highlight yml"><table><tr><td class="code"><pre><span class="line"><span class="attr">deploy:</span></span><br><span class="line">  <span class="attr">type:</span> <span class="string">git</span></span><br><span class="line">  <span class="attr">repo:</span> <span class="string">https://github.com/&lt;username&gt;/&lt;repository&gt;.git</span></span><br><span class="line">  <span class="attr">branch:</span> <span class="string">main</span>  <span class="comment"># 或 gh-pages（自定义仓库时常用）</span></span><br></pre></td></tr></table></figure></li>
-</ol>
-<h1 id="2-Hexo环境"><a href="#2-Hexo环境" class="headerlink" title="2. Hexo环境"></a>2. Hexo环境</h1><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 安装 Hexo 命令行工具</span></span><br><span class="line">npm install -g hexo-cli</span><br><span class="line"></span><br><span class="line"><span class="comment"># 初始化 Hexo 项目（替换 &lt;folder&gt; 为你的项目目录名）</span></span><br><span class="line">hexo init &lt;folder&gt;</span><br><span class="line"><span class="built_in">cd</span> &lt;folder&gt;</span><br></pre></td></tr></table></figure>
-
-<h1 id="3-编写博客"><a href="#3-编写博客" class="headerlink" title="3. 编写博客"></a>3. 编写博客</h1><p><a href="https://hexo.io/zh-cn/">Hexo官网</a><br><a href="https://hexo.io/themes/">Hexo主题</a>  </p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 创建新文章（在 source/_posts 下生成 Markdown 文件，生成后会提示绝对路径）</span></span><br><span class="line"><span class="comment"># source/scaffolds/post.md 是文章模板，hexo new会基于此模板生成Markdown 文件，可以根据需要自定义模板</span></span><br><span class="line">hexo new <span class="string">&quot;文章标题&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 启动本地服务器（默认 http://localhost:4000），可在浏览器实时预览博客效果</span></span><br><span class="line">hexo server  <span class="comment"># 可以简写: hexo s</span></span><br></pre></td></tr></table></figure>
-
-<h1 id="4-部署到GitHub"><a href="#4-部署到GitHub" class="headerlink" title="4. 部署到GitHub"></a>4. 部署到GitHub</h1><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 组合命令：清除缓存和旧生成文件 + 生成 + 部署</span></span><br><span class="line">hexo clean; hexo generate; hexo deploy </span><br></pre></td></tr></table></figure>
-]]></content>
-      <categories>
-        <category>Log</category>
-      </categories>
-      <tags>
-        <tag>Hexo</tag>
-        <tag>GitHub</tag>
-        <tag>Blog</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>IGV自定义参考基因组</title>
     <url>/2023/05/03/IGV%E8%87%AA%E5%AE%9A%E4%B9%89%E5%8F%82%E8%80%83%E5%9F%BA%E5%9B%A0%E7%BB%84/</url>
     <content><![CDATA[<p>IGV 2.11.0版本以上，自定义参考基因组的方法</p>
@@ -354,6 +325,35 @@
       </tags>
   </entry>
   <entry>
+    <title>Hexo常用命令</title>
+    <url>/2025/03/25/Hexo%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/</url>
+    <content><![CDATA[<p>Hexo搭建博客常用的命令</p>
+<span id="more"></span>
+
+<h1 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h1><p>以下第1.2.步可以参考以下一些文章，会更详细清晰<br><a href="https://blog.csdn.net/itcast_cn/article/details/129876490">Hexo+github搭建个人博客网站</a><br><a href="https://blog.csdn.net/lang_xw/article/details/143050877">GitHub+Hexo搭建个人博客 - 详细教程</a><br><a href="https://zhuanlan.zhihu.com/p/688561305">【2024】从零开始用Hexo+GithubPage搭建个人网站（保姆级）</a>  </p>
+<h1 id="1-部署GitHub仓库-x2F-Pages"><a href="#1-部署GitHub仓库-x2F-Pages" class="headerlink" title="1. 部署GitHub仓库&#x2F;Pages"></a>1. 部署GitHub仓库&#x2F;Pages</h1><ol>
+<li>注册 GitHub 账号  </li>
+<li>在 GitHub 创建仓库，命名为 <code>&lt;username&gt;.github.io</code>（个人主页）或自定义仓库。  </li>
+<li>安装 Hexo 部署插件  <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm install hexo-deployer-git --save</span><br></pre></td></tr></table></figure></li>
+<li>修改 Hexo 的 <code>_config.yml</code>，添加部署配置  <figure class="highlight yml"><table><tr><td class="code"><pre><span class="line"><span class="attr">deploy:</span></span><br><span class="line">  <span class="attr">type:</span> <span class="string">git</span></span><br><span class="line">  <span class="attr">repo:</span> <span class="string">https://github.com/&lt;username&gt;/&lt;repository&gt;.git</span></span><br><span class="line">  <span class="attr">branch:</span> <span class="string">main</span>  <span class="comment"># 或 gh-pages（自定义仓库时常用）</span></span><br></pre></td></tr></table></figure></li>
+</ol>
+<h1 id="2-Hexo环境"><a href="#2-Hexo环境" class="headerlink" title="2. Hexo环境"></a>2. Hexo环境</h1><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 安装 Hexo 命令行工具</span></span><br><span class="line">npm install -g hexo-cli</span><br><span class="line"></span><br><span class="line"><span class="comment"># 初始化 Hexo 项目（替换 &lt;folder&gt; 为你的项目目录名）</span></span><br><span class="line">hexo init &lt;folder&gt;</span><br><span class="line"><span class="built_in">cd</span> &lt;folder&gt;</span><br></pre></td></tr></table></figure>
+
+<h1 id="3-编写博客"><a href="#3-编写博客" class="headerlink" title="3. 编写博客"></a>3. 编写博客</h1><p><a href="https://hexo.io/zh-cn/">Hexo官网</a><br><a href="https://hexo.io/themes/">Hexo主题</a>  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 创建新文章（在 source/_posts 下生成 Markdown 文件，生成后会提示绝对路径）</span></span><br><span class="line"><span class="comment"># source/scaffolds/post.md 是文章模板，hexo new会基于此模板生成Markdown 文件，可以根据需要自定义模板</span></span><br><span class="line">hexo new <span class="string">&quot;文章标题&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 启动本地服务器（默认 http://localhost:4000），可在浏览器实时预览博客效果</span></span><br><span class="line">hexo server  <span class="comment"># 可以简写: hexo s</span></span><br></pre></td></tr></table></figure>
+
+<h1 id="4-部署到GitHub"><a href="#4-部署到GitHub" class="headerlink" title="4. 部署到GitHub"></a>4. 部署到GitHub</h1><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 组合命令：清除缓存和旧生成文件 + 生成 + 部署</span></span><br><span class="line">hexo clean; hexo generate; hexo deploy </span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>Log</category>
+      </categories>
+      <tags>
+        <tag>Hexo</tag>
+        <tag>GitHub</tag>
+        <tag>Blog</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Illumina index hopping 原理</title>
     <url>/2023/06/27/Illumina-index-hopping-%E5%8E%9F%E7%90%86/</url>
     <content><![CDATA[<p>Illumina的Patterned Flow Cell使用了更易产生index hopping的化学反应。通过更谨慎的实验​​准备，可能改善这种情况，可以忽略对大多数下游应用的影响。</p>
@@ -382,35 +382,6 @@
         <tag>Index Hopping</tag>
         <tag>测序原理</tag>
         <tag>QC Fail Sequencing</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Linux用户管理</title>
-    <url>/2023/05/21/Linux%E7%94%A8%E6%88%B7%E7%AE%A1%E7%90%86/</url>
-    <content><![CDATA[<p>Linux系统的用户查看、创建、目录权限</p>
-<span id="more"></span>
-
-<h1 id="查看用户"><a href="#查看用户" class="headerlink" title="查看用户"></a>查看用户</h1><p>查看当前系统已存在的用户  </p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cat /etc/passwd | cut -d : -f 1</span><br></pre></td></tr></table></figure>
-
-<h1 id="创建用户"><a href="#创建用户" class="headerlink" title="创建用户"></a>创建用户</h1><h2 id="创建非正规新用户"><a href="#创建非正规新用户" class="headerlink" title="创建非正规新用户"></a>创建非正规新用户</h2><p>以下创建方法，不会创建home、无归属用户组  </p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 创建用户</span><br><span class="line">useradd -M -N [name]</span><br><span class="line"># 修改/创建用户密码（可用简单密码）</span><br><span class="line">echo [password] | passwd --stdin [name]</span><br></pre></td></tr></table></figure>
-<h2 id="创建正规新用户"><a href="#创建正规新用户" class="headerlink" title="创建正规新用户"></a>创建正规新用户</h2><p>以下创建方法，会同时创建该用户的home目录，主用户组为参数指定的group  </p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 创建用户</span><br><span class="line">useradd -m -g [group] [name]</span><br><span class="line"># 创建用户密码（不可用简单密码）</span><br><span class="line">passwd [name]</span><br></pre></td></tr></table></figure>
-
-<h1 id="操作用户组"><a href="#操作用户组" class="headerlink" title="操作用户组"></a>操作用户组</h1><h2 id="创建新用户组"><a href="#创建新用户组" class="headerlink" title="创建新用户组"></a>创建新用户组</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">groupadd [group]</span><br></pre></td></tr></table></figure>
-<h2 id="查看组内有哪些用户"><a href="#查看组内有哪些用户" class="headerlink" title="查看组内有哪些用户"></a>查看组内有哪些用户</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cat /etc/group|grep ^[group]</span><br></pre></td></tr></table></figure>
-<h2 id="将用户添加进组"><a href="#将用户添加进组" class="headerlink" title="将用户添加进组"></a>将用户添加进组</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">usermod -a -G [group] [name]</span><br></pre></td></tr></table></figure>
-<h2 id="查看用户的主用户组、所属用户组"><a href="#查看用户的主用户组、所属用户组" class="headerlink" title="查看用户的主用户组、所属用户组"></a>查看用户的主用户组、所属用户组</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">id [name]</span><br></pre></td></tr></table></figure>
-
-<h1 id="目录权限"><a href="#目录权限" class="headerlink" title="目录权限"></a>目录权限</h1><h2 id="改变文件或目录的所有者及用户组"><a href="#改变文件或目录的所有者及用户组" class="headerlink" title="改变文件或目录的所有者及用户组"></a>改变文件或目录的所有者及用户组</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># -R 递归目录内的所有文件  </span><br><span class="line">chown -R [name]:[group] [file/dir]</span><br></pre></td></tr></table></figure>
-<h2 id="改变文件或目录的权限"><a href="#改变文件或目录的权限" class="headerlink" title="改变文件或目录的权限"></a>改变文件或目录的权限</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 只有文件所有者和root用户可以修改文件或目录的权限</span><br><span class="line"># -R 递归目录内的所有文件</span><br><span class="line"># 指定权限（八进制语法）：读4，写2，操作1</span><br><span class="line">chmod -R [文件所有者权限、文件所有组内用户权限、其他用户权限] [file/dir]</span><br></pre></td></tr></table></figure>
-]]></content>
-      <categories>
-        <category>Log</category>
-      </categories>
-      <tags>
-        <tag>Linux</tag>
       </tags>
   </entry>
   <entry>
@@ -458,45 +429,32 @@
       </tags>
   </entry>
   <entry>
-    <title>Linux配置Samba</title>
-    <url>/2023/05/01/Linux%E9%85%8D%E7%BD%AESamba/</url>
-    <content><![CDATA[<p>Linux系统配置Samba服务，Windows系统设置网络映射，实现共享目录</p>
+    <title>Linux用户管理</title>
+    <url>/2023/05/21/Linux%E7%94%A8%E6%88%B7%E7%AE%A1%E7%90%86/</url>
+    <content><![CDATA[<p>Linux系统的用户查看、创建、目录权限</p>
 <span id="more"></span>
 
-<p><a href="https://blog.51cto.com/aby028/1830125">参考文档</a></p>
-<h1 id="安装Samba"><a href="#安装Samba" class="headerlink" title="安装Samba"></a>安装Samba</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">yum install samba</span><br></pre></td></tr></table></figure>
-<p>这个服务器之前已经安装过了，所以截图里是yum list，看看版本<br><img src="https://pic2.imgdb.cn/item/644f98820d2dde57774b9feb.png" alt="安装Samba"></p>
-<h1 id="修改配置文件"><a href="#修改配置文件" class="headerlink" title="修改配置文件"></a>修改配置文件</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 备份旧的配置文件</span><br><span class="line">cp /etc/samba/smb.conf /etc/samba/smb.conf.bak</span><br><span class="line"># 修改配置文件，添加一段映射目录的设置信息，如下图</span><br><span class="line">vi /etc/samba/smb.conf</span><br></pre></td></tr></table></figure>
-<p><img src="https://pic2.imgdb.cn/item/644f98750d2dde57774b9724.png" alt="Samba配置文件">  </p>
-<ul>
-<li>[blast]是windows系统设置网络映射时要填的目录名称</li>
-<li>comment是注释信息</li>
-<li>path是Linux本地要映射出去的实际路径</li>
-<li>public和browseable是路径是否公共&#x2F;可见？具体区别不太清楚</li>
-<li>writeable是可写权限</li>
-<li>write list是设置可写用户，用“@用户组名”可以设置可写用户组</li>
-<li>creat mask是设置上传的文件读写权限</li>
-<li>directory mask是设置上传的文件夹读写权限</li>
-</ul>
-<h1 id="testparm测试配置文件是否错误"><a href="#testparm测试配置文件是否错误" class="headerlink" title="testparm测试配置文件是否错误"></a>testparm测试配置文件是否错误</h1><p>testparm专门用于测试 &#x2F;etc&#x2F;samba&#x2F;smb.conf 文件格式是否正确<br>命令行输testparm ，回车即可<br><img src="https://pic2.imgdb.cn/item/644f98620d2dde57774b8854.png" alt="testparm测试"></p>
-<h1 id="修改Linux要映射的目录权限"><a href="#修改Linux要映射的目录权限" class="headerlink" title="修改Linux要映射的目录权限"></a>修改Linux要映射的目录权限</h1><p>可能不改权限，也能正常写入文件？  </p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">chmod 777 /xxx/data/xxx_BLAST  </span><br></pre></td></tr></table></figure>
+<h1 id="查看用户"><a href="#查看用户" class="headerlink" title="查看用户"></a>查看用户</h1><p>查看当前系统已存在的用户  </p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cat /etc/passwd | cut -d : -f 1</span><br></pre></td></tr></table></figure>
 
-<h1 id="关闭防火墙和SElinux"><a href="#关闭防火墙和SElinux" class="headerlink" title="关闭防火墙和SElinux"></a>关闭防火墙和SElinux</h1><p>这个服务器本来就关了，所以下面这2条命令没有测试过<br>不确定是不是不关也可以正常映射  </p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 关闭防火墙的ip包过滤服务？</span><br><span class="line">service iptables stop</span><br><span class="line"># 也可以直接修改/etc/sysconfig/selinux文件</span><br><span class="line">setenforce  0</span><br></pre></td></tr></table></figure>
+<h1 id="创建用户"><a href="#创建用户" class="headerlink" title="创建用户"></a>创建用户</h1><h2 id="创建非正规新用户"><a href="#创建非正规新用户" class="headerlink" title="创建非正规新用户"></a>创建非正规新用户</h2><p>以下创建方法，不会创建home、无归属用户组  </p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 创建用户</span><br><span class="line">useradd -M -N [name]</span><br><span class="line"># 修改/创建用户密码（可用简单密码）</span><br><span class="line">echo [password] | passwd --stdin [name]</span><br></pre></td></tr></table></figure>
+<h2 id="创建正规新用户"><a href="#创建正规新用户" class="headerlink" title="创建正规新用户"></a>创建正规新用户</h2><p>以下创建方法，会同时创建该用户的home目录，主用户组为参数指定的group  </p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 创建用户</span><br><span class="line">useradd -m -g [group] [name]</span><br><span class="line"># 创建用户密码（不可用简单密码）</span><br><span class="line">passwd [name]</span><br></pre></td></tr></table></figure>
 
-<h1 id="设置访问用户信息"><a href="#设置访问用户信息" class="headerlink" title="设置访问用户信息"></a>设置访问用户信息</h1><p>samba的访问用户是Linux系统中已存在的用户，只需设置该用户的samba服务密码即可<br>注意该用户名或该用户组，在Samba配置时是不是在write list里  </p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># [user]是用户名，回车后，输2次密码，完成设置</span><br><span class="line">smbpasswd -a [user]</span><br><span class="line"># 重启samba服务</span><br><span class="line">service smb restart</span><br></pre></td></tr></table></figure>
+<h1 id="操作用户组"><a href="#操作用户组" class="headerlink" title="操作用户组"></a>操作用户组</h1><h2 id="创建新用户组"><a href="#创建新用户组" class="headerlink" title="创建新用户组"></a>创建新用户组</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">groupadd [group]</span><br></pre></td></tr></table></figure>
+<h2 id="查看组内有哪些用户"><a href="#查看组内有哪些用户" class="headerlink" title="查看组内有哪些用户"></a>查看组内有哪些用户</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cat /etc/group|grep ^[group]</span><br></pre></td></tr></table></figure>
+<h2 id="将用户添加进组"><a href="#将用户添加进组" class="headerlink" title="将用户添加进组"></a>将用户添加进组</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">usermod -a -G [group] [name]</span><br></pre></td></tr></table></figure>
+<h2 id="查看用户的主用户组、所属用户组"><a href="#查看用户的主用户组、所属用户组" class="headerlink" title="查看用户的主用户组、所属用户组"></a>查看用户的主用户组、所属用户组</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">id [name]</span><br></pre></td></tr></table></figure>
 
-<h1 id="Windows设置网络映射"><a href="#Windows设置网络映射" class="headerlink" title="Windows设置网络映射"></a>Windows设置网络映射</h1><p>我的电脑，右键，映射网络驱动器<br>驱动器随便选一个盘符，映射成功之后，我的电脑里会出现这个盘<br>文件夹格式：\\[服务器ip]\[Samba配置文件设置的目录名称，如上面的blast]<br><img src="https://pic2.imgdb.cn/item/644f98320d2dde57774b61ec.jpg" alt="设置网络映射1"><br>输入samba访问用户和密码，点击确定，完成映射<br><img src="https://pic2.imgdb.cn/item/644f98520d2dde57774b78e1.png" alt="设置网络映射2"></p>
+<h1 id="目录权限"><a href="#目录权限" class="headerlink" title="目录权限"></a>目录权限</h1><h2 id="改变文件或目录的所有者及用户组"><a href="#改变文件或目录的所有者及用户组" class="headerlink" title="改变文件或目录的所有者及用户组"></a>改变文件或目录的所有者及用户组</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># -R 递归目录内的所有文件  </span><br><span class="line">chown -R [name]:[group] [file/dir]</span><br></pre></td></tr></table></figure>
+<h2 id="改变文件或目录的权限"><a href="#改变文件或目录的权限" class="headerlink" title="改变文件或目录的权限"></a>改变文件或目录的权限</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 只有文件所有者和root用户可以修改文件或目录的权限</span><br><span class="line"># -R 递归目录内的所有文件</span><br><span class="line"># 指定权限（八进制语法）：读4，写2，操作1</span><br><span class="line">chmod -R [文件所有者权限、文件所有组内用户权限、其他用户权限] [file/dir]</span><br></pre></td></tr></table></figure>
 ]]></content>
       <categories>
         <category>Log</category>
       </categories>
       <tags>
-        <tag>Samba</tag>
-        <tag>网络映射</tag>
-        <tag>共享目录</tag>
+        <tag>Linux</tag>
       </tags>
   </entry>
   <entry>
@@ -540,6 +498,48 @@
       </tags>
   </entry>
   <entry>
+    <title>Linux配置Samba</title>
+    <url>/2023/05/01/Linux%E9%85%8D%E7%BD%AESamba/</url>
+    <content><![CDATA[<p>Linux系统配置Samba服务，Windows系统设置网络映射，实现共享目录</p>
+<span id="more"></span>
+
+<p><a href="https://blog.51cto.com/aby028/1830125">参考文档</a></p>
+<h1 id="安装Samba"><a href="#安装Samba" class="headerlink" title="安装Samba"></a>安装Samba</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">yum install samba</span><br></pre></td></tr></table></figure>
+<p>这个服务器之前已经安装过了，所以截图里是yum list，看看版本<br><img src="https://pic2.imgdb.cn/item/644f98820d2dde57774b9feb.png" alt="安装Samba"></p>
+<h1 id="修改配置文件"><a href="#修改配置文件" class="headerlink" title="修改配置文件"></a>修改配置文件</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 备份旧的配置文件</span><br><span class="line">cp /etc/samba/smb.conf /etc/samba/smb.conf.bak</span><br><span class="line"># 修改配置文件，添加一段映射目录的设置信息，如下图</span><br><span class="line">vi /etc/samba/smb.conf</span><br></pre></td></tr></table></figure>
+<p><img src="https://pic2.imgdb.cn/item/644f98750d2dde57774b9724.png" alt="Samba配置文件">  </p>
+<ul>
+<li>[blast]是windows系统设置网络映射时要填的目录名称</li>
+<li>comment是注释信息</li>
+<li>path是Linux本地要映射出去的实际路径</li>
+<li>public和browseable是路径是否公共&#x2F;可见？具体区别不太清楚</li>
+<li>writeable是可写权限</li>
+<li>write list是设置可写用户，用“@用户组名”可以设置可写用户组</li>
+<li>creat mask是设置上传的文件读写权限</li>
+<li>directory mask是设置上传的文件夹读写权限</li>
+</ul>
+<h1 id="testparm测试配置文件是否错误"><a href="#testparm测试配置文件是否错误" class="headerlink" title="testparm测试配置文件是否错误"></a>testparm测试配置文件是否错误</h1><p>testparm专门用于测试 &#x2F;etc&#x2F;samba&#x2F;smb.conf 文件格式是否正确<br>命令行输testparm ，回车即可<br><img src="https://pic2.imgdb.cn/item/644f98620d2dde57774b8854.png" alt="testparm测试"></p>
+<h1 id="修改Linux要映射的目录权限"><a href="#修改Linux要映射的目录权限" class="headerlink" title="修改Linux要映射的目录权限"></a>修改Linux要映射的目录权限</h1><p>可能不改权限，也能正常写入文件？  </p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">chmod 777 /xxx/data/xxx_BLAST  </span><br></pre></td></tr></table></figure>
+
+<h1 id="关闭防火墙和SElinux"><a href="#关闭防火墙和SElinux" class="headerlink" title="关闭防火墙和SElinux"></a>关闭防火墙和SElinux</h1><p>这个服务器本来就关了，所以下面这2条命令没有测试过<br>不确定是不是不关也可以正常映射  </p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 关闭防火墙的ip包过滤服务？</span><br><span class="line">service iptables stop</span><br><span class="line"># 也可以直接修改/etc/sysconfig/selinux文件</span><br><span class="line">setenforce  0</span><br></pre></td></tr></table></figure>
+
+<h1 id="设置访问用户信息"><a href="#设置访问用户信息" class="headerlink" title="设置访问用户信息"></a>设置访问用户信息</h1><p>samba的访问用户是Linux系统中已存在的用户，只需设置该用户的samba服务密码即可<br>注意该用户名或该用户组，在Samba配置时是不是在write list里  </p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># [user]是用户名，回车后，输2次密码，完成设置</span><br><span class="line">smbpasswd -a [user]</span><br><span class="line"># 重启samba服务</span><br><span class="line">service smb restart</span><br></pre></td></tr></table></figure>
+
+<h1 id="Windows设置网络映射"><a href="#Windows设置网络映射" class="headerlink" title="Windows设置网络映射"></a>Windows设置网络映射</h1><p>我的电脑，右键，映射网络驱动器<br>驱动器随便选一个盘符，映射成功之后，我的电脑里会出现这个盘<br>文件夹格式：\\[服务器ip]\[Samba配置文件设置的目录名称，如上面的blast]<br><img src="https://pic2.imgdb.cn/item/644f98320d2dde57774b61ec.jpg" alt="设置网络映射1"><br>输入samba访问用户和密码，点击确定，完成映射<br><img src="https://pic2.imgdb.cn/item/644f98520d2dde57774b78e1.png" alt="设置网络映射2"></p>
+]]></content>
+      <categories>
+        <category>Log</category>
+      </categories>
+      <tags>
+        <tag>Samba</tag>
+        <tag>网络映射</tag>
+        <tag>共享目录</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Pacbio三代数据SV分析</title>
     <url>/2023/05/26/Pacbio%E4%B8%89%E4%BB%A3%E6%95%B0%E6%8D%AESV%E5%88%86%E6%9E%90/</url>
     <content><![CDATA[<p>（未解决） Pacbio CCS(HIFI)数据，IGV能看到的Deletion，用三代SV软件call不出</p>
@@ -569,6 +569,46 @@
         <tag>pbsv</tag>
         <tag>Sniffles</tag>
         <tag>cuteSV</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Python文本及脚本加密</title>
+    <url>/2023/05/29/Python%E6%96%87%E6%9C%AC%E5%8F%8A%E8%84%9A%E6%9C%AC%E5%8A%A0%E5%AF%86/</url>
+    <content><![CDATA[<p>Python脚本实现异或方法加密和解密文本文件，通过Cython编译为so文件加密Python脚本</p>
+<span id="more"></span>
+
+<h1 id="文本加密和解密"><a href="#文本加密和解密" class="headerlink" title="文本加密和解密"></a>文本加密和解密</h1><p>异或是一种简单的加密算法，根据异或的运算规则，通过密钥对明文信息进行异或运算，可以得到加密后的密文信息。<br>同时由于异或运算的可逆性，用同一密钥对密文信息再次进行异或运算，可以得到明文信息。  </p>
+<h2 id="Python实现"><a href="#Python实现" class="headerlink" title="Python实现"></a>Python实现</h2><p>以下是对文本文件异或加密及解密的Python实现，Encrypt_Decrypt_Text.py。<br>此脚本里设定的字符编码是UTF-8，可以按需修改。  </p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># Python</span><br><span class="line"># Encrypt or decrypt text file with a password</span><br><span class="line"># coding=utf-8</span><br><span class="line"></span><br><span class="line">import os</span><br><span class="line">import sys</span><br><span class="line"></span><br><span class="line">EncodeSet = &quot;UTF-8&quot;</span><br><span class="line"></span><br><span class="line">def encrypt(String, Password, Seed):</span><br><span class="line">	if (len(Password) == 0):</span><br><span class="line">		sys.stderr.write(&quot;Password can&#x27;t be empty. Exit.&quot;)</span><br><span class="line">		exit()</span><br><span class="line">	Key_Int = ord(Password[Seed % len(Password)])</span><br><span class="line">	String_Byte = String.encode(EncodeSet)</span><br><span class="line">	String_Int = int.from_bytes(String_Byte, &#x27;big&#x27;)</span><br><span class="line">	String_Encrypt = String_Int ^ Key_Int</span><br><span class="line">	return String_Encrypt</span><br><span class="line"></span><br><span class="line">def decrypt(String, Password, Seed):</span><br><span class="line">	if (len(Password) == 0):</span><br><span class="line">		sys.stderr.write(&quot;Password can&#x27;t be empty. Exit.&quot;)</span><br><span class="line">		exit()</span><br><span class="line">	Key_Int = ord(Password[Seed % len(Password)])</span><br><span class="line">	String_Decrypt = String ^ Key_Int</span><br><span class="line">	Length = (String_Decrypt.bit_length() + 7) // 8</span><br><span class="line">	Decrypt_Byte = int.to_bytes(String_Decrypt, Length, &#x27;big&#x27;)</span><br><span class="line">	Decrypt = Decrypt_Byte.decode(EncodeSet)</span><br><span class="line">	return Decrypt</span><br><span class="line"></span><br><span class="line">def encrypt_file(Input, Password):</span><br><span class="line">	Input = os.path.abspath(Input)</span><br><span class="line">	Encrypt_Output_File = Input + &quot;.encrypt&quot;</span><br><span class="line">	Input_File = open(Input, &quot;rt&quot;, encoding = EncodeSet)</span><br><span class="line">	Output_File = open(Encrypt_Output_File, &quot;wt&quot;, encoding = EncodeSet)</span><br><span class="line">	Counter = 0</span><br><span class="line">	for Line in Input_File:</span><br><span class="line">		Counter = Counter + 1</span><br><span class="line">		Line = Line.strip(&quot;\r&quot;).strip(&quot;\n&quot;)</span><br><span class="line">		for Word in Line:</span><br><span class="line">			Word_Encrypt = encrypt(Word, Password, Counter)</span><br><span class="line">			Output_File.write(str(Word_Encrypt) + &quot; &quot;)</span><br><span class="line">		Output_File.write(&quot;\n&quot;)</span><br><span class="line">	Input_File.close()</span><br><span class="line">	Output_File.close()</span><br><span class="line">	return Encrypt_Output_File</span><br><span class="line"></span><br><span class="line">def decrypt_file(Input, Password):</span><br><span class="line">	Input = os.path.abspath(Input)</span><br><span class="line">	Decrypt_String = &quot;&quot;</span><br><span class="line">	Input_File = open(Input, &quot;rt&quot;, encoding = EncodeSet)</span><br><span class="line">	Counter = 0</span><br><span class="line">	for Line in Input_File:</span><br><span class="line">		Counter = Counter + 1</span><br><span class="line">		Line = Line.strip(&quot;\r&quot;).strip(&quot;\n&quot;)</span><br><span class="line">		Line = Line.strip(&quot; &quot;)</span><br><span class="line">		for Word in Line.split(&quot; &quot;):</span><br><span class="line">			Word_Decrypt = decrypt(int(Word), Password, Counter)</span><br><span class="line">			Decrypt_String = Decrypt_String + Word_Decrypt</span><br><span class="line">		Decrypt_String = Decrypt_String + &quot;\n&quot;</span><br><span class="line">	Input_File.close()</span><br><span class="line">	Decrypt_String = Decrypt_String.strip(&quot;\r&quot;).strip(&quot;\n&quot;)</span><br><span class="line">	return Decrypt_String</span><br></pre></td></tr></table></figure>
+
+<h2 id="使用示例"><a href="#使用示例" class="headerlink" title="使用示例"></a>使用示例</h2><h3 id="加密"><a href="#加密" class="headerlink" title="加密"></a>加密</h3><p>以下是加密脚本示例，Encrypt.py。<br>encrypt_file函数返回的是加密文件路径，路径是[原文件路径].encrypt。  </p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># Python</span><br><span class="line"># -*- coding:utf-8 -*-</span><br><span class="line"></span><br><span class="line">import Encrypt_Decrypt_Text</span><br><span class="line">import sys</span><br><span class="line"></span><br><span class="line">Input = sys.argv[1]</span><br><span class="line">Password = sys.argv[2]</span><br><span class="line"></span><br><span class="line">Encrypt_File_Path = Encrypt_Decrypt_Text.encrypt_file(Input, Password)</span><br><span class="line"></span><br><span class="line">print(Encrypt_File_Path)</span><br></pre></td></tr></table></figure>
+
+<h3 id="解密"><a href="#解密" class="headerlink" title="解密"></a>解密</h3><p>以下是解密脚本示例，Decrypt.py。<br>函数返回解密后的字符串，建议在脚本中解密后直接调用字符串，不要重新保存成文件。<br>假如密码错误，会报错或返回乱码。  </p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># Python</span><br><span class="line"># -*- coding:utf-8 -*-</span><br><span class="line"></span><br><span class="line">import Encrypt_Decrypt_Text</span><br><span class="line">import sys</span><br><span class="line"></span><br><span class="line">Input = sys.argv[1]</span><br><span class="line">Password = sys.argv[2]</span><br><span class="line"></span><br><span class="line">Decrype_File_Content = Encrypt_Decrypt_Text.decrypt_file(Input, Password)</span><br><span class="line"></span><br><span class="line">print(Decrype_File_Content)</span><br></pre></td></tr></table></figure>
+
+<h1 id="脚本加密"><a href="#脚本加密" class="headerlink" title="脚本加密"></a>脚本加密</h1><p>用于文本文件加密的密钥，如果以明文方式写在脚本里等于没有加密。<br>所以需要对调用解密过程的python脚本再通过Cython加密，那么脚本里密钥的也加密了。  </p>
+<h2 id="安装Cython"><a href="#安装Cython" class="headerlink" title="安装Cython"></a>安装Cython</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># Python</span><br><span class="line">python -m pip install Cython</span><br></pre></td></tr></table></figure>
+
+<h2 id="Cython脚本"><a href="#Cython脚本" class="headerlink" title="Cython脚本"></a>Cython脚本</h2><p>以下是将python脚本编译为so文件的脚本，Cpython_so.py。<br>以下脚本会生成so文件和清理中间文件，调用此脚本方法见”调用Cython脚本”部分。  </p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># Python</span><br><span class="line"></span><br><span class="line">import sys</span><br><span class="line">import os</span><br><span class="line">import re</span><br><span class="line">import argparse</span><br><span class="line"></span><br><span class="line">############################################################## Help #############################################################</span><br><span class="line"></span><br><span class="line">parser=argparse.ArgumentParser(</span><br><span class="line">	description=&quot;Description: Generate .so from .py. Version of .so is base of python version.&quot;,</span><br><span class="line">	prog=&quot;Cpython_so.py&quot;,</span><br><span class="line">	usage=&quot;python Cpython_so.py [-h] [-V] -i &lt;python script&gt; -o &lt;Output Dir&gt;&quot;,</span><br><span class="line">	formatter_class=argparse.RawTextHelpFormatter</span><br><span class="line">)</span><br><span class="line">parser.add_argument(&#x27;-V&#x27;,&#x27;--version&#x27;,action=&quot;version&quot;,version=&quot;Version 1.0.0&quot;)</span><br><span class="line">parser.add_argument(&#x27;-i&#x27;,&#x27;--input&#x27;,required=True,type=str,help=&quot;File: python script&quot;)</span><br><span class="line">parser.add_argument(&#x27;-o&#x27;,&#x27;--output_dir&#x27;,required=True,type=str,help=&quot;Dir: Output directory path&quot;)</span><br><span class="line">if len(sys.argv[1:]) == 0:</span><br><span class="line">	parser.print_help()</span><br><span class="line">	parser.exit()</span><br><span class="line">args=parser.parse_args()</span><br><span class="line"></span><br><span class="line">############################################################## Run ##############################################################</span><br><span class="line"></span><br><span class="line">Input_Dir = os.path.dirname(os.path.abspath(args.input))</span><br><span class="line">Output_Dir = os.path.abspath(args.output_dir)</span><br><span class="line">if (Input_Dir == Output_Dir):</span><br><span class="line">	sys.stderr.write(&quot;Output directory can&#x27;t be same as python script.  Exit.\n&quot;)</span><br><span class="line">	exit(1)</span><br><span class="line"></span><br><span class="line">if not (os.path.exists(args.output_dir)):</span><br><span class="line">	os.mkdir(args.output_dir)</span><br><span class="line"></span><br><span class="line">Module = re.sub(&quot;.py$&quot;, &quot;&quot;, os.path.basename(args.input))</span><br><span class="line"></span><br><span class="line"># Copy Original Script To Work Dir</span><br><span class="line">Py_Script = os.path.abspath(args.output_dir) + &quot;/&quot; + os.path.basename(args.input)</span><br><span class="line">Command_Cp = &quot;cp &quot; + args.input + &quot; &quot; + Py_Script</span><br><span class="line">os.system(Command_Cp)</span><br><span class="line"></span><br><span class="line"># Generate .so From .py</span><br><span class="line">Cpython_Script = os.path.abspath(args.output_dir) + &quot;/Cpython_Setup.py&quot;</span><br><span class="line">Cpython_Script_File = open(Cpython_Script, &quot;w&quot;)</span><br><span class="line">Cpython_Script_File.write(&quot;from distutils.core import setup&quot; + &quot;\n&quot;)</span><br><span class="line">Cpython_Script_File.write(&quot;from Cython.Build import cythonize&quot; + &quot;\n&quot;)</span><br><span class="line">Cpython_Script_File.write(&quot;&quot; + &quot;\n&quot;)</span><br><span class="line">Cpython_Script_File.write(&quot;setup(ext_modules = cythonize(\&quot;&quot; + Py_Script + &quot;\&quot;))&quot; + &quot;\n&quot;)</span><br><span class="line">Cpython_Script_File.write(&quot;&quot; + &quot;\n&quot;)</span><br><span class="line">Cpython_Script_File.close()</span><br><span class="line"></span><br><span class="line">Py_Version = &quot;python&quot; + &quot;.&quot;.join([str(sys.version_info[0]),str(sys.version_info[1])])</span><br><span class="line">Command_Cpython = Py_Version + &quot; &quot; + Cpython_Script + &quot; build_ext --inplace&quot;</span><br><span class="line">os.system(Command_Cpython)</span><br><span class="line"></span><br><span class="line"># Move Result .so And Clean Temp Dir</span><br><span class="line">So_File = os.getcwd() + &quot;/&quot; + Module + &quot;*.so&quot;</span><br><span class="line">C_File = os.path.abspath(args.output_dir) + &quot;/&quot; + Module + &quot;.c&quot;</span><br><span class="line">Temp_Dir = os.getcwd() + &quot;/&quot; + &quot;build&quot;</span><br><span class="line"></span><br><span class="line">Command_Move = &quot;mv &quot; + So_File + &quot; &quot; + os.path.abspath(args.output_dir)</span><br><span class="line">os.system(Command_Move)</span><br><span class="line"></span><br><span class="line">Commad_Clean = &quot;rm -rf &quot; + &quot; &quot;.join([Py_Script, Cpython_Script, Temp_Dir, C_File])</span><br><span class="line">os.system(Commad_Clean)</span><br><span class="line"></span><br><span class="line"># Generate .py And .sh To Run .so</span><br><span class="line">So_Py_Script = os.path.abspath(args.output_dir) + &quot;/&quot; + Module + &quot;.py&quot;</span><br><span class="line">So_Sh_Script = os.path.abspath(args.output_dir) + &quot;/&quot; + Module + &quot;.sh&quot;</span><br><span class="line"></span><br><span class="line">So_Py_Script_File = open(So_Py_Script, &quot;w&quot;)</span><br><span class="line">So_Py_Script_File.write(&quot;import &quot; + Module + &quot;\n\n&quot;)</span><br><span class="line">So_Py_Script_File.close()</span><br><span class="line"></span><br><span class="line">So_Sh_Script_File = open(So_Sh_Script, &quot;w&quot;)</span><br><span class="line">So_Sh_Script_File.write(Py_Version + &quot; &quot; + So_Py_Script + &quot;\n&quot;)</span><br><span class="line">So_Sh_Script_File.close()</span><br><span class="line"></span><br><span class="line">Command_Chmod = &quot;chmod +x &quot; + So_Py_Script + &quot; &quot; + So_Sh_Script</span><br><span class="line">os.system(Command_Chmod)</span><br></pre></td></tr></table></figure>
+
+<h2 id="调用Cython脚本"><a href="#调用Cython脚本" class="headerlink" title="调用Cython脚本"></a>调用Cython脚本</h2><p>可以写个shell调用，也可以直接命令行调用。<br>-i 是待加密的python脚本路径，-o 是加密后脚本的输出目录路径。<br>不同Python版本加密生成的so文件不一定通用，加密前脚本用哪个Python版本调用，就用哪个版本调用Cython脚本。<br>加密后的.so文件可以作为模块调用，使用方法可参考输出目录生成的.sh文件。  </p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># Shell</span><br><span class="line"></span><br><span class="line"># 系统默认的Python版本</span><br><span class="line">python Cpython_so.py -i ../../Cpython_Setup/Step1_Python_To_so/Store_Tumor_Report.py -o ./Test_2.7</span><br><span class="line"></span><br><span class="line"># 指定用Python 3.6版本</span><br><span class="line">python3.6 Cpython_so.py -i ../../Cpython_Setup/Step1_Python_To_so/Store_Tumor_Report.py -o ./Test_3.6</span><br></pre></td></tr></table></figure>
+
+<h1 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h1><ol>
+<li><a href="https://www.boydwang.com/2019/01/xor-powershell/">异或加密(XOR)原理及实现</a></li>
+<li><a href="https://blog.51cto.com/u_15316394/4995945">Python 循环异或对文件进行加解密</a></li>
+<li><a href="https://zhuanlan.zhihu.com/p/529539134">Python程序加密-cython</a></li>
+</ol>
+]]></content>
+      <categories>
+        <category>Log</category>
+      </categories>
+      <tags>
+        <tag>Python</tag>
+        <tag>Cython</tag>
+        <tag>加密</tag>
       </tags>
   </entry>
   <entry>
@@ -616,70 +656,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Salmon的decoy文件</title>
-    <url>/2023/05/21/Salmon%E7%9A%84decoy%E6%96%87%E4%BB%B6/</url>
-    <content><![CDATA[<p>用Salmon计算宏基因组预测基因的丰度，建index是否需要decoy文件。</p>
-<span id="more"></span>
-
-<h1 id="相关信息"><a href="#相关信息" class="headerlink" title="相关信息"></a>相关信息</h1><h2 id="1"><a href="#1" class="headerlink" title="1"></a>1</h2><p><a href="https://salmon.readthedocs.io/en/latest/salmon.html">Salmon用户手册</a>有以下描述：<br>Finally, we recommend using selective alignment with a decoy-aware transcriptome, to mitigate potential spurious mapping of reads that actually arise from some unannotated genomic locus that is sequence-similar to an annotated transcriptome.</p>
-<h2 id="2"><a href="#2" class="headerlink" title="2"></a>2</h2><p>Salmon的开发者Rob在<a href="https://www.biostars.org/p/456231/">biostars的一篇帖子</a>的回复：<br>The decoy sequences are regions of the target genome that are sequence similar to annotated transcripts.These are the regions of the genome most likely to cause mismapping (e.g. transcribed pseudogenes, etc.).<br>There are 3 ways to run salmon :<br>(a) with just the annotated transcriptome being indexed<br>(b) with the annotated transcriptome and a small set of decoys computed using MASHMAP to search transcripts against the genome and<br>(c) with the annotated transcriptome and using the entire genome as decoy sequence.  </p>
-<p>The (a) method requires the fewest resources,<br>(b) requires a good deal of resources to run the MASHMAP step, but the resulting index is similar to that of (a) and it avoids the most obvious cases of misalignment.<br>(c) results in the largest index, but it’s the most effective at avoiding potentially spurious mappings.  </p>
-<p>Salmon can be used without decoy sequences (and sometimes, this is necessary — e.g. in a de novo assembly, there will likely be no possibility for decoys).<br>It can also be run without decoys in reference organisms.<br>It is simply the case that decoys help avoid certain cases of misalignment that can’t be adjudicated with the transcriptome alone, and therefore can lead to somewhat more robust estimates of abundance in the presence of the expression of unannotated sequences.  </p>
-<h1 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h1><p>decoy序列指的是基因组上与注释出的真实转录本相似的序列。<br>建index时decoy文件的作用是避免后续比对时的错误，如比对到transcribed pseudogenes（可转录的假基因？）。<br>作者列举的3种方法中，(a)是只用注释出的转录本建index的。后面也有说Salmon在某些必要情况下是可以没有decoy序列信息的，例如de novo组装的基因组。<br>同理，如果是宏基因组分析中通过预测的方法得到基因&#x2F;转录本，本身就无法得到所谓的基因组上与转录本相似的区域。<br>因此宏基因组的基因丰度计算前，建Salmon index不需要decoy文件。  </p>
-<h1 id="脚本"><a href="#脚本" class="headerlink" title="脚本"></a>脚本</h1><h2 id="建库"><a href="#建库" class="headerlink" title="建库"></a>建库</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">salmon index -p 30 -k 31 -t Gene.fa -i ./Index/Gene</span><br></pre></td></tr></table></figure>
-<h2 id="定量"><a href="#定量" class="headerlink" title="定量"></a>定量</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">salmon quant -l IU --validateMappings --meta -p 10 -i ./Index/Gene -1 Sample.R1.clean.rmhost.fq.gz -2 Sample.R2.clean.rmhost.fq.gz -o ./Result/Sample</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Log</category>
-      </categories>
-      <tags>
-        <tag>Transcriptome</tag>
-        <tag>mNGS</tag>
-        <tag>Salmon</tag>
-        <tag>转录组</tag>
-        <tag>宏基因组</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Python文本及脚本加密</title>
-    <url>/2023/05/29/Python%E6%96%87%E6%9C%AC%E5%8F%8A%E8%84%9A%E6%9C%AC%E5%8A%A0%E5%AF%86/</url>
-    <content><![CDATA[<p>Python脚本实现异或方法加密和解密文本文件，通过Cython编译为so文件加密Python脚本</p>
-<span id="more"></span>
-
-<h1 id="文本加密和解密"><a href="#文本加密和解密" class="headerlink" title="文本加密和解密"></a>文本加密和解密</h1><p>异或是一种简单的加密算法，根据异或的运算规则，通过密钥对明文信息进行异或运算，可以得到加密后的密文信息。<br>同时由于异或运算的可逆性，用同一密钥对密文信息再次进行异或运算，可以得到明文信息。  </p>
-<h2 id="Python实现"><a href="#Python实现" class="headerlink" title="Python实现"></a>Python实现</h2><p>以下是对文本文件异或加密及解密的Python实现，Encrypt_Decrypt_Text.py。<br>此脚本里设定的字符编码是UTF-8，可以按需修改。  </p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># Python</span><br><span class="line"># Encrypt or decrypt text file with a password</span><br><span class="line"># coding=utf-8</span><br><span class="line"></span><br><span class="line">import os</span><br><span class="line">import sys</span><br><span class="line"></span><br><span class="line">EncodeSet = &quot;UTF-8&quot;</span><br><span class="line"></span><br><span class="line">def encrypt(String, Password, Seed):</span><br><span class="line">	if (len(Password) == 0):</span><br><span class="line">		sys.stderr.write(&quot;Password can&#x27;t be empty. Exit.&quot;)</span><br><span class="line">		exit()</span><br><span class="line">	Key_Int = ord(Password[Seed % len(Password)])</span><br><span class="line">	String_Byte = String.encode(EncodeSet)</span><br><span class="line">	String_Int = int.from_bytes(String_Byte, &#x27;big&#x27;)</span><br><span class="line">	String_Encrypt = String_Int ^ Key_Int</span><br><span class="line">	return String_Encrypt</span><br><span class="line"></span><br><span class="line">def decrypt(String, Password, Seed):</span><br><span class="line">	if (len(Password) == 0):</span><br><span class="line">		sys.stderr.write(&quot;Password can&#x27;t be empty. Exit.&quot;)</span><br><span class="line">		exit()</span><br><span class="line">	Key_Int = ord(Password[Seed % len(Password)])</span><br><span class="line">	String_Decrypt = String ^ Key_Int</span><br><span class="line">	Length = (String_Decrypt.bit_length() + 7) // 8</span><br><span class="line">	Decrypt_Byte = int.to_bytes(String_Decrypt, Length, &#x27;big&#x27;)</span><br><span class="line">	Decrypt = Decrypt_Byte.decode(EncodeSet)</span><br><span class="line">	return Decrypt</span><br><span class="line"></span><br><span class="line">def encrypt_file(Input, Password):</span><br><span class="line">	Input = os.path.abspath(Input)</span><br><span class="line">	Encrypt_Output_File = Input + &quot;.encrypt&quot;</span><br><span class="line">	Input_File = open(Input, &quot;rt&quot;, encoding = EncodeSet)</span><br><span class="line">	Output_File = open(Encrypt_Output_File, &quot;wt&quot;, encoding = EncodeSet)</span><br><span class="line">	Counter = 0</span><br><span class="line">	for Line in Input_File:</span><br><span class="line">		Counter = Counter + 1</span><br><span class="line">		Line = Line.strip(&quot;\r&quot;).strip(&quot;\n&quot;)</span><br><span class="line">		for Word in Line:</span><br><span class="line">			Word_Encrypt = encrypt(Word, Password, Counter)</span><br><span class="line">			Output_File.write(str(Word_Encrypt) + &quot; &quot;)</span><br><span class="line">		Output_File.write(&quot;\n&quot;)</span><br><span class="line">	Input_File.close()</span><br><span class="line">	Output_File.close()</span><br><span class="line">	return Encrypt_Output_File</span><br><span class="line"></span><br><span class="line">def decrypt_file(Input, Password):</span><br><span class="line">	Input = os.path.abspath(Input)</span><br><span class="line">	Decrypt_String = &quot;&quot;</span><br><span class="line">	Input_File = open(Input, &quot;rt&quot;, encoding = EncodeSet)</span><br><span class="line">	Counter = 0</span><br><span class="line">	for Line in Input_File:</span><br><span class="line">		Counter = Counter + 1</span><br><span class="line">		Line = Line.strip(&quot;\r&quot;).strip(&quot;\n&quot;)</span><br><span class="line">		Line = Line.strip(&quot; &quot;)</span><br><span class="line">		for Word in Line.split(&quot; &quot;):</span><br><span class="line">			Word_Decrypt = decrypt(int(Word), Password, Counter)</span><br><span class="line">			Decrypt_String = Decrypt_String + Word_Decrypt</span><br><span class="line">		Decrypt_String = Decrypt_String + &quot;\n&quot;</span><br><span class="line">	Input_File.close()</span><br><span class="line">	Decrypt_String = Decrypt_String.strip(&quot;\r&quot;).strip(&quot;\n&quot;)</span><br><span class="line">	return Decrypt_String</span><br></pre></td></tr></table></figure>
-
-<h2 id="使用示例"><a href="#使用示例" class="headerlink" title="使用示例"></a>使用示例</h2><h3 id="加密"><a href="#加密" class="headerlink" title="加密"></a>加密</h3><p>以下是加密脚本示例，Encrypt.py。<br>encrypt_file函数返回的是加密文件路径，路径是[原文件路径].encrypt。  </p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># Python</span><br><span class="line"># -*- coding:utf-8 -*-</span><br><span class="line"></span><br><span class="line">import Encrypt_Decrypt_Text</span><br><span class="line">import sys</span><br><span class="line"></span><br><span class="line">Input = sys.argv[1]</span><br><span class="line">Password = sys.argv[2]</span><br><span class="line"></span><br><span class="line">Encrypt_File_Path = Encrypt_Decrypt_Text.encrypt_file(Input, Password)</span><br><span class="line"></span><br><span class="line">print(Encrypt_File_Path)</span><br></pre></td></tr></table></figure>
-
-<h3 id="解密"><a href="#解密" class="headerlink" title="解密"></a>解密</h3><p>以下是解密脚本示例，Decrypt.py。<br>函数返回解密后的字符串，建议在脚本中解密后直接调用字符串，不要重新保存成文件。<br>假如密码错误，会报错或返回乱码。  </p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># Python</span><br><span class="line"># -*- coding:utf-8 -*-</span><br><span class="line"></span><br><span class="line">import Encrypt_Decrypt_Text</span><br><span class="line">import sys</span><br><span class="line"></span><br><span class="line">Input = sys.argv[1]</span><br><span class="line">Password = sys.argv[2]</span><br><span class="line"></span><br><span class="line">Decrype_File_Content = Encrypt_Decrypt_Text.decrypt_file(Input, Password)</span><br><span class="line"></span><br><span class="line">print(Decrype_File_Content)</span><br></pre></td></tr></table></figure>
-
-<h1 id="脚本加密"><a href="#脚本加密" class="headerlink" title="脚本加密"></a>脚本加密</h1><p>用于文本文件加密的密钥，如果以明文方式写在脚本里等于没有加密。<br>所以需要对调用解密过程的python脚本再通过Cython加密，那么脚本里密钥的也加密了。  </p>
-<h2 id="安装Cython"><a href="#安装Cython" class="headerlink" title="安装Cython"></a>安装Cython</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># Python</span><br><span class="line">python -m pip install Cython</span><br></pre></td></tr></table></figure>
-
-<h2 id="Cython脚本"><a href="#Cython脚本" class="headerlink" title="Cython脚本"></a>Cython脚本</h2><p>以下是将python脚本编译为so文件的脚本，Cpython_so.py。<br>以下脚本会生成so文件和清理中间文件，调用此脚本方法见”调用Cython脚本”部分。  </p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># Python</span><br><span class="line"></span><br><span class="line">import sys</span><br><span class="line">import os</span><br><span class="line">import re</span><br><span class="line">import argparse</span><br><span class="line"></span><br><span class="line">############################################################## Help #############################################################</span><br><span class="line"></span><br><span class="line">parser=argparse.ArgumentParser(</span><br><span class="line">	description=&quot;Description: Generate .so from .py. Version of .so is base of python version.&quot;,</span><br><span class="line">	prog=&quot;Cpython_so.py&quot;,</span><br><span class="line">	usage=&quot;python Cpython_so.py [-h] [-V] -i &lt;python script&gt; -o &lt;Output Dir&gt;&quot;,</span><br><span class="line">	formatter_class=argparse.RawTextHelpFormatter</span><br><span class="line">)</span><br><span class="line">parser.add_argument(&#x27;-V&#x27;,&#x27;--version&#x27;,action=&quot;version&quot;,version=&quot;Version 1.0.0&quot;)</span><br><span class="line">parser.add_argument(&#x27;-i&#x27;,&#x27;--input&#x27;,required=True,type=str,help=&quot;File: python script&quot;)</span><br><span class="line">parser.add_argument(&#x27;-o&#x27;,&#x27;--output_dir&#x27;,required=True,type=str,help=&quot;Dir: Output directory path&quot;)</span><br><span class="line">if len(sys.argv[1:]) == 0:</span><br><span class="line">	parser.print_help()</span><br><span class="line">	parser.exit()</span><br><span class="line">args=parser.parse_args()</span><br><span class="line"></span><br><span class="line">############################################################## Run ##############################################################</span><br><span class="line"></span><br><span class="line">Input_Dir = os.path.dirname(os.path.abspath(args.input))</span><br><span class="line">Output_Dir = os.path.abspath(args.output_dir)</span><br><span class="line">if (Input_Dir == Output_Dir):</span><br><span class="line">	sys.stderr.write(&quot;Output directory can&#x27;t be same as python script.  Exit.\n&quot;)</span><br><span class="line">	exit(1)</span><br><span class="line"></span><br><span class="line">if not (os.path.exists(args.output_dir)):</span><br><span class="line">	os.mkdir(args.output_dir)</span><br><span class="line"></span><br><span class="line">Module = re.sub(&quot;.py$&quot;, &quot;&quot;, os.path.basename(args.input))</span><br><span class="line"></span><br><span class="line"># Copy Original Script To Work Dir</span><br><span class="line">Py_Script = os.path.abspath(args.output_dir) + &quot;/&quot; + os.path.basename(args.input)</span><br><span class="line">Command_Cp = &quot;cp &quot; + args.input + &quot; &quot; + Py_Script</span><br><span class="line">os.system(Command_Cp)</span><br><span class="line"></span><br><span class="line"># Generate .so From .py</span><br><span class="line">Cpython_Script = os.path.abspath(args.output_dir) + &quot;/Cpython_Setup.py&quot;</span><br><span class="line">Cpython_Script_File = open(Cpython_Script, &quot;w&quot;)</span><br><span class="line">Cpython_Script_File.write(&quot;from distutils.core import setup&quot; + &quot;\n&quot;)</span><br><span class="line">Cpython_Script_File.write(&quot;from Cython.Build import cythonize&quot; + &quot;\n&quot;)</span><br><span class="line">Cpython_Script_File.write(&quot;&quot; + &quot;\n&quot;)</span><br><span class="line">Cpython_Script_File.write(&quot;setup(ext_modules = cythonize(\&quot;&quot; + Py_Script + &quot;\&quot;))&quot; + &quot;\n&quot;)</span><br><span class="line">Cpython_Script_File.write(&quot;&quot; + &quot;\n&quot;)</span><br><span class="line">Cpython_Script_File.close()</span><br><span class="line"></span><br><span class="line">Py_Version = &quot;python&quot; + &quot;.&quot;.join([str(sys.version_info[0]),str(sys.version_info[1])])</span><br><span class="line">Command_Cpython = Py_Version + &quot; &quot; + Cpython_Script + &quot; build_ext --inplace&quot;</span><br><span class="line">os.system(Command_Cpython)</span><br><span class="line"></span><br><span class="line"># Move Result .so And Clean Temp Dir</span><br><span class="line">So_File = os.getcwd() + &quot;/&quot; + Module + &quot;*.so&quot;</span><br><span class="line">C_File = os.path.abspath(args.output_dir) + &quot;/&quot; + Module + &quot;.c&quot;</span><br><span class="line">Temp_Dir = os.getcwd() + &quot;/&quot; + &quot;build&quot;</span><br><span class="line"></span><br><span class="line">Command_Move = &quot;mv &quot; + So_File + &quot; &quot; + os.path.abspath(args.output_dir)</span><br><span class="line">os.system(Command_Move)</span><br><span class="line"></span><br><span class="line">Commad_Clean = &quot;rm -rf &quot; + &quot; &quot;.join([Py_Script, Cpython_Script, Temp_Dir, C_File])</span><br><span class="line">os.system(Commad_Clean)</span><br><span class="line"></span><br><span class="line"># Generate .py And .sh To Run .so</span><br><span class="line">So_Py_Script = os.path.abspath(args.output_dir) + &quot;/&quot; + Module + &quot;.py&quot;</span><br><span class="line">So_Sh_Script = os.path.abspath(args.output_dir) + &quot;/&quot; + Module + &quot;.sh&quot;</span><br><span class="line"></span><br><span class="line">So_Py_Script_File = open(So_Py_Script, &quot;w&quot;)</span><br><span class="line">So_Py_Script_File.write(&quot;import &quot; + Module + &quot;\n\n&quot;)</span><br><span class="line">So_Py_Script_File.close()</span><br><span class="line"></span><br><span class="line">So_Sh_Script_File = open(So_Sh_Script, &quot;w&quot;)</span><br><span class="line">So_Sh_Script_File.write(Py_Version + &quot; &quot; + So_Py_Script + &quot;\n&quot;)</span><br><span class="line">So_Sh_Script_File.close()</span><br><span class="line"></span><br><span class="line">Command_Chmod = &quot;chmod +x &quot; + So_Py_Script + &quot; &quot; + So_Sh_Script</span><br><span class="line">os.system(Command_Chmod)</span><br></pre></td></tr></table></figure>
-
-<h2 id="调用Cython脚本"><a href="#调用Cython脚本" class="headerlink" title="调用Cython脚本"></a>调用Cython脚本</h2><p>可以写个shell调用，也可以直接命令行调用。<br>-i 是待加密的python脚本路径，-o 是加密后脚本的输出目录路径。<br>不同Python版本加密生成的so文件不一定通用，加密前脚本用哪个Python版本调用，就用哪个版本调用Cython脚本。<br>加密后的.so文件可以作为模块调用，使用方法可参考输出目录生成的.sh文件。  </p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># Shell</span><br><span class="line"></span><br><span class="line"># 系统默认的Python版本</span><br><span class="line">python Cpython_so.py -i ../../Cpython_Setup/Step1_Python_To_so/Store_Tumor_Report.py -o ./Test_2.7</span><br><span class="line"></span><br><span class="line"># 指定用Python 3.6版本</span><br><span class="line">python3.6 Cpython_so.py -i ../../Cpython_Setup/Step1_Python_To_so/Store_Tumor_Report.py -o ./Test_3.6</span><br></pre></td></tr></table></figure>
-
-<h1 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h1><ol>
-<li><a href="https://www.boydwang.com/2019/01/xor-powershell/">异或加密(XOR)原理及实现</a></li>
-<li><a href="https://blog.51cto.com/u_15316394/4995945">Python 循环异或对文件进行加解密</a></li>
-<li><a href="https://zhuanlan.zhihu.com/p/529539134">Python程序加密-cython</a></li>
-</ol>
-]]></content>
-      <categories>
-        <category>Log</category>
-      </categories>
-      <tags>
-        <tag>Python</tag>
-        <tag>Cython</tag>
-        <tag>加密</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>VEP安装</title>
     <url>/2023/04/19/VEP%E5%AE%89%E8%A3%85/</url>
     <content><![CDATA[<p>VEP安装过程</p>
@@ -704,6 +680,60 @@ cpan -i autodie
 ]]></content>
       <categories>
         <category>Log</category>
+      </categories>
+      <tags>
+        <tag>VEP</tag>
+        <tag>注释</tag>
+        <tag>Perl</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Salmon的decoy文件</title>
+    <url>/2023/05/21/Salmon%E7%9A%84decoy%E6%96%87%E4%BB%B6/</url>
+    <content><![CDATA[<p>用Salmon计算宏基因组预测基因的丰度，建index是否需要decoy文件。</p>
+<span id="more"></span>
+
+<h1 id="相关信息"><a href="#相关信息" class="headerlink" title="相关信息"></a>相关信息</h1><h2 id="1"><a href="#1" class="headerlink" title="1"></a>1</h2><p><a href="https://salmon.readthedocs.io/en/latest/salmon.html">Salmon用户手册</a>有以下描述：<br>Finally, we recommend using selective alignment with a decoy-aware transcriptome, to mitigate potential spurious mapping of reads that actually arise from some unannotated genomic locus that is sequence-similar to an annotated transcriptome.</p>
+<h2 id="2"><a href="#2" class="headerlink" title="2"></a>2</h2><p>Salmon的开发者Rob在<a href="https://www.biostars.org/p/456231/">biostars的一篇帖子</a>的回复：<br>The decoy sequences are regions of the target genome that are sequence similar to annotated transcripts.These are the regions of the genome most likely to cause mismapping (e.g. transcribed pseudogenes, etc.).<br>There are 3 ways to run salmon :<br>(a) with just the annotated transcriptome being indexed<br>(b) with the annotated transcriptome and a small set of decoys computed using MASHMAP to search transcripts against the genome and<br>(c) with the annotated transcriptome and using the entire genome as decoy sequence.  </p>
+<p>The (a) method requires the fewest resources,<br>(b) requires a good deal of resources to run the MASHMAP step, but the resulting index is similar to that of (a) and it avoids the most obvious cases of misalignment.<br>(c) results in the largest index, but it’s the most effective at avoiding potentially spurious mappings.  </p>
+<p>Salmon can be used without decoy sequences (and sometimes, this is necessary — e.g. in a de novo assembly, there will likely be no possibility for decoys).<br>It can also be run without decoys in reference organisms.<br>It is simply the case that decoys help avoid certain cases of misalignment that can’t be adjudicated with the transcriptome alone, and therefore can lead to somewhat more robust estimates of abundance in the presence of the expression of unannotated sequences.  </p>
+<h1 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h1><p>decoy序列指的是基因组上与注释出的真实转录本相似的序列。<br>建index时decoy文件的作用是避免后续比对时的错误，如比对到transcribed pseudogenes（可转录的假基因？）。<br>作者列举的3种方法中，(a)是只用注释出的转录本建index的。后面也有说Salmon在某些必要情况下是可以没有decoy序列信息的，例如de novo组装的基因组。<br>同理，如果是宏基因组分析中通过预测的方法得到基因&#x2F;转录本，本身就无法得到所谓的基因组上与转录本相似的区域。<br>因此宏基因组的基因丰度计算前，建Salmon index不需要decoy文件。  </p>
+<h1 id="脚本"><a href="#脚本" class="headerlink" title="脚本"></a>脚本</h1><h2 id="建库"><a href="#建库" class="headerlink" title="建库"></a>建库</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">salmon index -p 30 -k 31 -t Gene.fa -i ./Index/Gene</span><br></pre></td></tr></table></figure>
+<h2 id="定量"><a href="#定量" class="headerlink" title="定量"></a>定量</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">salmon quant -l IU --validateMappings --meta -p 10 -i ./Index/Gene -1 Sample.R1.clean.rmhost.fq.gz -2 Sample.R2.clean.rmhost.fq.gz -o ./Result/Sample</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Log</category>
+      </categories>
+      <tags>
+        <tag>Transcriptome</tag>
+        <tag>mNGS</tag>
+        <tag>Salmon</tag>
+        <tag>转录组</tag>
+        <tag>宏基因组</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>VEP报错</title>
+    <url>/2023/04/19/VEP%E6%8A%A5%E9%94%99/</url>
+    <content><![CDATA[<p>一些VEP使用过程中的报错信息</p>
+<span id="more"></span>
+
+<h1 id="Existing-variation全部为"><a href="#Existing-variation全部为" class="headerlink" title="Existing_variation全部为-"></a>Existing_variation全部为-</h1><h2 id="问题及警告信息"><a href="#问题及警告信息" class="headerlink" title="问题及警告信息"></a>问题及警告信息</h2><ul>
+<li>问题：VEP注释结果中Existing_variation全部为-。  </li>
+<li>警告信息：  WARNING: 6742 : Use of uninitialized value in subtraction (-) at ***&#x2F;ensembl-vep&#x2F;modules&#x2F;Bio&#x2F;EnsEMBL&#x2F;VEP&#x2F;AnnotationSource&#x2F;Cache&#x2F;VariationTabix.pm line 184, <VARS> line 1.</VARS></li>
+</ul>
+<h2 id="问题定位"><a href="#问题定位" class="headerlink" title="问题定位"></a>问题定位</h2><p>VariationTabix.pm是用于判断当前突变是否数据库中的已知突变，其中$existing-&gt;{start}和$existing-&gt;{end}未定义，是由于脚本中第172行调用tabix，open VARS, “$TABIX_BIN -f $file $region_string 2&gt;&amp;1 报错：[tabix] failed to load the index file。<br>查看tabix版本，是0.2.5，且帮助文档中没有csi格式index的说明。<br>所以可能是tabix版本太旧，无法识别vep数据库中的.csi格式index导致。  </p>
+<h2 id="解决方法"><a href="#解决方法" class="headerlink" title="解决方法"></a>解决方法</h2><ul>
+<li>简要过程<br>  更新tabix，替换~&#x2F;.bashrc中调用的tabix。  </li>
+<li>具体过程<br>  tabix独立的安装包只更新到0.2.6，更新的版本只包含于HTSLIB。<br>  一般生信服务器里都已经有装samtools，应该可以直接用samtools路径里的tabix。<br>  这台服务器里已经安装的samtools的版本是1.12，路径下找到了htslib-1.12目录，但是里面没tabix，应该是没有make。    <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cd htslib-1.12</span><br><span class="line">make</span><br><span class="line">make install</span><br></pre></td></tr></table></figure>
+  以上命令make后，在samtools-1.12&#x2F;bin能看到1.12版本的tabix和bgzip。<br>  修改~&#x2F;.bashrc的tabix路径，然后source ~&#x2F;.bashrc，重新开终端，再测试VEP。</li>
+</ul>
+<h2 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h2><p>成功，Existing_variation列有rs编号和COSV编号</p>
+<h1 id="dbNSFP插件警告"><a href="#dbNSFP插件警告" class="headerlink" title="dbNSFP插件警告"></a>dbNSFP插件警告</h1><h2 id="警告信息"><a href="#警告信息" class="headerlink" title="警告信息"></a>警告信息</h2><p>Use of uninitialized value $readme_file in concatenation (.) or string at ***&#x2F;vep_data&#x2F;Plugins&#x2F;dbNSFP.pm line 279.  </p>
+<h2 id="问题定位-1"><a href="#问题定位-1" class="headerlink" title="问题定位"></a>问题定位</h2><p>dbNSFP.pm第276行，需要dbnsfp.*readme.txt在数据库dbNSFP4.3a_grch37.gz文件同一目录下。  </p>
+<h2 id="解决方法-1"><a href="#解决方法-1" class="headerlink" title="解决方法"></a>解决方法</h2><p>解压dbNSFP4.3a.zip，得到dbNSFP4.3a.readme.txt，软链接为dbNSFP4.3a_grch37.readme.txt，放在dbNSFP4.3a_grch37.gz文件同一目录下。  </p>
+]]></content>
+      <categories>
+        <category>Bug</category>
       </categories>
       <tags>
         <tag>VEP</tag>
@@ -760,36 +790,6 @@ cpan -i autodie
       </tags>
   </entry>
   <entry>
-    <title>VEP报错</title>
-    <url>/2023/04/19/VEP%E6%8A%A5%E9%94%99/</url>
-    <content><![CDATA[<p>一些VEP使用过程中的报错信息</p>
-<span id="more"></span>
-
-<h1 id="Existing-variation全部为"><a href="#Existing-variation全部为" class="headerlink" title="Existing_variation全部为-"></a>Existing_variation全部为-</h1><h2 id="问题及警告信息"><a href="#问题及警告信息" class="headerlink" title="问题及警告信息"></a>问题及警告信息</h2><ul>
-<li>问题：VEP注释结果中Existing_variation全部为-。  </li>
-<li>警告信息：  WARNING: 6742 : Use of uninitialized value in subtraction (-) at ***&#x2F;ensembl-vep&#x2F;modules&#x2F;Bio&#x2F;EnsEMBL&#x2F;VEP&#x2F;AnnotationSource&#x2F;Cache&#x2F;VariationTabix.pm line 184, <VARS> line 1.</VARS></li>
-</ul>
-<h2 id="问题定位"><a href="#问题定位" class="headerlink" title="问题定位"></a>问题定位</h2><p>VariationTabix.pm是用于判断当前突变是否数据库中的已知突变，其中$existing-&gt;{start}和$existing-&gt;{end}未定义，是由于脚本中第172行调用tabix，open VARS, “$TABIX_BIN -f $file $region_string 2&gt;&amp;1 报错：[tabix] failed to load the index file。<br>查看tabix版本，是0.2.5，且帮助文档中没有csi格式index的说明。<br>所以可能是tabix版本太旧，无法识别vep数据库中的.csi格式index导致。  </p>
-<h2 id="解决方法"><a href="#解决方法" class="headerlink" title="解决方法"></a>解决方法</h2><ul>
-<li>简要过程<br>  更新tabix，替换~&#x2F;.bashrc中调用的tabix。  </li>
-<li>具体过程<br>  tabix独立的安装包只更新到0.2.6，更新的版本只包含于HTSLIB。<br>  一般生信服务器里都已经有装samtools，应该可以直接用samtools路径里的tabix。<br>  这台服务器里已经安装的samtools的版本是1.12，路径下找到了htslib-1.12目录，但是里面没tabix，应该是没有make。    <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cd htslib-1.12</span><br><span class="line">make</span><br><span class="line">make install</span><br></pre></td></tr></table></figure>
-  以上命令make后，在samtools-1.12&#x2F;bin能看到1.12版本的tabix和bgzip。<br>  修改~&#x2F;.bashrc的tabix路径，然后source ~&#x2F;.bashrc，重新开终端，再测试VEP。</li>
-</ul>
-<h2 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h2><p>成功，Existing_variation列有rs编号和COSV编号</p>
-<h1 id="dbNSFP插件警告"><a href="#dbNSFP插件警告" class="headerlink" title="dbNSFP插件警告"></a>dbNSFP插件警告</h1><h2 id="警告信息"><a href="#警告信息" class="headerlink" title="警告信息"></a>警告信息</h2><p>Use of uninitialized value $readme_file in concatenation (.) or string at ***&#x2F;vep_data&#x2F;Plugins&#x2F;dbNSFP.pm line 279.  </p>
-<h2 id="问题定位-1"><a href="#问题定位-1" class="headerlink" title="问题定位"></a>问题定位</h2><p>dbNSFP.pm第276行，需要dbnsfp.*readme.txt在数据库dbNSFP4.3a_grch37.gz文件同一目录下。  </p>
-<h2 id="解决方法-1"><a href="#解决方法-1" class="headerlink" title="解决方法"></a>解决方法</h2><p>解压dbNSFP4.3a.zip，得到dbNSFP4.3a.readme.txt，软链接为dbNSFP4.3a_grch37.readme.txt，放在dbNSFP4.3a_grch37.gz文件同一目录下。  </p>
-]]></content>
-      <categories>
-        <category>Bug</category>
-      </categories>
-      <tags>
-        <tag>VEP</tag>
-        <tag>注释</tag>
-        <tag>Perl</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Xlsx转MySQL报错</title>
     <url>/2023/04/21/Xlsx%E8%BD%ACMySQL%E6%8A%A5%E9%94%99/</url>
     <content><![CDATA[<p>写Xlsx转MySQL脚本过程中的一些报错信息</p>
@@ -821,6 +821,37 @@ cpan -i autodie
         <tag>MySQL</tag>
         <tag>Python</tag>
         <tag>Excel</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>bamdst软件Raw Reads错误导致比对率低</title>
+    <url>/2023/12/03/bamdst%E8%BD%AF%E4%BB%B6Raw-Reads%E9%94%99%E8%AF%AF%E5%AF%BC%E8%87%B4%E6%AF%94%E5%AF%B9%E7%8E%87%E4%BD%8E/</url>
+    <content><![CDATA[<p>bamdst的旧版本（21年9月，软件后来有更新，但版本号没变），统计的[Total] Raw Reads (All Reads)错误，导致某些情况下的比对率偏低，On Target Rate也会受影响。</p>
+<span id="more"></span>
+
+
+<h1 id="软件版本"><a href="#软件版本" class="headerlink" title="软件版本"></a>软件版本</h1><ul>
+<li><a href="https://github.com/shiquan/bamdst">bamdst</a> 1.0.9</li>
+</ul>
+<h1 id="问题定位"><a href="#问题定位" class="headerlink" title="问题定位"></a>问题定位</h1><ul>
+<li>bamdst把primary + secondary当作分母去算比对率了，Reads和Base都是。假如1条Reads在参考基因组上Multiple Mapping到了2个位置，分母是算+2的。导致当Multiple Mapping的Reads较多时，这个软件算出来的比对率（Read和Base）会偏低。<br><img src="https://pic.imgdb.cn/item/656c3e87c458853aefaab25b.png" alt="Bamdst错误结果"></li>
+<li>一般比对率，按Read算，是&#x3D;Mapped Reads &#x2F; (Clean R1 Reads + Clean R2 Reads) * 100</li>
+<li>这个样本是：4688627 &#x2F; （2344520 + 2344520）* 100 &#x3D; 99.99%。samtools flagstats算出的比对率就是99.99%。<br><img src="https://pic.imgdb.cn/item/656c3e87c458853aefaab2b0.png" alt="Samtools Flagstats结果"></li>
+<li>以上错误的比对率结果是调用21年9月安装的bamdst得到的。2019年12月有个Issue有提到这个问题：<a href="https://github.com/shiquan/bamdst/issues/18">Raw Reads (All reads) are a bit off</a>。</li>
+<li>以下是2023年11月重新安装的bamdst，算出来的Raw Reads是对的。</li>
+<li>但是这两个的软件版本都是1.0.9，Github上也没有Change Log，那就没法知道具体是什么时候修改成正确的了。<br> <img src="https://pic.imgdb.cn/item/656c3e87c458853aefaab319.png" alt="Bamdst正确结果"></li>
+</ul>
+<h1 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h1><ol>
+<li>如果bamdst太旧，建议重新从Github下载再编译安装bamdst。</li>
+<li>或者直接用samtools flagstats提取比对率。</li>
+</ol>
+]]></content>
+      <categories>
+        <category>Bug</category>
+      </categories>
+      <tags>
+        <tag>比对</tag>
+        <tag>Bamdst</tag>
       </tags>
   </entry>
   <entry>
@@ -857,37 +888,6 @@ cpan -i autodie
       <tags>
         <tag>数据拆分</tag>
         <tag>bcl2fastq</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>bamdst软件Raw Reads错误导致比对率低</title>
-    <url>/2023/12/03/bamdst%E8%BD%AF%E4%BB%B6Raw-Reads%E9%94%99%E8%AF%AF%E5%AF%BC%E8%87%B4%E6%AF%94%E5%AF%B9%E7%8E%87%E4%BD%8E/</url>
-    <content><![CDATA[<p>bamdst的旧版本（21年9月，软件后来有更新，但版本号没变），统计的[Total] Raw Reads (All Reads)错误，导致某些情况下的比对率偏低，On Target Rate也会受影响。</p>
-<span id="more"></span>
-
-
-<h1 id="软件版本"><a href="#软件版本" class="headerlink" title="软件版本"></a>软件版本</h1><ul>
-<li><a href="https://github.com/shiquan/bamdst">bamdst</a> 1.0.9</li>
-</ul>
-<h1 id="问题定位"><a href="#问题定位" class="headerlink" title="问题定位"></a>问题定位</h1><ul>
-<li>bamdst把primary + secondary当作分母去算比对率了，Reads和Base都是。假如1条Reads在参考基因组上Multiple Mapping到了2个位置，分母是算+2的。导致当Multiple Mapping的Reads较多时，这个软件算出来的比对率（Read和Base）会偏低。<br><img src="https://pic.imgdb.cn/item/656c3e87c458853aefaab25b.png" alt="Bamdst错误结果"></li>
-<li>一般比对率，按Read算，是&#x3D;Mapped Reads &#x2F; (Clean R1 Reads + Clean R2 Reads) * 100</li>
-<li>这个样本是：4688627 &#x2F; （2344520 + 2344520）* 100 &#x3D; 99.99%。samtools flagstats算出的比对率就是99.99%。<br><img src="https://pic.imgdb.cn/item/656c3e87c458853aefaab2b0.png" alt="Samtools Flagstats结果"></li>
-<li>以上错误的比对率结果是调用21年9月安装的bamdst得到的。2019年12月有个Issue有提到这个问题：<a href="https://github.com/shiquan/bamdst/issues/18">Raw Reads (All reads) are a bit off</a>。</li>
-<li>以下是2023年11月重新安装的bamdst，算出来的Raw Reads是对的。</li>
-<li>但是这两个的软件版本都是1.0.9，Github上也没有Change Log，那就没法知道具体是什么时候修改成正确的了。<br> <img src="https://pic.imgdb.cn/item/656c3e87c458853aefaab319.png" alt="Bamdst正确结果"></li>
-</ul>
-<h1 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h1><ol>
-<li>如果bamdst太旧，建议重新从Github下载再编译安装bamdst。</li>
-<li>或者直接用samtools flagstats提取比对率。</li>
-</ol>
-]]></content>
-      <categories>
-        <category>Bug</category>
-      </categories>
-      <tags>
-        <tag>比对</tag>
-        <tag>Bamdst</tag>
       </tags>
   </entry>
   <entry>
@@ -980,6 +980,27 @@ cpan -i autodie
       </tags>
   </entry>
   <entry>
+    <title>ggplot2设置坐标轴字体颜色</title>
+    <url>/2023/05/24/ggplot2%E8%AE%BE%E7%BD%AE%E5%9D%90%E6%A0%87%E8%BD%B4%E5%AD%97%E4%BD%93%E9%A2%9C%E8%89%B2/</url>
+    <content><![CDATA[<p>通过ggplot2的theme()指定坐标轴的每个刻度标签的字体颜色</p>
+<span id="more"></span>
+
+<h1 id="关键代码"><a href="#关键代码" class="headerlink" title="关键代码"></a>关键代码</h1><p>设置X轴：<code>theme(axis.text.x = element_text(colour = Data$Color))</code><br>设置Y轴：<code>theme(axis.text.y = element_text(colour = Data$Color))</code></p>
+<h1 id="需求说明"><a href="#需求说明" class="headerlink" title="需求说明"></a>需求说明</h1><p>有若干个样本都检出某个物种，需要画检出Reads数的柱状图，当前样本字体颜色和填充颜色为蓝色，其他样本为灰色。</p>
+<h1 id="完成示例"><a href="#完成示例" class="headerlink" title="完成示例"></a>完成示例</h1><p><img src="https://pic1.imgdb.cn/item/646db75d0d2dde5777e0998b.png" alt="坐标轴字体颜色"></p>
+<h1 id="代码示例"><a href="#代码示例" class="headerlink" title="代码示例"></a>代码示例</h1><figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>ggplot2<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">args<span class="operator">&lt;-</span>commandArgs<span class="punctuation">(</span><span class="built_in">T</span><span class="punctuation">)</span></span><br><span class="line"><span class="comment"># 数据表</span></span><br><span class="line">Reads_Table<span class="operator">=</span>args<span class="punctuation">[</span><span class="number">1</span><span class="punctuation">]</span></span><br><span class="line"><span class="comment"># 输出目录</span></span><br><span class="line">Result_Dir<span class="operator">=</span>args<span class="punctuation">[</span><span class="number">2</span><span class="punctuation">]</span></span><br><span class="line"><span class="comment"># 当前样本</span></span><br><span class="line">Plot_Sample <span class="operator">=</span> args<span class="punctuation">[</span><span class="number">3</span><span class="punctuation">]</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 读入数据表</span></span><br><span class="line">Data <span class="operator">=</span> read.table<span class="punctuation">(</span>Reads_Table<span class="punctuation">,</span> head<span class="operator">=</span><span class="built_in">T</span><span class="punctuation">,</span> sep<span class="operator">=</span><span class="string">&quot;\t&quot;</span><span class="punctuation">,</span> comment.char<span class="operator">=</span><span class="string">&quot;#&quot;</span><span class="punctuation">,</span> stringsAsFactors<span class="operator">=</span><span class="literal">FALSE</span><span class="punctuation">,</span> check.names<span class="operator">=</span><span class="literal">FALSE</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 设置其他样本和当前样本的分组、颜色信息</span></span><br><span class="line">List_Color <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;#808080&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#1e90ff&quot;</span><span class="punctuation">)</span></span><br><span class="line">Data<span class="operator">$</span>Group <span class="operator">=</span> <span class="built_in">rep</span><span class="punctuation">(</span><span class="string">&quot;Other Sample&quot;</span><span class="punctuation">,</span> nrow<span class="punctuation">(</span>Data<span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">Data<span class="operator">$</span>Group<span class="punctuation">[</span>with<span class="punctuation">(</span>Data<span class="punctuation">,</span> Sample<span class="operator">==</span>Plot_Sample<span class="punctuation">)</span><span class="punctuation">]</span> <span class="operator">=</span> <span class="string">&quot;This Sample&quot;</span></span><br><span class="line">Data<span class="operator">$</span>Color <span class="operator">=</span> <span class="built_in">rep</span><span class="punctuation">(</span>List_Color<span class="punctuation">[</span><span class="number">1</span><span class="punctuation">]</span><span class="punctuation">,</span> nrow<span class="punctuation">(</span>Data<span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">Data<span class="operator">$</span>Color<span class="punctuation">[</span>with<span class="punctuation">(</span>Data<span class="punctuation">,</span> Sample<span class="operator">==</span>Plot_Sample<span class="punctuation">)</span><span class="punctuation">]</span> <span class="operator">=</span> List_Color<span class="punctuation">[</span><span class="number">2</span><span class="punctuation">]</span></span><br><span class="line"><span class="keyword">if</span> <span class="punctuation">(</span>nrow<span class="punctuation">(</span>Data<span class="punctuation">)</span> <span class="operator">==</span> <span class="number">1</span><span class="punctuation">)</span><span class="punctuation">&#123;</span></span><br><span class="line">	List_Color <span class="operator">=</span> List_Color<span class="punctuation">[</span><span class="number">2</span><span class="punctuation">]</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 通用主题</span></span><br><span class="line">plot_font_size<span class="operator">=</span><span class="number">10</span></span><br><span class="line"><span class="keyword">if</span> <span class="punctuation">(</span>plot_font_size <span class="operator">&lt;</span> <span class="number">10</span><span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">	plot_font_size <span class="operator">=</span> <span class="number">10</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br><span class="line">universal_theme<span class="operator">=</span>theme_bw<span class="punctuation">(</span>base_size<span class="operator">=</span>plot_font_size<span class="punctuation">)</span><span class="operator">+</span></span><br><span class="line">	theme<span class="punctuation">(</span>axis.line<span class="operator">=</span>element_line<span class="punctuation">(</span>size<span class="operator">=</span><span class="number">0.5</span><span class="punctuation">,</span>colour<span class="operator">=</span><span class="string">&#x27;black&#x27;</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="operator">+</span></span><br><span class="line">	theme<span class="punctuation">(</span>axis.title.x<span class="operator">=</span>element_text<span class="punctuation">(</span>size<span class="operator">=</span>plot_font_size<span class="operator">-</span><span class="number">2</span><span class="punctuation">)</span><span class="punctuation">,</span>axis.title.y<span class="operator">=</span>element_text<span class="punctuation">(</span>size<span class="operator">=</span>plot_font_size<span class="operator">-</span><span class="number">2</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="operator">+</span></span><br><span class="line">	theme<span class="punctuation">(</span>axis.text.x<span class="operator">=</span>element_text<span class="punctuation">(</span>size<span class="operator">=</span>plot_font_size<span class="operator">-</span><span class="number">3</span><span class="punctuation">,</span>colour<span class="operator">=</span><span class="string">&#x27;black&#x27;</span><span class="punctuation">)</span><span class="punctuation">,</span>axis.text.y<span class="operator">=</span>element_text<span class="punctuation">(</span>size<span class="operator">=</span>plot_font_size<span class="operator">-</span><span class="number">3</span><span class="punctuation">,</span>colour<span class="operator">=</span><span class="string">&#x27;black&#x27;</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="operator">+</span></span><br><span class="line">	theme<span class="punctuation">(</span>legend.key.size<span class="operator">=</span>unit<span class="punctuation">(</span><span class="number">20</span><span class="punctuation">,</span><span class="string">&quot;pt&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span>legend.title<span class="operator">=</span>element_text<span class="punctuation">(</span>size<span class="operator">=</span>plot_font_size<span class="operator">-</span><span class="number">2</span><span class="punctuation">)</span><span class="punctuation">,</span>legend.text<span class="operator">=</span>element_text<span class="punctuation">(</span>size<span class="operator">=</span>plot_font_size<span class="operator">-</span><span class="number">3</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="operator">+</span></span><br><span class="line">	theme<span class="punctuation">(</span>panel.border<span class="operator">=</span>element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="operator">+</span></span><br><span class="line">	theme<span class="punctuation">(</span>plot.title<span class="operator">=</span>element_text<span class="punctuation">(</span>hjust<span class="operator">=</span><span class="number">0.5</span><span class="punctuation">,</span>size<span class="operator">=</span>plot_font_size<span class="punctuation">)</span><span class="punctuation">)</span><span class="operator">+</span></span><br><span class="line">	theme<span class="punctuation">(</span>legend.position<span class="operator">=</span><span class="string">&quot;none&quot;</span><span class="punctuation">)</span><span class="operator">+</span></span><br><span class="line">	theme<span class="punctuation">(</span>panel.grid<span class="operator">=</span>element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 画柱状图</span></span><br><span class="line">picture <span class="operator">=</span> ggplot<span class="punctuation">(</span>data<span class="operator">=</span>Data<span class="punctuation">,</span> aes<span class="punctuation">(</span>x<span class="operator">=</span>Sample<span class="punctuation">,</span> y<span class="operator">=</span>Reads<span class="punctuation">,</span> fill<span class="operator">=</span>Group<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">	geom_bar<span class="punctuation">(</span>stat<span class="operator">=</span><span class="string">&quot;identity&quot;</span><span class="punctuation">,</span> width<span class="operator">=</span><span class="number">0.7</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">	labs<span class="punctuation">(</span>x<span class="operator">=</span><span class="string">&quot;&quot;</span><span class="punctuation">,</span> y<span class="operator">=</span><span class="string">&quot;&quot;</span><span class="punctuation">,</span> title<span class="operator">=</span><span class="string">&quot;无乳链球菌&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">	scale_y_continuous<span class="punctuation">(</span>expand <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="number">0</span><span class="punctuation">,</span><span class="number">0</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">	scale_fill_manual<span class="punctuation">(</span>values <span class="operator">=</span> List_Color<span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">	universal_theme <span class="operator">+</span> </span><br><span class="line">	theme<span class="punctuation">(</span>axis.text.y <span class="operator">=</span> element_text<span class="punctuation">(</span>colour <span class="operator">=</span> rev<span class="punctuation">(</span>Data<span class="operator">$</span>Color<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">	coord_flip<span class="punctuation">(</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 保存图片</span></span><br><span class="line">output_png <span class="operator">=</span> paste<span class="punctuation">(</span>Result_Dir<span class="punctuation">,</span> <span class="string">&quot;/&quot;</span><span class="punctuation">,</span> <span class="string">&quot;无乳链球菌.png&quot;</span><span class="punctuation">,</span> sep<span class="operator">=</span><span class="string">&quot;&quot;</span><span class="punctuation">,</span> collapse<span class="operator">=</span><span class="string">&quot;&quot;</span><span class="punctuation">)</span></span><br><span class="line">ggsave<span class="punctuation">(</span>output_png<span class="punctuation">,</span> picture<span class="punctuation">,</span> width<span class="operator">=</span><span class="number">8</span><span class="punctuation">,</span> height<span class="operator">=</span><span class="number">10</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<h1 id="警告信息"><a href="#警告信息" class="headerlink" title="警告信息"></a>警告信息</h1><p>使用以上代码画图，会出现警告信息。<br>这是因为用向量变量在element_text中指定颜色并不是官方支持的标准用法，算是个workaround。<br>目前是能正常使用的，但在将来的ggplot2版本不一定依然支持这样的用法。  </p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Warning message:</span><br><span class="line">Vectorized input to `element_text()` is not officially supported.</span><br><span class="line">Results may be unexpected or may change in future versions of ggplot2.</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Log</category>
+      </categories>
+      <tags>
+        <tag>画图</tag>
+        <tag>ggplot2</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>pandas数据操作</title>
     <url>/2023/08/21/pandas%E6%95%B0%E6%8D%AE%E6%93%8D%E4%BD%9C/</url>
     <content><![CDATA[<p>一些以panda为主的数据分析操作</p>
@@ -1055,27 +1076,6 @@ cpan -i autodie
         <tag>Python</tag>
         <tag>pandas</tag>
         <tag>seaborn</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>ggplot2设置坐标轴字体颜色</title>
-    <url>/2023/05/24/ggplot2%E8%AE%BE%E7%BD%AE%E5%9D%90%E6%A0%87%E8%BD%B4%E5%AD%97%E4%BD%93%E9%A2%9C%E8%89%B2/</url>
-    <content><![CDATA[<p>通过ggplot2的theme()指定坐标轴的每个刻度标签的字体颜色</p>
-<span id="more"></span>
-
-<h1 id="关键代码"><a href="#关键代码" class="headerlink" title="关键代码"></a>关键代码</h1><p>设置X轴：<code>theme(axis.text.x = element_text(colour = Data$Color))</code><br>设置Y轴：<code>theme(axis.text.y = element_text(colour = Data$Color))</code></p>
-<h1 id="需求说明"><a href="#需求说明" class="headerlink" title="需求说明"></a>需求说明</h1><p>有若干个样本都检出某个物种，需要画检出Reads数的柱状图，当前样本字体颜色和填充颜色为蓝色，其他样本为灰色。</p>
-<h1 id="完成示例"><a href="#完成示例" class="headerlink" title="完成示例"></a>完成示例</h1><p><img src="https://pic1.imgdb.cn/item/646db75d0d2dde5777e0998b.png" alt="坐标轴字体颜色"></p>
-<h1 id="代码示例"><a href="#代码示例" class="headerlink" title="代码示例"></a>代码示例</h1><figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>ggplot2<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">args<span class="operator">&lt;-</span>commandArgs<span class="punctuation">(</span><span class="built_in">T</span><span class="punctuation">)</span></span><br><span class="line"><span class="comment"># 数据表</span></span><br><span class="line">Reads_Table<span class="operator">=</span>args<span class="punctuation">[</span><span class="number">1</span><span class="punctuation">]</span></span><br><span class="line"><span class="comment"># 输出目录</span></span><br><span class="line">Result_Dir<span class="operator">=</span>args<span class="punctuation">[</span><span class="number">2</span><span class="punctuation">]</span></span><br><span class="line"><span class="comment"># 当前样本</span></span><br><span class="line">Plot_Sample <span class="operator">=</span> args<span class="punctuation">[</span><span class="number">3</span><span class="punctuation">]</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 读入数据表</span></span><br><span class="line">Data <span class="operator">=</span> read.table<span class="punctuation">(</span>Reads_Table<span class="punctuation">,</span> head<span class="operator">=</span><span class="built_in">T</span><span class="punctuation">,</span> sep<span class="operator">=</span><span class="string">&quot;\t&quot;</span><span class="punctuation">,</span> comment.char<span class="operator">=</span><span class="string">&quot;#&quot;</span><span class="punctuation">,</span> stringsAsFactors<span class="operator">=</span><span class="literal">FALSE</span><span class="punctuation">,</span> check.names<span class="operator">=</span><span class="literal">FALSE</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 设置其他样本和当前样本的分组、颜色信息</span></span><br><span class="line">List_Color <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;#808080&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#1e90ff&quot;</span><span class="punctuation">)</span></span><br><span class="line">Data<span class="operator">$</span>Group <span class="operator">=</span> <span class="built_in">rep</span><span class="punctuation">(</span><span class="string">&quot;Other Sample&quot;</span><span class="punctuation">,</span> nrow<span class="punctuation">(</span>Data<span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">Data<span class="operator">$</span>Group<span class="punctuation">[</span>with<span class="punctuation">(</span>Data<span class="punctuation">,</span> Sample<span class="operator">==</span>Plot_Sample<span class="punctuation">)</span><span class="punctuation">]</span> <span class="operator">=</span> <span class="string">&quot;This Sample&quot;</span></span><br><span class="line">Data<span class="operator">$</span>Color <span class="operator">=</span> <span class="built_in">rep</span><span class="punctuation">(</span>List_Color<span class="punctuation">[</span><span class="number">1</span><span class="punctuation">]</span><span class="punctuation">,</span> nrow<span class="punctuation">(</span>Data<span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">Data<span class="operator">$</span>Color<span class="punctuation">[</span>with<span class="punctuation">(</span>Data<span class="punctuation">,</span> Sample<span class="operator">==</span>Plot_Sample<span class="punctuation">)</span><span class="punctuation">]</span> <span class="operator">=</span> List_Color<span class="punctuation">[</span><span class="number">2</span><span class="punctuation">]</span></span><br><span class="line"><span class="keyword">if</span> <span class="punctuation">(</span>nrow<span class="punctuation">(</span>Data<span class="punctuation">)</span> <span class="operator">==</span> <span class="number">1</span><span class="punctuation">)</span><span class="punctuation">&#123;</span></span><br><span class="line">	List_Color <span class="operator">=</span> List_Color<span class="punctuation">[</span><span class="number">2</span><span class="punctuation">]</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 通用主题</span></span><br><span class="line">plot_font_size<span class="operator">=</span><span class="number">10</span></span><br><span class="line"><span class="keyword">if</span> <span class="punctuation">(</span>plot_font_size <span class="operator">&lt;</span> <span class="number">10</span><span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">	plot_font_size <span class="operator">=</span> <span class="number">10</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br><span class="line">universal_theme<span class="operator">=</span>theme_bw<span class="punctuation">(</span>base_size<span class="operator">=</span>plot_font_size<span class="punctuation">)</span><span class="operator">+</span></span><br><span class="line">	theme<span class="punctuation">(</span>axis.line<span class="operator">=</span>element_line<span class="punctuation">(</span>size<span class="operator">=</span><span class="number">0.5</span><span class="punctuation">,</span>colour<span class="operator">=</span><span class="string">&#x27;black&#x27;</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="operator">+</span></span><br><span class="line">	theme<span class="punctuation">(</span>axis.title.x<span class="operator">=</span>element_text<span class="punctuation">(</span>size<span class="operator">=</span>plot_font_size<span class="operator">-</span><span class="number">2</span><span class="punctuation">)</span><span class="punctuation">,</span>axis.title.y<span class="operator">=</span>element_text<span class="punctuation">(</span>size<span class="operator">=</span>plot_font_size<span class="operator">-</span><span class="number">2</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="operator">+</span></span><br><span class="line">	theme<span class="punctuation">(</span>axis.text.x<span class="operator">=</span>element_text<span class="punctuation">(</span>size<span class="operator">=</span>plot_font_size<span class="operator">-</span><span class="number">3</span><span class="punctuation">,</span>colour<span class="operator">=</span><span class="string">&#x27;black&#x27;</span><span class="punctuation">)</span><span class="punctuation">,</span>axis.text.y<span class="operator">=</span>element_text<span class="punctuation">(</span>size<span class="operator">=</span>plot_font_size<span class="operator">-</span><span class="number">3</span><span class="punctuation">,</span>colour<span class="operator">=</span><span class="string">&#x27;black&#x27;</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="operator">+</span></span><br><span class="line">	theme<span class="punctuation">(</span>legend.key.size<span class="operator">=</span>unit<span class="punctuation">(</span><span class="number">20</span><span class="punctuation">,</span><span class="string">&quot;pt&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span>legend.title<span class="operator">=</span>element_text<span class="punctuation">(</span>size<span class="operator">=</span>plot_font_size<span class="operator">-</span><span class="number">2</span><span class="punctuation">)</span><span class="punctuation">,</span>legend.text<span class="operator">=</span>element_text<span class="punctuation">(</span>size<span class="operator">=</span>plot_font_size<span class="operator">-</span><span class="number">3</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="operator">+</span></span><br><span class="line">	theme<span class="punctuation">(</span>panel.border<span class="operator">=</span>element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="operator">+</span></span><br><span class="line">	theme<span class="punctuation">(</span>plot.title<span class="operator">=</span>element_text<span class="punctuation">(</span>hjust<span class="operator">=</span><span class="number">0.5</span><span class="punctuation">,</span>size<span class="operator">=</span>plot_font_size<span class="punctuation">)</span><span class="punctuation">)</span><span class="operator">+</span></span><br><span class="line">	theme<span class="punctuation">(</span>legend.position<span class="operator">=</span><span class="string">&quot;none&quot;</span><span class="punctuation">)</span><span class="operator">+</span></span><br><span class="line">	theme<span class="punctuation">(</span>panel.grid<span class="operator">=</span>element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 画柱状图</span></span><br><span class="line">picture <span class="operator">=</span> ggplot<span class="punctuation">(</span>data<span class="operator">=</span>Data<span class="punctuation">,</span> aes<span class="punctuation">(</span>x<span class="operator">=</span>Sample<span class="punctuation">,</span> y<span class="operator">=</span>Reads<span class="punctuation">,</span> fill<span class="operator">=</span>Group<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">	geom_bar<span class="punctuation">(</span>stat<span class="operator">=</span><span class="string">&quot;identity&quot;</span><span class="punctuation">,</span> width<span class="operator">=</span><span class="number">0.7</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">	labs<span class="punctuation">(</span>x<span class="operator">=</span><span class="string">&quot;&quot;</span><span class="punctuation">,</span> y<span class="operator">=</span><span class="string">&quot;&quot;</span><span class="punctuation">,</span> title<span class="operator">=</span><span class="string">&quot;无乳链球菌&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">	scale_y_continuous<span class="punctuation">(</span>expand <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="number">0</span><span class="punctuation">,</span><span class="number">0</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">	scale_fill_manual<span class="punctuation">(</span>values <span class="operator">=</span> List_Color<span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">	universal_theme <span class="operator">+</span> </span><br><span class="line">	theme<span class="punctuation">(</span>axis.text.y <span class="operator">=</span> element_text<span class="punctuation">(</span>colour <span class="operator">=</span> rev<span class="punctuation">(</span>Data<span class="operator">$</span>Color<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">	coord_flip<span class="punctuation">(</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 保存图片</span></span><br><span class="line">output_png <span class="operator">=</span> paste<span class="punctuation">(</span>Result_Dir<span class="punctuation">,</span> <span class="string">&quot;/&quot;</span><span class="punctuation">,</span> <span class="string">&quot;无乳链球菌.png&quot;</span><span class="punctuation">,</span> sep<span class="operator">=</span><span class="string">&quot;&quot;</span><span class="punctuation">,</span> collapse<span class="operator">=</span><span class="string">&quot;&quot;</span><span class="punctuation">)</span></span><br><span class="line">ggsave<span class="punctuation">(</span>output_png<span class="punctuation">,</span> picture<span class="punctuation">,</span> width<span class="operator">=</span><span class="number">8</span><span class="punctuation">,</span> height<span class="operator">=</span><span class="number">10</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
-
-<h1 id="警告信息"><a href="#警告信息" class="headerlink" title="警告信息"></a>警告信息</h1><p>使用以上代码画图，会出现警告信息。<br>这是因为用向量变量在element_text中指定颜色并不是官方支持的标准用法，算是个workaround。<br>目前是能正常使用的，但在将来的ggplot2版本不一定依然支持这样的用法。  </p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Warning message:</span><br><span class="line">Vectorized input to `element_text()` is not officially supported.</span><br><span class="line">Results may be unexpected or may change in future versions of ggplot2.</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Log</category>
-      </categories>
-      <tags>
-        <tag>画图</tag>
-        <tag>ggplot2</tag>
       </tags>
   </entry>
   <entry>

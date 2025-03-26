@@ -85,7 +85,7 @@
 <h2 id="官方文档"><a href="#官方文档" class="headerlink" title="官方文档"></a>官方文档</h2><p><a target="_blank" rel="noopener" href="https://github.com/igvteam/igv/wiki/JSON-Genome-Format">格式说明</a> <code>https://github.com/igvteam/igv/wiki/JSON-Genome-Format</code><br><a target="_blank" rel="noopener" href="https://github.com/igvteam/igv.js/wiki/Reference-Genome">属性说明</a> <code>https://github.com/igvteam/igv.js/wiki/Reference-Genome</code>  </p>
 <h2 id="参数说明"><a href="#参数说明" class="headerlink" title="参数说明"></a>参数说明</h2><p>IGV 2.11.0版本以上自定义参考基因组JSON文件，只有是fastaURL必填，其他都是可选。<br>所有URL都可以是在线资源或本地路径。  </p>
 <ul>
-<li>id：该参考基因组的名称，可选。<del>就是在Genome下拉框里显示的基因组名称。</del>需要是hs1、hg38、hg19、hg18、hg17、hg16其中之一，否则IGV的BLAT功能会没反应。具体原因见<code>IGV的BLAT</code>。  </li>
+<li>id：该参考基因组的名称，可选。 <del>就是在Genome下拉框里显示的基因组名称。</del> 如果需要使用BLAT功能的话，这里要填某些特定的genome ID。具体原因见<code>IGV的BLAT</code>。  </li>
 <li>name：描述信息，可选。就是在Genome下拉框里显示的基因组名称。  </li>
 <li>fastaURL：参考基因组Fasta的URL，必填。可以是线上的，如UCSC等数据库中的fasta文件；也可以是本地的，如服务器上的fasta文件路径。  </li>
 <li>indexURL：参考基因组Fasta的索引（.fai）文件，可选。但如果不提供.fai文件，会一次性加载整个fasta文件。  </li>
@@ -93,15 +93,573 @@
 <li>tracks：加载参考基因组时，同时加载的一系列Tracks，例如默认的hg19基因组的RefSeq Gene描述信息，可选。IGV的Github有<a target="_blank" rel="noopener" href="https://github.com/igvteam/igv.js/wiki/Tracks-2.0">tracks格式说明</a>。</li>
 </ul>
 <h2 id="加载方法"><a href="#加载方法" class="headerlink" title="加载方法"></a>加载方法</h2><p>写完JSON文件后，在软件中加载自定义参考基因组的方法：Genomes -&gt; Load Genome from File… -&gt; 选择参考基因组json文件</p>
-<h1 id="JSON示例"><a href="#JSON示例" class="headerlink" title="JSON示例"></a>JSON示例</h1><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  &quot;id&quot;: &quot;b37chr&quot;,</span><br><span class="line">  &quot;name&quot;: &quot;Human (b37 with chr)&quot;,</span><br><span class="line">  &quot;fastaURL&quot;: &quot;/xxx/database/b37chr/human_g1k_v37_decoy_chr.fasta&quot;,</span><br><span class="line">  &quot;indexURL&quot;: &quot;/xxx/database/b37chr/human_g1k_v37_decoy_chr.fasta.fai&quot;,</span><br><span class="line">  &quot;cytobandURL&quot;: &quot;/xxx/database/b37chr/cytoBand.txt&quot;,</span><br><span class="line">  &quot;tracks&quot;: [</span><br><span class="line">    &#123;</span><br><span class="line">      &quot;name&quot;: &quot;Refseq Genes&quot;,</span><br><span class="line">      &quot;format&quot;: &quot;refgene&quot;,</span><br><span class="line">      &quot;url&quot;: &quot;/xxx/database/b37chr/ncbiRefSeq.sorted.txt.gz&quot;,</span><br><span class="line">      &quot;indexURL&quot;: &quot;/xxx/database/b37chr/ncbiRefSeq.sorted.txt.gz.tbi&quot;</span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      &quot;name&quot;: &quot;Target 1&quot;,</span><br><span class="line">      &quot;format&quot;: &quot;bed&quot;,</span><br><span class="line">      &quot;url&quot;: &quot;/xxx/database/b37chr/bed/Target_1.bed&quot;</span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      &quot;name&quot;: &quot;Target 2&quot;,</span><br><span class="line">      &quot;format&quot;: &quot;bed&quot;,</span><br><span class="line">      &quot;url&quot;: &quot;/xxx/database/b37chr/bed/Target_2.bed&quot;</span><br><span class="line">    &#125;</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="JSON示例"><a href="#JSON示例" class="headerlink" title="JSON示例"></a>JSON示例</h1><p>示例的详细信息见：<a target="_blank" rel="noopener" href="https://igv.org/doc/desktop/#FileFormats/Genomes/#igv-reference-genome-json">IGV reference genome (JSON)</a></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  &quot;id&quot;: &quot;hg38&quot;,</span><br><span class="line">  &quot;name&quot;: &quot;Human (GRCh38/hg38)&quot;,</span><br><span class="line">  &quot;fastaURL&quot;: &quot;https://s3.amazonaws.com/igv.broadinstitute.org/genomes/seq/hg38/hg38.fa&quot;,</span><br><span class="line">  &quot;indexURL&quot;: &quot;https://s3.amazonaws.com/igv.broadinstitute.org/genomes/seq/hg38/hg38.fa.fai&quot;,</span><br><span class="line">  &quot;cytobandURL&quot;: &quot;https://s3.amazonaws.com/igv.org.genomes/hg38/annotations/cytoBandIdeo.txt.gz&quot;,</span><br><span class="line">  &quot;aliasURL&quot;: &quot;https://s3.amazonaws.com/igv.org.genomes/hg38/hg38_alias.tab&quot;,</span><br><span class="line">  &quot;chromosomeOrder&quot;: [</span><br><span class="line">    &quot;chr1&quot;,</span><br><span class="line">    &quot;chr2&quot;,</span><br><span class="line">    &quot;chr3&quot;,</span><br><span class="line">    &quot;chr4&quot;,</span><br><span class="line">    &quot;chr5&quot;,</span><br><span class="line">    &quot;chr6&quot;,</span><br><span class="line">    &quot;chr7&quot;,</span><br><span class="line">    &quot;chr8&quot;,</span><br><span class="line">    &quot;chr9&quot;,</span><br><span class="line">    &quot;chr10&quot;,</span><br><span class="line">    &quot;chr11&quot;,</span><br><span class="line">    &quot;chr12&quot;,</span><br><span class="line">    &quot;chr13&quot;,</span><br><span class="line">    &quot;chr14&quot;,</span><br><span class="line">    &quot;chr15&quot;,</span><br><span class="line">    &quot;chr16&quot;,</span><br><span class="line">    &quot;chr17&quot;,</span><br><span class="line">    &quot;chr18&quot;,</span><br><span class="line">    &quot;chr19&quot;,</span><br><span class="line">    &quot;chr20&quot;,</span><br><span class="line">    &quot;chr21&quot;,</span><br><span class="line">    &quot;chr22&quot;,</span><br><span class="line">    &quot;chrX&quot;,</span><br><span class="line">    &quot;chrY&quot;</span><br><span class="line">  ],</span><br><span class="line">  &quot;tracks&quot;: [</span><br><span class="line">    &#123;</span><br><span class="line">      &quot;name&quot;: &quot;Refseq Genes&quot;,</span><br><span class="line">      &quot;format&quot;: &quot;refgene&quot;,</span><br><span class="line">      &quot;url&quot;: &quot;https://s3.amazonaws.com/igv.org.genomes/hg38/ncbiRefSeq.sorted.txt.gz&quot;,</span><br><span class="line">      &quot;indexURL&quot;: &quot;https://s3.amazonaws.com/igv.org.genomes/hg38/ncbiRefSeq.sorted.txt.gz.tbi&quot;</span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      &quot;name&quot;: &quot;Gencode v24 genes&quot;,</span><br><span class="line">      &quot;format&quot;: &quot;gtf&quot;,</span><br><span class="line">      &quot;url&quot;: &quot;https://s3.amazonaws.com/igv.org.genomes/hg19/gencode.v24.genes.gtf.gz&quot;</span><br><span class="line">    &#125;</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<h1 id="IGV的BLAT"><a href="#IGV的BLAT" class="headerlink" title="IGV的BLAT"></a>IGV的BLAT</h1><ul>
-<li><a target="_blank" rel="noopener" href="https://github.com/igvteam/igv/wiki/Customizing-BLAT/f1cc79c0b3c8c27c1d612e4a025a1eee94bd8f56">Customizing BLAT</a></li>
-<li><a target="_blank" rel="noopener" href="https://igv.org/doc/desktop/#UserGuide/tools/blat/">BLAT</a><br>从以上官方文档可以知道，IGV的BLAT功能，本质是将待查询序列形成一个命令，传到UCSC的网页服务进行分析。<br>所以如果命令中的某些参数不对，会导致BLAT功能失效，例如指定数据库的db参数。经过测试发现JSON文件的id就是命令中的db参数。<br>从<a target="_blank" rel="noopener" href="https://igv.org/services/blatUCSC.php">https://igv.org/services/blatUCSC.php</a>的<code>&lt;SELECT NAME=&#39;db&#39;&gt;</code>这部分，可以看到UCSC在线服务<a target="_blank" rel="noopener" href="https://genome.ucsc.edu/cgi-bin/hgBlat">Human BLAT Search</a>的5个人类基因组对应的db参数取值。<br>如果需要转为使用本地服务器的BLAT功能，或者其他物种的数据库，可以看这篇文章：<a target="_blank" rel="noopener" href="https://www.jianshu.com/p/e5aceeb98a98">如何在IGV上使用BLAT搜索非模式物种</a>。</li>
+<h1 id="IGV的BLAT"><a href="#IGV的BLAT" class="headerlink" title="IGV的BLAT"></a>IGV的BLAT</h1><p><a target="_blank" rel="noopener" href="https://igv.org/doc/desktop/#UserGuide/tools/blat/">BLAT</a><br><a target="_blank" rel="noopener" href="https://igv.org/doc/desktop/#UserGuide/reference_genome/">Reference genome</a><br>从以上官方文档可以知道，IGV的BLAT功能，本质是将待查询序列形成一个命令，传到UCSC的网页服务进行分析。<br>所以如果命令中的某些参数不对，会导致BLAT功能失效，例如指定数据库的db参数。经过测试发现JSON文件的id就是命令中的db参数。<br>从<a target="_blank" rel="noopener" href="https://igv.org/doc/desktop/#UserGuide/reference_genome/">Reference genome</a>的<code>Hosting genomes</code>这部分有个<code>https://igv.org/genomes/genomes.tsv</code>，在里面可以看到IGV自带的各个基因组的JSON文件，以及genome ID（db参数&#x2F;JSON文件的id取值）。  </p>
+<ul>
+<li>如果你只是想把IGV自带的参考基因组文件下载到本地，避免每次都要等加载；同时要保留BLAT功能。那么JSON文件的id取值必须要是genomes.tsv中的genome ID。</li>
+<li>如果你的物种或者参考基因组不是IGV自带的，或者想调用本地服务器的BLAT功能，可以看这篇文章：<a target="_blank" rel="noopener" href="https://www.jianshu.com/p/e5aceeb98a98">如何在IGV上使用BLAT搜索非模式物种</a>。</li>
 </ul>
+<p><code>https://igv.org/genomes/genomes.tsv</code></p>
+<table>
+<thead>
+<tr>
+<th align="center">Name (for menu)</th>
+<th align="center">url to .genome or .json file</th>
+<th align="center">genome ID</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">A. thaliana (TAIR 10)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://igv.org/genomes/json/tair10.json">https://igv.org/genomes/json/tair10.json</a></td>
+<td align="center">tair10</td>
+</tr>
+<tr>
+<td align="center">C. elegans (ce11)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://igv.org/genomes/json/ce11.json">https://igv.org/genomes/json/ce11.json</a></td>
+<td align="center">ce11</td>
+</tr>
+<tr>
+<td align="center">Chicken (GRCg6a &#x2F; galGal6)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://igv.org/genomes/json/galGal6.json">https://igv.org/genomes/json/galGal6.json</a></td>
+<td align="center">galGal6</td>
+</tr>
+<tr>
+<td align="center">Gallus gallus (GCF_016699485.2)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://igv.org/genomes/json/GCF_016699485.2/GCF_016699485.2.json">https://igv.org/genomes/json/GCF_016699485.2/GCF_016699485.2.json</a></td>
+<td align="center">GCF_016699485.2</td>
+</tr>
+<tr>
+<td align="center">Chimp (panTro4)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://igv.org/genomes/json/panTro4.json">https://igv.org/genomes/json/panTro4.json</a></td>
+<td align="center">panTro4</td>
+</tr>
+<tr>
+<td align="center">Coprinopsis cinerea okayama7#130 (GCA_000182895.1)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://igv.org/genomes/json/GCA_000182895.1/GCA_000182895.1_dt.json">https://igv.org/genomes/json/GCA_000182895.1/GCA_000182895.1_dt.json</a></td>
+<td align="center">GCA_000182895.1</td>
+</tr>
+<tr>
+<td align="center">Cow (bosTau8)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://igv.org/genomes/json/bosTau8.json">https://igv.org/genomes/json/bosTau8.json</a></td>
+<td align="center">bosTau8</td>
+</tr>
+<tr>
+<td align="center">Cow (bosTau9)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://igv.org/genomes/json/bosTau9.json">https://igv.org/genomes/json/bosTau9.json</a></td>
+<td align="center">bosTau9</td>
+</tr>
+<tr>
+<td align="center">D. melanogaster (dm6)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://igv.org/genomes/json/dm6.json">https://igv.org/genomes/json/dm6.json</a></td>
+<td align="center">dm6</td>
+</tr>
+<tr>
+<td align="center">D. melanogaster (dm3)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://igv.org/genomes/json/dm3.json">https://igv.org/genomes/json/dm3.json</a></td>
+<td align="center">dm3</td>
+</tr>
+<tr>
+<td align="center">D. melanogaster (r5.9)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://igv.org/genomes/json/dmel_r5.9.json">https://igv.org/genomes/json/dmel_r5.9.json</a></td>
+<td align="center">dmel_r5.9</td>
+</tr>
+<tr>
+<td align="center">Dog (canFam3)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://igv.org/genomes/json/canFam3.json">https://igv.org/genomes/json/canFam3.json</a></td>
+<td align="center">canFam3</td>
+</tr>
+<tr>
+<td align="center">Dog (UU_Cfam_GSD_1.0&#x2F;canFam4)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://igv.org/genomes/json/canFam4.json">https://igv.org/genomes/json/canFam4.json</a></td>
+<td align="center">canFam4</td>
+</tr>
+<tr>
+<td align="center">Dog (canFam5)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://igv.org/genomes/json/canFam5.json">https://igv.org/genomes/json/canFam5.json</a></td>
+<td align="center">canFam5</td>
+</tr>
+<tr>
+<td align="center">Human (1kg, b37+decoy)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://igv.org/genomes/json/b37_1kg.json">https://igv.org/genomes/json/b37_1kg.json</a></td>
+<td align="center">1kg_v37</td>
+</tr>
+<tr>
+<td align="center">Human (T2T CHM13-v2.0&#x2F;hs1)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://igv.org/genomes/json/hs1.json">https://igv.org/genomes/json/hs1.json</a></td>
+<td align="center">hs1</td>
+</tr>
+<tr>
+<td align="center">Human (T2T CHM13-v1.1)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://igv.org/genomes/json/chm13v1.1.json">https://igv.org/genomes/json/chm13v1.1.json</a></td>
+<td align="center">chm13v1.1</td>
+</tr>
+<tr>
+<td align="center">Human (hg18)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://igv.org/genomes/json/hg18.json">https://igv.org/genomes/json/hg18.json</a></td>
+<td align="center">hg18</td>
+</tr>
+<tr>
+<td align="center">Human (hg19)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://igv.org/genomes/json/hg19.json">https://igv.org/genomes/json/hg19.json</a></td>
+<td align="center">hg19</td>
+</tr>
+<tr>
+<td align="center">Human (hg38)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://igv.org/genomes/json/hg38.json">https://igv.org/genomes/json/hg38.json</a></td>
+<td align="center">hg38</td>
+</tr>
+<tr>
+<td align="center">Human (hg38 1kg&#x2F;GATK)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://igv.org/genomes/json/hg38_1kg.json">https://igv.org/genomes/json/hg38_1kg.json</a></td>
+<td align="center">hg38_1kg</td>
+</tr>
+<tr>
+<td align="center">Macaca fascicularis 6.0 (GCA_011100615.1)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://igv.org/genomes/json/GCA_011100615.1.json">https://igv.org/genomes/json/GCA_011100615.1.json</a></td>
+<td align="center">GCA_011100615.1</td>
+</tr>
+<tr>
+<td align="center">Mouse mm10</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://igv.org/genomes/json/mm10.json">https://igv.org/genomes/json/mm10.json</a></td>
+<td align="center">mm10</td>
+</tr>
+<tr>
+<td align="center">Mouse mm9</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://igv.org/genomes/json/mm9.json">https://igv.org/genomes/json/mm9.json</a></td>
+<td align="center">mm9</td>
+</tr>
+<tr>
+<td align="center">Mouse mm39</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://igv.org/genomes/json/mm39.json">https://igv.org/genomes/json/mm39.json</a></td>
+<td align="center">mm39</td>
+</tr>
+<tr>
+<td align="center">Rat (rn6)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://igv.org/genomes/json/rn6.json">https://igv.org/genomes/json/rn6.json</a></td>
+<td align="center">rn6</td>
+</tr>
+<tr>
+<td align="center">Rat (rn7)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://igv.org/genomes/json/rn7.json">https://igv.org/genomes/json/rn7.json</a></td>
+<td align="center">rn7</td>
+</tr>
+<tr>
+<td align="center">S. cerevisiae (sacCer3)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://igv.org/genomes/json/sacCer3.json">https://igv.org/genomes/json/sacCer3.json</a></td>
+<td align="center">sacCer3</td>
+</tr>
+<tr>
+<td align="center">Zebrafish (GRCz10&#x2F;danRer10)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://igv.org/genomes/json/danRer10.json">https://igv.org/genomes/json/danRer10.json</a></td>
+<td align="center">danRer10</td>
+</tr>
+<tr>
+<td align="center">Zebrafish (GRCz11&#x2F;danRer11)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://igv.org/genomes/json/danRer11.json">https://igv.org/genomes/json/danRer11.json</a></td>
+<td align="center">danRer11</td>
+</tr>
+<tr>
+<td align="center">SARS-CoV-2</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://igv.org/genomes/json/ASM985889v3.json">https://igv.org/genomes/json/ASM985889v3.json</a></td>
+<td align="center">ASM985889v3</td>
+</tr>
+<tr>
+<td align="center">S. pombe (ASM294v2)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://igv.org/genomes/json/ASM294v2.json">https://igv.org/genomes/json/ASM294v2.json</a></td>
+<td align="center">ASM294v2</td>
+</tr>
+<tr>
+<td align="center">Gorilla (gorGor4)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://igv.org/genomes/json/gorGor4.json">https://igv.org/genomes/json/gorGor4.json</a></td>
+<td align="center">gorGor4</td>
+</tr>
+<tr>
+<td align="center">Gorilla (gorGor6)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://igv.org/genomes/json/gorGor6.json">https://igv.org/genomes/json/gorGor6.json</a></td>
+<td align="center">gorGor6</td>
+</tr>
+<tr>
+<td align="center">Bonobo (MPI-EVA panpan1.1&#x2F;panPan2)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://igv.org/genomes/json/panPan2.json">https://igv.org/genomes/json/panPan2.json</a></td>
+<td align="center">panPan2</td>
+</tr>
+<tr>
+<td align="center">Pig (SGSC Sscrofa11.1&#x2F;susScr11)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://igv.org/genomes/json/susScr11.json">https://igv.org/genomes/json/susScr11.json</a></td>
+<td align="center">susScr11</td>
+</tr>
+<tr>
+<td align="center">S. purpuratus (Baylor 2.1&#x2F;strPur2)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://igv.org/genomes/json/strPur2.json">https://igv.org/genomes/json/strPur2.json</a></td>
+<td align="center">strPur2</td>
+</tr>
+<tr>
+<td align="center">S. purpuratus (Spur5.0)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://igv.org/genomes/json/Spur5.0.json">https://igv.org/genomes/json/Spur5.0.json</a></td>
+<td align="center">Spur5.0</td>
+</tr>
+<tr>
+<td align="center">P. miniata (Pmin3.0)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://igv.org/genomes/json/Pmin3.0.json">https://igv.org/genomes/json/Pmin3.0.json</a></td>
+<td align="center">Pmin3.0</td>
+</tr>
+<tr>
+<td align="center">L. variegatus (Lvar3.0)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://igv.org/genomes/json/Lvar3.0.json">https://igv.org/genomes/json/Lvar3.0.json</a></td>
+<td align="center">Lvar3.0</td>
+</tr>
+<tr>
+<td align="center">O. sativa IRGSP-1.0 (GCF_001433935.1)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://igv.org/genomes/json/GCF_001433935.1.json">https://igv.org/genomes/json/GCF_001433935.1.json</a></td>
+<td align="center">GCF_001433935.1</td>
+</tr>
+<tr>
+<td align="center">A. gambia (Pest AgamP3)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/AgamP3.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/AgamP3.genome</a></td>
+<td align="center">AgamP3</td>
+</tr>
+<tr>
+<td align="center">Autographa californica MNPV</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/NC_001623.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/NC_001623.genome</a></td>
+<td align="center">NC_001623</td>
+</tr>
+<tr>
+<td align="center">Bacillus Subtilis str. 168</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/NC_000964.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/NC_000964.genome</a></td>
+<td align="center">NC_000964</td>
+</tr>
+<tr>
+<td align="center">Banana (M. Balbisiana PKWv1)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/MusaBalbisianaPKWv1.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/MusaBalbisianaPKWv1.genome</a></td>
+<td align="center">MusaBalbisianaPKWv1</td>
+</tr>
+<tr>
+<td align="center">Banana (Musa acuminata)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/MusaAcuminata.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/MusaAcuminata.genome</a></td>
+<td align="center">MusaAcuminata</td>
+</tr>
+<tr>
+<td align="center">C. alibcans (SC5314 A21)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/ca21.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/ca21.genome</a></td>
+<td align="center">ca21</td>
+</tr>
+<tr>
+<td align="center">C. elegans (WS241)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/ws241.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/ws241.genome</a></td>
+<td align="center">ws241</td>
+</tr>
+<tr>
+<td align="center">C. elegans (WS235)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/ws235.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/ws235.genome</a></td>
+<td align="center">ws235</td>
+</tr>
+<tr>
+<td align="center">C. elegans (WS245)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/WS245.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/WS245.genome</a></td>
+<td align="center">WS245</td>
+</tr>
+<tr>
+<td align="center">C. elegans (ce10)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/ce10.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/ce10.genome</a></td>
+<td align="center">ce10</td>
+</tr>
+<tr>
+<td align="center">Chicken (galGal4)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/galGal4.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/galGal4.genome</a></td>
+<td align="center">galGal4</td>
+</tr>
+<tr>
+<td align="center">Chicken (galGal5)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/galGal5.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/galGal5.genome</a></td>
+<td align="center">galGal5</td>
+</tr>
+<tr>
+<td align="center">Chimp (panTro3)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/panTro3.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/panTro3.genome</a></td>
+<td align="center">panTro3</td>
+</tr>
+<tr>
+<td align="center">Chimp (panTro5)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.org.genomes/panTro5/panTro5.genome">https://s3.amazonaws.com/igv.org.genomes/panTro5/panTro5.genome</a></td>
+<td align="center">panTro5</td>
+</tr>
+<tr>
+<td align="center">Chimp (panTro6)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.org.genomes/panTro6/panTro6.genome">https://s3.amazonaws.com/igv.org.genomes/panTro6/panTro6.genome</a></td>
+<td align="center">panTro6</td>
+</tr>
+<tr>
+<td align="center">Cat (felCat5)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/felCat5.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/felCat5.genome</a></td>
+<td align="center">felCat5</td>
+</tr>
+<tr>
+<td align="center">Cow (bosTau7)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/bosTau7.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/bosTau7.genome</a></td>
+<td align="center">bosTau7</td>
+</tr>
+<tr>
+<td align="center">E. coli K-12 MG1655 (NC_000913.2)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/NC_000913.2.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/NC_000913.2.genome</a></td>
+<td align="center">NC_000913.2</td>
+</tr>
+<tr>
+<td align="center">E. coli K-12 (NC_000913.3)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/NC_000913.3.gbk">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/NC_000913.3.gbk</a></td>
+<td align="center">NC_000913.3</td>
+</tr>
+<tr>
+<td align="center">Ferret (MusPutFur1.0)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/MusPutFur1.0.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/MusPutFur1.0.genome</a></td>
+<td align="center">MusPutFur1.0</td>
+</tr>
+<tr>
+<td align="center">Francisella tularensis (NC_008601)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/NC_008601.gbk">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/NC_008601.gbk</a></td>
+<td align="center">NC_008601</td>
+</tr>
+<tr>
+<td align="center">Glycine max (v8.0)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/gmax8.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/gmax8.genome</a></td>
+<td align="center">gmax8</td>
+</tr>
+<tr>
+<td align="center">Glycine max (Wm82.a2.v1)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/gmax10.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/gmax10.genome</a></td>
+<td align="center">gmax10</td>
+</tr>
+<tr>
+<td align="center">Helicobacter hepaticus</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/NC_004917.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/NC_004917.genome</a></td>
+<td align="center">NC_004917</td>
+</tr>
+<tr>
+<td align="center">HIV-1</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/NC_001802.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/NC_001802.genome</a></td>
+<td align="center">NC_001802</td>
+</tr>
+<tr>
+<td align="center">HIV-2</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/NC_001722.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/NC_001722.genome</a></td>
+<td align="center">NC_001722</td>
+</tr>
+<tr>
+<td align="center">Human Adenovirus C</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/NC_001405.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/NC_001405.genome</a></td>
+<td align="center">NC_001405</td>
+</tr>
+<tr>
+<td align="center">Human Herpesvirus 4, Type 1</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/HHV4_Type1.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/HHV4_Type1.genome</a></td>
+<td align="center">HHV4_Type1</td>
+</tr>
+<tr>
+<td align="center">Human Herpesvirus 4, Type 2</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/HHV4_Type2.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/HHV4_Type2.genome</a></td>
+<td align="center">HHV4_Type2</td>
+</tr>
+<tr>
+<td align="center">Human Mito (NC_012920)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/NC_012920.1.gbk">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/NC_012920.1.gbk</a></td>
+<td align="center">NC_012920</td>
+</tr>
+<tr>
+<td align="center">Human respiratory synctial virus</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/M74568.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/M74568.genome</a></td>
+<td align="center">M74568</td>
+</tr>
+<tr>
+<td align="center">Macaca fascicularis (CE_1.0)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/CE_1.0.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/CE_1.0.genome</a></td>
+<td align="center">CE_1.0</td>
+</tr>
+<tr>
+<td align="center">Macaca fascicularis (5.0)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.org.genomes/Macaca_fascicularis_5.0/Macaca_fascicularis_5.0.genome">https://s3.amazonaws.com/igv.org.genomes/Macaca_fascicularis_5.0/Macaca_fascicularis_5.0.genome</a></td>
+<td align="center">GCF_000364345.1</td>
+</tr>
+<tr>
+<td align="center">Mouse (129S1&#x2F;SvImJ)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/SvImJ.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/SvImJ.genome</a></td>
+<td align="center">129S1&#x2F;SvImJ</td>
+</tr>
+<tr>
+<td align="center">Mouse mm8</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/mm8.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/mm8.genome</a></td>
+<td align="center">mm8</td>
+</tr>
+<tr>
+<td align="center">Mycobacterium TB (CD1551)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/NC_002755.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/NC_002755.genome</a></td>
+<td align="center">NC_002755</td>
+</tr>
+<tr>
+<td align="center">N. Meningitidis (FAM18)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.broadinstitute.org/test/genomes/NC_008767.genome">https://s3.amazonaws.com/igv.broadinstitute.org/test/genomes/NC_008767.genome</a></td>
+<td align="center">NC_008767</td>
+</tr>
+<tr>
+<td align="center">N. Meningitidis (MC58)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.broadinstitute.org/test/genomes/NC_003112.genome">https://s3.amazonaws.com/igv.broadinstitute.org/test/genomes/NC_003112.genome</a></td>
+<td align="center">NC_003112</td>
+</tr>
+<tr>
+<td align="center">N. Meningitidis (Z2491)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.broadinstitute.org/test/genomes/NC_003116.genome">https://s3.amazonaws.com/igv.broadinstitute.org/test/genomes/NC_003116.genome</a></td>
+<td align="center">NC_003116</td>
+</tr>
+<tr>
+<td align="center">P. falciparum 3D7 (V9.0)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/Pf3D7_v9.0.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/Pf3D7_v9.0.genome</a></td>
+<td align="center">Pf3D7_v9.0</td>
+</tr>
+<tr>
+<td align="center">Plasmodium (3D7 V24)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/PlasmoDB_24.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/PlasmoDB_24.genome</a></td>
+<td align="center">Plasmodium_24</td>
+</tr>
+<tr>
+<td align="center">Rabbit (oryCun2.0)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/oryCun2.0.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/oryCun2.0.genome</a></td>
+<td align="center">oryCun2.0</td>
+</tr>
+<tr>
+<td align="center">Rat (rn5)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/rn5.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/rn5.genome</a></td>
+<td align="center">rn5</td>
+</tr>
+<tr>
+<td align="center">Rhesus (rheMac3)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/rheMac3.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/rheMac3.genome</a></td>
+<td align="center">rheMac3</td>
+</tr>
+<tr>
+<td align="center">Rhesus (rheMac8)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/rheMac8.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/rheMac8.genome</a></td>
+<td align="center">rheMac8</td>
+</tr>
+<tr>
+<td align="center">Rhesus (Mmul_10&#x2F;rheMac10)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.org.genomes/rheMac10/rheMac10.genome">https://s3.amazonaws.com/igv.org.genomes/rheMac10/rheMac10.genome</a></td>
+<td align="center">rheMac10</td>
+</tr>
+<tr>
+<td align="center">S. cerevisiae (Y55)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/Y55.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/Y55.genome</a></td>
+<td align="center">Y55</td>
+</tr>
+<tr>
+<td align="center">S. pombe (ASM294v2)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/ASM294v2.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/ASM294v2.genome</a></td>
+<td align="center">ASM294v2</td>
+</tr>
+<tr>
+<td align="center">S. sclerotiorum (sclerotiorum)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/sclerotiorum.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/sclerotiorum.genome</a></td>
+<td align="center">sclerotiorum</td>
+</tr>
+<tr>
+<td align="center">Salmonella enterica str. 14028S</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/NC_016856.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/NC_016856.genome</a></td>
+<td align="center">NC_016856</td>
+</tr>
+<tr>
+<td align="center">Salmo salar (ICSASG_v2)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/GCF_000233375.1.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/GCF_000233375.1.genome</a></td>
+<td align="center">GCF_000233375.1</td>
+</tr>
+<tr>
+<td align="center">Sheep (Ovis Aries v3.1)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/oviAri3.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/oviAri3.genome</a></td>
+<td align="center">oviAri3</td>
+</tr>
+<tr>
+<td align="center">Sus Scrofa (Sscrofa10.2&#x2F;susScr3)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/susScr3.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/susScr3.genome</a></td>
+<td align="center">susScr3</td>
+</tr>
+<tr>
+<td align="center">T. brucei (427 v4.2)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/tb427_4.2.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/tb427_4.2.genome</a></td>
+<td align="center">tb427_4.2</td>
+</tr>
+<tr>
+<td align="center">T. brucei (927 v5.0)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/tbrucei927_5.0.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/tbrucei927_5.0.genome</a></td>
+<td align="center">tbrucei927_5.0</td>
+</tr>
+<tr>
+<td align="center">T. brucei gambiense</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/tbgambi.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/tbgambi.genome</a></td>
+<td align="center">tbgambi</td>
+</tr>
+<tr>
+<td align="center">Tomato (2.31)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/SL2.31.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/SL2.31.genome</a></td>
+<td align="center">SL2.31</td>
+</tr>
+<tr>
+<td align="center">Tomato (2.40)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/SL2.40.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/SL2.40.genome</a></td>
+<td align="center">SL2.40</td>
+</tr>
+<tr>
+<td align="center">Trout (CCAF000000000)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/CCAF000000000.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/CCAF000000000.genome</a></td>
+<td align="center">CCAF000000000</td>
+</tr>
+<tr>
+<td align="center">V. vitifera</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/vvinifera.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/vvinifera.genome</a></td>
+<td align="center">vvitifera</td>
+</tr>
+<tr>
+<td align="center">X. tropicalis v9.0</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/xenTro9.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/xenTro9.genome</a></td>
+<td align="center">xenTro9</td>
+</tr>
+<tr>
+<td align="center">X. laevis (7.1)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/laevis_7.1.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/laevis_7.1.genome</a></td>
+<td align="center">laevis_7.1</td>
+</tr>
+<tr>
+<td align="center">Zea mays (AGPv3.31)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/AGPv3.31.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/AGPv3.31.genome</a></td>
+<td align="center">AGPv3.31</td>
+</tr>
+<tr>
+<td align="center">C. reinhardtii (CC-503 v5.5)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.org.genomes/Creinhardtii_CC-503_v5.0/2019-03-21_Creinhardtii_CC-503_v5.5.genome">https://s3.amazonaws.com/igv.org.genomes/Creinhardtii_CC-503_v5.0/2019-03-21_Creinhardtii_CC-503_v5.5.genome</a></td>
+<td align="center">2019-03-21_Creinhardtii_CC-503_v5.5</td>
+</tr>
+<tr>
+<td align="center">C. reinhardtii (CC-503 v5.6)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.org.genomes/C.reinhardtii_CC-503_v5.6+/2019-03-21_Creinhardtii_CC-503_v5.6.genome">https://s3.amazonaws.com/igv.org.genomes/C.reinhardtii_CC-503_v5.6+/2019-03-21_Creinhardtii_CC-503_v5.6.genome</a></td>
+<td align="center">2019-03-21_Creinhardtii_CC-503_v5.6</td>
+</tr>
+<tr>
+<td align="center">C. reinhardtii (CC-503 v5.6 Cp+Mt v4.4)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.org.genomes/Creinhardtii_CC-503_v5.6/2019-03-21_Creinhardtii_CC-503_v5.6_Cp%2BMt_v4.4.genome">https://s3.amazonaws.com/igv.org.genomes/Creinhardtii_CC-503_v5.6/2019-03-21_Creinhardtii_CC-503_v5.6_Cp%2BMt_v4.4.genome</a></td>
+<td align="center">2019-03-21_Creinhardtii_CC-503_v5.6_Cp+Mt_v4.4</td>
+</tr>
+<tr>
+<td align="center">Ixodes scapularis JCVI_ISG_i3_1.0 (GCA_000208615.1)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.org.genomes/tick/GCA_000208615.1/GCA_000208615.1.genome">https://s3.amazonaws.com/igv.org.genomes/tick/GCA_000208615.1/GCA_000208615.1.genome</a></td>
+<td align="center">GCA_000208615.1</td>
+</tr>
+<tr>
+<td align="center">Ixodes scapularis ISE6_asm2.2_deduplicated (GCA_002892825.2)</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://s3.amazonaws.com/igv.org.genomes/tick/GCA_000208615.1/GCA_000208615.1.genome">https://s3.amazonaws.com/igv.org.genomes/tick/GCA_000208615.1/GCA_000208615.1.genome</a></td>
+<td align="center">GCA_002892825.2</td>
+</tr>
+</tbody></table>
 <hr>
-<h1 id="文章更新记录"><a href="#文章更新记录" class="headerlink" title="文章更新记录"></a>文章更新记录</h1><h2 id="2025-03-25"><a href="#2025-03-25" class="headerlink" title="2025.03.25"></a>2025.03.25</h2><ol>
+<h1 id="文章更新记录"><a href="#文章更新记录" class="headerlink" title="文章更新记录"></a>文章更新记录</h1><h2 id="2025-03-26"><a href="#2025-03-26" class="headerlink" title="2025.03.26"></a>2025.03.26</h2><ol>
 <li><code>参数说明</code>中id和name的说明有误，已更正。</li>
+<li>更新<code>JSON示例</code>为官方示例。</li>
 <li>新增<code>IGV的BLAT</code>相关信息。</li>
 </ol>
 

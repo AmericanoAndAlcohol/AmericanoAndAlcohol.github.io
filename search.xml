@@ -62,25 +62,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Bam文件操作</title>
-    <url>/2023/05/22/Bam%E6%96%87%E4%BB%B6%E6%93%8D%E4%BD%9C/</url>
-    <content><![CDATA[<p>用Linux命令行或软件对Bam文件进行操作</p>
-<span id="more"></span>
-
-<h1 id="统计CIGAR，从多到少排序"><a href="#统计CIGAR，从多到少排序" class="headerlink" title="统计CIGAR，从多到少排序"></a>统计CIGAR，从多到少排序</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sambamba view -F &quot;ref_name==&#x27;******&#x27; and not secondary_alignment and not supplementary&quot; ******.bam | cut -f 6 | sort | uniq -c | sed -r &#x27;s/^\s+//&#x27; | sed -r &#x27;s/\s+/\t/&#x27; | sort -k 1 -nr &gt; CIGAR.tsv</span><br></pre></td></tr></table></figure>
-
-<h1 id="提取Reads，转fasta"><a href="#提取Reads，转fasta" class="headerlink" title="提取Reads，转fasta"></a>提取Reads，转fasta</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sambamba view -F &quot;ref_name==&#x27;******&#x27; and not secondary_alignment and not supplementary&quot; ******.bam | cut -f 1,10 | sed &#x27;s/^/&gt;/&#x27; | sed -r &#x27;s/\t/\n/&#x27; &gt; Target.fa</span><br></pre></td></tr></table></figure>
-]]></content>
-      <categories>
-        <category>Log</category>
-      </categories>
-      <tags>
-        <tag>Bam</tag>
-        <tag>Sambamba</tag>
-        <tag>Linux</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>BLAST短序列比对没有结果</title>
     <url>/2023/08/03/BLAST%E7%9F%AD%E5%BA%8F%E5%88%97%E6%AF%94%E5%AF%B9%E6%B2%A1%E6%9C%89%E7%BB%93%E6%9E%9C/</url>
     <content><![CDATA[<p>BLAST短序列比对hg19，没有比对结果。需要设置特定参数。</p>
@@ -144,6 +125,51 @@
       </tags>
   </entry>
   <entry>
+    <title>Bam文件操作</title>
+    <url>/2023/05/22/Bam%E6%96%87%E4%BB%B6%E6%93%8D%E4%BD%9C/</url>
+    <content><![CDATA[<p>用Linux命令行或软件对Bam文件进行操作</p>
+<span id="more"></span>
+
+<h1 id="统计CIGAR，从多到少排序"><a href="#统计CIGAR，从多到少排序" class="headerlink" title="统计CIGAR，从多到少排序"></a>统计CIGAR，从多到少排序</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sambamba view -F &quot;ref_name==&#x27;******&#x27; and not secondary_alignment and not supplementary&quot; ******.bam | cut -f 6 | sort | uniq -c | sed -r &#x27;s/^\s+//&#x27; | sed -r &#x27;s/\s+/\t/&#x27; | sort -k 1 -nr &gt; CIGAR.tsv</span><br></pre></td></tr></table></figure>
+
+<h1 id="提取Reads，转fasta"><a href="#提取Reads，转fasta" class="headerlink" title="提取Reads，转fasta"></a>提取Reads，转fasta</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sambamba view -F &quot;ref_name==&#x27;******&#x27; and not secondary_alignment and not supplementary&quot; ******.bam | cut -f 1,10 | sed &#x27;s/^/&gt;/&#x27; | sed -r &#x27;s/\t/\n/&#x27; &gt; Target.fa</span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>Log</category>
+      </categories>
+      <tags>
+        <tag>Bam</tag>
+        <tag>Sambamba</tag>
+        <tag>Linux</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Cutadapt拆分MGI数据</title>
+    <url>/2023/05/27/Cutadapt%E6%8B%86%E5%88%86MGI%E6%95%B0%E6%8D%AE/</url>
+    <content><![CDATA[<p>用Cutadapt拆分MGI测序仪的下机数据</p>
+<span id="more"></span>
+
+<h1 id="背景说明"><a href="#背景说明" class="headerlink" title="背景说明"></a>背景说明</h1><p>用华大测序仪上机测序时，如果选择不由测序仪自动拆分，测序完成后，只会得到一个包含index序列的Fastq文件。<br>使用Cutadapt，可以比较方便地按你需要的index，拆分成多个Fastq文件；还可以参数指定用多个线程拆分，会比较快。<br>同样的方法也可以用于一些包含Tag序列的Fastq文件，例如基因表达谱分析（DGE，Digital Gene Expression Tag Profiling）的数据。  </p>
+<h1 id="输入文件"><a href="#输入文件" class="headerlink" title="输入文件"></a>输入文件</h1><ul>
+<li><p>MGI下机的包含index序列的Fastq文件<br>以下示例是测序读长是50，用的是Dual Barcode 8 bp + 8 bp的Fastq文件。<br><img src="https://pic1.imgdb.cn/item/64719df0f024cca173d96bd8.png" alt="Input_Fq"></p>
+</li>
+<li><p>目标index序列的Fasta文件<br>按以下格式写成Fasta文件。序列末尾的*$*符号，是为了保证检出的index序列是完整地出现在序列3’末端，详见<a href="https://cutadapt.readthedocs.io/en/stable/guide.html#overview-of-adapter-types">Cutadapt文档 Overview of adapter types</a>。<br><img src="https://pic1.imgdb.cn/item/64719df0f024cca173d96bff.png" alt="Index_Fa"></p>
+</li>
+</ul>
+<h1 id="拆分脚本"><a href="#拆分脚本" class="headerlink" title="拆分脚本"></a>拆分脚本</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># Shell</span><br><span class="line"></span><br><span class="line">### 参数 ###</span><br><span class="line"># 输入Fastq文件</span><br><span class="line">Input=&quot;xxxxxx.fq.gz&quot;</span><br><span class="line"># Index Fasta文件</span><br><span class="line">Index=&quot;index.fa&quot;</span><br><span class="line"># 输出目录</span><br><span class="line">Result_Dir=&quot;Result&quot;</span><br><span class="line"># 测序读长</span><br><span class="line">Read_Length=50</span><br><span class="line"># 调用核数量</span><br><span class="line">Core=6</span><br><span class="line"></span><br><span class="line">### 拆分 ###</span><br><span class="line">rm -fr $Result_Dir</span><br><span class="line">mkdir -p $Result_Dir</span><br><span class="line"># 用&#123;name&#125;可以使输出文件名用$Index中的Reads ID作为文件名前缀</span><br><span class="line">cutadapt -j $Core --no-indels -e 0 --quality-cutoff 0 --minimum-length $Read_Length --maximum-length $Read_Length -a file:$Index -o $Result_Dir/&#123;name&#125;.fq.gz $Input</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h1 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h1><p><a href="https://cutadapt.readthedocs.io/en/stable/guide.html#demultiplexing">Cutadapt文档 Demultiplexing</a></p>
+]]></content>
+      <categories>
+        <category>Log</category>
+      </categories>
+      <tags>
+        <tag>Cutadapt</tag>
+        <tag>MGI</tag>
+        <tag>数据拆分</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Docker Windows桌面端 释放占用空间</title>
     <url>/2023/11/05/Docker-Windows%E6%A1%8C%E9%9D%A2%E7%AB%AF-%E9%87%8A%E6%94%BE%E5%8D%A0%E7%94%A8%E7%A9%BA%E9%97%B4/</url>
     <content><![CDATA[<p>Docker Windows桌面端，删除容器后，占用空间没有释放</p>
@@ -177,32 +203,6 @@
       </categories>
       <tags>
         <tag>Docker</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Cutadapt拆分MGI数据</title>
-    <url>/2023/05/27/Cutadapt%E6%8B%86%E5%88%86MGI%E6%95%B0%E6%8D%AE/</url>
-    <content><![CDATA[<p>用Cutadapt拆分MGI测序仪的下机数据</p>
-<span id="more"></span>
-
-<h1 id="背景说明"><a href="#背景说明" class="headerlink" title="背景说明"></a>背景说明</h1><p>用华大测序仪上机测序时，如果选择不由测序仪自动拆分，测序完成后，只会得到一个包含index序列的Fastq文件。<br>使用Cutadapt，可以比较方便地按你需要的index，拆分成多个Fastq文件；还可以参数指定用多个线程拆分，会比较快。<br>同样的方法也可以用于一些包含Tag序列的Fastq文件，例如基因表达谱分析（DGE，Digital Gene Expression Tag Profiling）的数据。  </p>
-<h1 id="输入文件"><a href="#输入文件" class="headerlink" title="输入文件"></a>输入文件</h1><ul>
-<li><p>MGI下机的包含index序列的Fastq文件<br>以下示例是测序读长是50，用的是Dual Barcode 8 bp + 8 bp的Fastq文件。<br><img src="https://pic1.imgdb.cn/item/64719df0f024cca173d96bd8.png" alt="Input_Fq"></p>
-</li>
-<li><p>目标index序列的Fasta文件<br>按以下格式写成Fasta文件。序列末尾的*$*符号，是为了保证检出的index序列是完整地出现在序列3’末端，详见<a href="https://cutadapt.readthedocs.io/en/stable/guide.html#overview-of-adapter-types">Cutadapt文档 Overview of adapter types</a>。<br><img src="https://pic1.imgdb.cn/item/64719df0f024cca173d96bff.png" alt="Index_Fa"></p>
-</li>
-</ul>
-<h1 id="拆分脚本"><a href="#拆分脚本" class="headerlink" title="拆分脚本"></a>拆分脚本</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># Shell</span><br><span class="line"></span><br><span class="line">### 参数 ###</span><br><span class="line"># 输入Fastq文件</span><br><span class="line">Input=&quot;xxxxxx.fq.gz&quot;</span><br><span class="line"># Index Fasta文件</span><br><span class="line">Index=&quot;index.fa&quot;</span><br><span class="line"># 输出目录</span><br><span class="line">Result_Dir=&quot;Result&quot;</span><br><span class="line"># 测序读长</span><br><span class="line">Read_Length=50</span><br><span class="line"># 调用核数量</span><br><span class="line">Core=6</span><br><span class="line"></span><br><span class="line">### 拆分 ###</span><br><span class="line">rm -fr $Result_Dir</span><br><span class="line">mkdir -p $Result_Dir</span><br><span class="line"># 用&#123;name&#125;可以使输出文件名用$Index中的Reads ID作为文件名前缀</span><br><span class="line">cutadapt -j $Core --no-indels -e 0 --quality-cutoff 0 --minimum-length $Read_Length --maximum-length $Read_Length -a file:$Index -o $Result_Dir/&#123;name&#125;.fq.gz $Input</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<h1 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h1><p><a href="https://cutadapt.readthedocs.io/en/stable/guide.html#demultiplexing">Cutadapt文档 Demultiplexing</a></p>
-]]></content>
-      <categories>
-        <category>Log</category>
-      </categories>
-      <tags>
-        <tag>Cutadapt</tag>
-        <tag>MGI</tag>
-        <tag>数据拆分</tag>
       </tags>
   </entry>
   <entry>
@@ -325,7 +325,7 @@
 <h2 id="官方文档"><a href="#官方文档" class="headerlink" title="官方文档"></a>官方文档</h2><p><a href="https://github.com/igvteam/igv/wiki/JSON-Genome-Format">格式说明</a> <code>https://github.com/igvteam/igv/wiki/JSON-Genome-Format</code><br><a href="https://github.com/igvteam/igv.js/wiki/Reference-Genome">属性说明</a> <code>https://github.com/igvteam/igv.js/wiki/Reference-Genome</code>  </p>
 <h2 id="参数说明"><a href="#参数说明" class="headerlink" title="参数说明"></a>参数说明</h2><p>IGV 2.11.0版本以上自定义参考基因组JSON文件，只有是fastaURL必填，其他都是可选。<br>所有URL都可以是在线资源或本地路径。  </p>
 <ul>
-<li>id：该参考基因组的名称，可选。<del>就是在Genome下拉框里显示的基因组名称。</del>需要是hs1、hg38、hg19、hg18、hg17、hg16其中之一，否则IGV的BLAT功能会没反应。具体原因见<code>IGV的BLAT</code>。  </li>
+<li>id：该参考基因组的名称，可选。 <del>就是在Genome下拉框里显示的基因组名称。</del> 如果需要使用BLAT功能的话，这里要填某些特定的genome ID。具体原因见<code>IGV的BLAT</code>。  </li>
 <li>name：描述信息，可选。就是在Genome下拉框里显示的基因组名称。  </li>
 <li>fastaURL：参考基因组Fasta的URL，必填。可以是线上的，如UCSC等数据库中的fasta文件；也可以是本地的，如服务器上的fasta文件路径。  </li>
 <li>indexURL：参考基因组Fasta的索引（.fai）文件，可选。但如果不提供.fai文件，会一次性加载整个fasta文件。  </li>
@@ -333,15 +333,573 @@
 <li>tracks：加载参考基因组时，同时加载的一系列Tracks，例如默认的hg19基因组的RefSeq Gene描述信息，可选。IGV的Github有<a href="https://github.com/igvteam/igv.js/wiki/Tracks-2.0">tracks格式说明</a>。</li>
 </ul>
 <h2 id="加载方法"><a href="#加载方法" class="headerlink" title="加载方法"></a>加载方法</h2><p>写完JSON文件后，在软件中加载自定义参考基因组的方法：Genomes -&gt; Load Genome from File… -&gt; 选择参考基因组json文件</p>
-<h1 id="JSON示例"><a href="#JSON示例" class="headerlink" title="JSON示例"></a>JSON示例</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  &quot;id&quot;: &quot;b37chr&quot;,</span><br><span class="line">  &quot;name&quot;: &quot;Human (b37 with chr)&quot;,</span><br><span class="line">  &quot;fastaURL&quot;: &quot;/xxx/database/b37chr/human_g1k_v37_decoy_chr.fasta&quot;,</span><br><span class="line">  &quot;indexURL&quot;: &quot;/xxx/database/b37chr/human_g1k_v37_decoy_chr.fasta.fai&quot;,</span><br><span class="line">  &quot;cytobandURL&quot;: &quot;/xxx/database/b37chr/cytoBand.txt&quot;,</span><br><span class="line">  &quot;tracks&quot;: [</span><br><span class="line">    &#123;</span><br><span class="line">      &quot;name&quot;: &quot;Refseq Genes&quot;,</span><br><span class="line">      &quot;format&quot;: &quot;refgene&quot;,</span><br><span class="line">      &quot;url&quot;: &quot;/xxx/database/b37chr/ncbiRefSeq.sorted.txt.gz&quot;,</span><br><span class="line">      &quot;indexURL&quot;: &quot;/xxx/database/b37chr/ncbiRefSeq.sorted.txt.gz.tbi&quot;</span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      &quot;name&quot;: &quot;Target 1&quot;,</span><br><span class="line">      &quot;format&quot;: &quot;bed&quot;,</span><br><span class="line">      &quot;url&quot;: &quot;/xxx/database/b37chr/bed/Target_1.bed&quot;</span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      &quot;name&quot;: &quot;Target 2&quot;,</span><br><span class="line">      &quot;format&quot;: &quot;bed&quot;,</span><br><span class="line">      &quot;url&quot;: &quot;/xxx/database/b37chr/bed/Target_2.bed&quot;</span><br><span class="line">    &#125;</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="JSON示例"><a href="#JSON示例" class="headerlink" title="JSON示例"></a>JSON示例</h1><p>示例的详细信息见：<a href="https://igv.org/doc/desktop/#FileFormats/Genomes/#igv-reference-genome-json">IGV reference genome (JSON)</a></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  &quot;id&quot;: &quot;hg38&quot;,</span><br><span class="line">  &quot;name&quot;: &quot;Human (GRCh38/hg38)&quot;,</span><br><span class="line">  &quot;fastaURL&quot;: &quot;https://s3.amazonaws.com/igv.broadinstitute.org/genomes/seq/hg38/hg38.fa&quot;,</span><br><span class="line">  &quot;indexURL&quot;: &quot;https://s3.amazonaws.com/igv.broadinstitute.org/genomes/seq/hg38/hg38.fa.fai&quot;,</span><br><span class="line">  &quot;cytobandURL&quot;: &quot;https://s3.amazonaws.com/igv.org.genomes/hg38/annotations/cytoBandIdeo.txt.gz&quot;,</span><br><span class="line">  &quot;aliasURL&quot;: &quot;https://s3.amazonaws.com/igv.org.genomes/hg38/hg38_alias.tab&quot;,</span><br><span class="line">  &quot;chromosomeOrder&quot;: [</span><br><span class="line">    &quot;chr1&quot;,</span><br><span class="line">    &quot;chr2&quot;,</span><br><span class="line">    &quot;chr3&quot;,</span><br><span class="line">    &quot;chr4&quot;,</span><br><span class="line">    &quot;chr5&quot;,</span><br><span class="line">    &quot;chr6&quot;,</span><br><span class="line">    &quot;chr7&quot;,</span><br><span class="line">    &quot;chr8&quot;,</span><br><span class="line">    &quot;chr9&quot;,</span><br><span class="line">    &quot;chr10&quot;,</span><br><span class="line">    &quot;chr11&quot;,</span><br><span class="line">    &quot;chr12&quot;,</span><br><span class="line">    &quot;chr13&quot;,</span><br><span class="line">    &quot;chr14&quot;,</span><br><span class="line">    &quot;chr15&quot;,</span><br><span class="line">    &quot;chr16&quot;,</span><br><span class="line">    &quot;chr17&quot;,</span><br><span class="line">    &quot;chr18&quot;,</span><br><span class="line">    &quot;chr19&quot;,</span><br><span class="line">    &quot;chr20&quot;,</span><br><span class="line">    &quot;chr21&quot;,</span><br><span class="line">    &quot;chr22&quot;,</span><br><span class="line">    &quot;chrX&quot;,</span><br><span class="line">    &quot;chrY&quot;</span><br><span class="line">  ],</span><br><span class="line">  &quot;tracks&quot;: [</span><br><span class="line">    &#123;</span><br><span class="line">      &quot;name&quot;: &quot;Refseq Genes&quot;,</span><br><span class="line">      &quot;format&quot;: &quot;refgene&quot;,</span><br><span class="line">      &quot;url&quot;: &quot;https://s3.amazonaws.com/igv.org.genomes/hg38/ncbiRefSeq.sorted.txt.gz&quot;,</span><br><span class="line">      &quot;indexURL&quot;: &quot;https://s3.amazonaws.com/igv.org.genomes/hg38/ncbiRefSeq.sorted.txt.gz.tbi&quot;</span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      &quot;name&quot;: &quot;Gencode v24 genes&quot;,</span><br><span class="line">      &quot;format&quot;: &quot;gtf&quot;,</span><br><span class="line">      &quot;url&quot;: &quot;https://s3.amazonaws.com/igv.org.genomes/hg19/gencode.v24.genes.gtf.gz&quot;</span><br><span class="line">    &#125;</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<h1 id="IGV的BLAT"><a href="#IGV的BLAT" class="headerlink" title="IGV的BLAT"></a>IGV的BLAT</h1><ul>
-<li><a href="https://github.com/igvteam/igv/wiki/Customizing-BLAT/f1cc79c0b3c8c27c1d612e4a025a1eee94bd8f56">Customizing BLAT</a></li>
-<li><a href="https://igv.org/doc/desktop/#UserGuide/tools/blat/">BLAT</a><br>从以上官方文档可以知道，IGV的BLAT功能，本质是将待查询序列形成一个命令，传到UCSC的网页服务进行分析。<br>所以如果命令中的某些参数不对，会导致BLAT功能失效，例如指定数据库的db参数。经过测试发现JSON文件的id就是命令中的db参数。<br>从<a href="https://igv.org/services/blatUCSC.php">https://igv.org/services/blatUCSC.php</a>的<code>&lt;SELECT NAME=&#39;db&#39;&gt;</code>这部分，可以看到UCSC在线服务<a href="https://genome.ucsc.edu/cgi-bin/hgBlat">Human BLAT Search</a>的5个人类基因组对应的db参数取值。<br>如果需要转为使用本地服务器的BLAT功能，或者其他物种的数据库，可以看这篇文章：<a href="https://www.jianshu.com/p/e5aceeb98a98">如何在IGV上使用BLAT搜索非模式物种</a>。</li>
+<h1 id="IGV的BLAT"><a href="#IGV的BLAT" class="headerlink" title="IGV的BLAT"></a>IGV的BLAT</h1><p><a href="https://igv.org/doc/desktop/#UserGuide/tools/blat/">BLAT</a><br><a href="https://igv.org/doc/desktop/#UserGuide/reference_genome/">Reference genome</a><br>从以上官方文档可以知道，IGV的BLAT功能，本质是将待查询序列形成一个命令，传到UCSC的网页服务进行分析。<br>所以如果命令中的某些参数不对，会导致BLAT功能失效，例如指定数据库的db参数。经过测试发现JSON文件的id就是命令中的db参数。<br>从<a href="https://igv.org/doc/desktop/#UserGuide/reference_genome/">Reference genome</a>的<code>Hosting genomes</code>这部分有个<code>https://igv.org/genomes/genomes.tsv</code>，在里面可以看到IGV自带的各个基因组的JSON文件，以及genome ID（db参数&#x2F;JSON文件的id取值）。  </p>
+<ul>
+<li>如果你只是想把IGV自带的参考基因组文件下载到本地，避免每次都要等加载；同时要保留BLAT功能。那么JSON文件的id取值必须要是genomes.tsv中的genome ID。</li>
+<li>如果你的物种或者参考基因组不是IGV自带的，或者想调用本地服务器的BLAT功能，可以看这篇文章：<a href="https://www.jianshu.com/p/e5aceeb98a98">如何在IGV上使用BLAT搜索非模式物种</a>。</li>
 </ul>
+<p><code>https://igv.org/genomes/genomes.tsv</code></p>
+<table>
+<thead>
+<tr>
+<th align="center">Name (for menu)</th>
+<th align="center">url to .genome or .json file</th>
+<th align="center">genome ID</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">A. thaliana (TAIR 10)</td>
+<td align="center"><a href="https://igv.org/genomes/json/tair10.json">https://igv.org/genomes/json/tair10.json</a></td>
+<td align="center">tair10</td>
+</tr>
+<tr>
+<td align="center">C. elegans (ce11)</td>
+<td align="center"><a href="https://igv.org/genomes/json/ce11.json">https://igv.org/genomes/json/ce11.json</a></td>
+<td align="center">ce11</td>
+</tr>
+<tr>
+<td align="center">Chicken (GRCg6a &#x2F; galGal6)</td>
+<td align="center"><a href="https://igv.org/genomes/json/galGal6.json">https://igv.org/genomes/json/galGal6.json</a></td>
+<td align="center">galGal6</td>
+</tr>
+<tr>
+<td align="center">Gallus gallus (GCF_016699485.2)</td>
+<td align="center"><a href="https://igv.org/genomes/json/GCF_016699485.2/GCF_016699485.2.json">https://igv.org/genomes/json/GCF_016699485.2/GCF_016699485.2.json</a></td>
+<td align="center">GCF_016699485.2</td>
+</tr>
+<tr>
+<td align="center">Chimp (panTro4)</td>
+<td align="center"><a href="https://igv.org/genomes/json/panTro4.json">https://igv.org/genomes/json/panTro4.json</a></td>
+<td align="center">panTro4</td>
+</tr>
+<tr>
+<td align="center">Coprinopsis cinerea okayama7#130 (GCA_000182895.1)</td>
+<td align="center"><a href="https://igv.org/genomes/json/GCA_000182895.1/GCA_000182895.1_dt.json">https://igv.org/genomes/json/GCA_000182895.1/GCA_000182895.1_dt.json</a></td>
+<td align="center">GCA_000182895.1</td>
+</tr>
+<tr>
+<td align="center">Cow (bosTau8)</td>
+<td align="center"><a href="https://igv.org/genomes/json/bosTau8.json">https://igv.org/genomes/json/bosTau8.json</a></td>
+<td align="center">bosTau8</td>
+</tr>
+<tr>
+<td align="center">Cow (bosTau9)</td>
+<td align="center"><a href="https://igv.org/genomes/json/bosTau9.json">https://igv.org/genomes/json/bosTau9.json</a></td>
+<td align="center">bosTau9</td>
+</tr>
+<tr>
+<td align="center">D. melanogaster (dm6)</td>
+<td align="center"><a href="https://igv.org/genomes/json/dm6.json">https://igv.org/genomes/json/dm6.json</a></td>
+<td align="center">dm6</td>
+</tr>
+<tr>
+<td align="center">D. melanogaster (dm3)</td>
+<td align="center"><a href="https://igv.org/genomes/json/dm3.json">https://igv.org/genomes/json/dm3.json</a></td>
+<td align="center">dm3</td>
+</tr>
+<tr>
+<td align="center">D. melanogaster (r5.9)</td>
+<td align="center"><a href="https://igv.org/genomes/json/dmel_r5.9.json">https://igv.org/genomes/json/dmel_r5.9.json</a></td>
+<td align="center">dmel_r5.9</td>
+</tr>
+<tr>
+<td align="center">Dog (canFam3)</td>
+<td align="center"><a href="https://igv.org/genomes/json/canFam3.json">https://igv.org/genomes/json/canFam3.json</a></td>
+<td align="center">canFam3</td>
+</tr>
+<tr>
+<td align="center">Dog (UU_Cfam_GSD_1.0&#x2F;canFam4)</td>
+<td align="center"><a href="https://igv.org/genomes/json/canFam4.json">https://igv.org/genomes/json/canFam4.json</a></td>
+<td align="center">canFam4</td>
+</tr>
+<tr>
+<td align="center">Dog (canFam5)</td>
+<td align="center"><a href="https://igv.org/genomes/json/canFam5.json">https://igv.org/genomes/json/canFam5.json</a></td>
+<td align="center">canFam5</td>
+</tr>
+<tr>
+<td align="center">Human (1kg, b37+decoy)</td>
+<td align="center"><a href="https://igv.org/genomes/json/b37_1kg.json">https://igv.org/genomes/json/b37_1kg.json</a></td>
+<td align="center">1kg_v37</td>
+</tr>
+<tr>
+<td align="center">Human (T2T CHM13-v2.0&#x2F;hs1)</td>
+<td align="center"><a href="https://igv.org/genomes/json/hs1.json">https://igv.org/genomes/json/hs1.json</a></td>
+<td align="center">hs1</td>
+</tr>
+<tr>
+<td align="center">Human (T2T CHM13-v1.1)</td>
+<td align="center"><a href="https://igv.org/genomes/json/chm13v1.1.json">https://igv.org/genomes/json/chm13v1.1.json</a></td>
+<td align="center">chm13v1.1</td>
+</tr>
+<tr>
+<td align="center">Human (hg18)</td>
+<td align="center"><a href="https://igv.org/genomes/json/hg18.json">https://igv.org/genomes/json/hg18.json</a></td>
+<td align="center">hg18</td>
+</tr>
+<tr>
+<td align="center">Human (hg19)</td>
+<td align="center"><a href="https://igv.org/genomes/json/hg19.json">https://igv.org/genomes/json/hg19.json</a></td>
+<td align="center">hg19</td>
+</tr>
+<tr>
+<td align="center">Human (hg38)</td>
+<td align="center"><a href="https://igv.org/genomes/json/hg38.json">https://igv.org/genomes/json/hg38.json</a></td>
+<td align="center">hg38</td>
+</tr>
+<tr>
+<td align="center">Human (hg38 1kg&#x2F;GATK)</td>
+<td align="center"><a href="https://igv.org/genomes/json/hg38_1kg.json">https://igv.org/genomes/json/hg38_1kg.json</a></td>
+<td align="center">hg38_1kg</td>
+</tr>
+<tr>
+<td align="center">Macaca fascicularis 6.0 (GCA_011100615.1)</td>
+<td align="center"><a href="https://igv.org/genomes/json/GCA_011100615.1.json">https://igv.org/genomes/json/GCA_011100615.1.json</a></td>
+<td align="center">GCA_011100615.1</td>
+</tr>
+<tr>
+<td align="center">Mouse mm10</td>
+<td align="center"><a href="https://igv.org/genomes/json/mm10.json">https://igv.org/genomes/json/mm10.json</a></td>
+<td align="center">mm10</td>
+</tr>
+<tr>
+<td align="center">Mouse mm9</td>
+<td align="center"><a href="https://igv.org/genomes/json/mm9.json">https://igv.org/genomes/json/mm9.json</a></td>
+<td align="center">mm9</td>
+</tr>
+<tr>
+<td align="center">Mouse mm39</td>
+<td align="center"><a href="https://igv.org/genomes/json/mm39.json">https://igv.org/genomes/json/mm39.json</a></td>
+<td align="center">mm39</td>
+</tr>
+<tr>
+<td align="center">Rat (rn6)</td>
+<td align="center"><a href="https://igv.org/genomes/json/rn6.json">https://igv.org/genomes/json/rn6.json</a></td>
+<td align="center">rn6</td>
+</tr>
+<tr>
+<td align="center">Rat (rn7)</td>
+<td align="center"><a href="https://igv.org/genomes/json/rn7.json">https://igv.org/genomes/json/rn7.json</a></td>
+<td align="center">rn7</td>
+</tr>
+<tr>
+<td align="center">S. cerevisiae (sacCer3)</td>
+<td align="center"><a href="https://igv.org/genomes/json/sacCer3.json">https://igv.org/genomes/json/sacCer3.json</a></td>
+<td align="center">sacCer3</td>
+</tr>
+<tr>
+<td align="center">Zebrafish (GRCz10&#x2F;danRer10)</td>
+<td align="center"><a href="https://igv.org/genomes/json/danRer10.json">https://igv.org/genomes/json/danRer10.json</a></td>
+<td align="center">danRer10</td>
+</tr>
+<tr>
+<td align="center">Zebrafish (GRCz11&#x2F;danRer11)</td>
+<td align="center"><a href="https://igv.org/genomes/json/danRer11.json">https://igv.org/genomes/json/danRer11.json</a></td>
+<td align="center">danRer11</td>
+</tr>
+<tr>
+<td align="center">SARS-CoV-2</td>
+<td align="center"><a href="https://igv.org/genomes/json/ASM985889v3.json">https://igv.org/genomes/json/ASM985889v3.json</a></td>
+<td align="center">ASM985889v3</td>
+</tr>
+<tr>
+<td align="center">S. pombe (ASM294v2)</td>
+<td align="center"><a href="https://igv.org/genomes/json/ASM294v2.json">https://igv.org/genomes/json/ASM294v2.json</a></td>
+<td align="center">ASM294v2</td>
+</tr>
+<tr>
+<td align="center">Gorilla (gorGor4)</td>
+<td align="center"><a href="https://igv.org/genomes/json/gorGor4.json">https://igv.org/genomes/json/gorGor4.json</a></td>
+<td align="center">gorGor4</td>
+</tr>
+<tr>
+<td align="center">Gorilla (gorGor6)</td>
+<td align="center"><a href="https://igv.org/genomes/json/gorGor6.json">https://igv.org/genomes/json/gorGor6.json</a></td>
+<td align="center">gorGor6</td>
+</tr>
+<tr>
+<td align="center">Bonobo (MPI-EVA panpan1.1&#x2F;panPan2)</td>
+<td align="center"><a href="https://igv.org/genomes/json/panPan2.json">https://igv.org/genomes/json/panPan2.json</a></td>
+<td align="center">panPan2</td>
+</tr>
+<tr>
+<td align="center">Pig (SGSC Sscrofa11.1&#x2F;susScr11)</td>
+<td align="center"><a href="https://igv.org/genomes/json/susScr11.json">https://igv.org/genomes/json/susScr11.json</a></td>
+<td align="center">susScr11</td>
+</tr>
+<tr>
+<td align="center">S. purpuratus (Baylor 2.1&#x2F;strPur2)</td>
+<td align="center"><a href="https://igv.org/genomes/json/strPur2.json">https://igv.org/genomes/json/strPur2.json</a></td>
+<td align="center">strPur2</td>
+</tr>
+<tr>
+<td align="center">S. purpuratus (Spur5.0)</td>
+<td align="center"><a href="https://igv.org/genomes/json/Spur5.0.json">https://igv.org/genomes/json/Spur5.0.json</a></td>
+<td align="center">Spur5.0</td>
+</tr>
+<tr>
+<td align="center">P. miniata (Pmin3.0)</td>
+<td align="center"><a href="https://igv.org/genomes/json/Pmin3.0.json">https://igv.org/genomes/json/Pmin3.0.json</a></td>
+<td align="center">Pmin3.0</td>
+</tr>
+<tr>
+<td align="center">L. variegatus (Lvar3.0)</td>
+<td align="center"><a href="https://igv.org/genomes/json/Lvar3.0.json">https://igv.org/genomes/json/Lvar3.0.json</a></td>
+<td align="center">Lvar3.0</td>
+</tr>
+<tr>
+<td align="center">O. sativa IRGSP-1.0 (GCF_001433935.1)</td>
+<td align="center"><a href="https://igv.org/genomes/json/GCF_001433935.1.json">https://igv.org/genomes/json/GCF_001433935.1.json</a></td>
+<td align="center">GCF_001433935.1</td>
+</tr>
+<tr>
+<td align="center">A. gambia (Pest AgamP3)</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/AgamP3.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/AgamP3.genome</a></td>
+<td align="center">AgamP3</td>
+</tr>
+<tr>
+<td align="center">Autographa californica MNPV</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/NC_001623.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/NC_001623.genome</a></td>
+<td align="center">NC_001623</td>
+</tr>
+<tr>
+<td align="center">Bacillus Subtilis str. 168</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/NC_000964.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/NC_000964.genome</a></td>
+<td align="center">NC_000964</td>
+</tr>
+<tr>
+<td align="center">Banana (M. Balbisiana PKWv1)</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/MusaBalbisianaPKWv1.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/MusaBalbisianaPKWv1.genome</a></td>
+<td align="center">MusaBalbisianaPKWv1</td>
+</tr>
+<tr>
+<td align="center">Banana (Musa acuminata)</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/MusaAcuminata.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/MusaAcuminata.genome</a></td>
+<td align="center">MusaAcuminata</td>
+</tr>
+<tr>
+<td align="center">C. alibcans (SC5314 A21)</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/ca21.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/ca21.genome</a></td>
+<td align="center">ca21</td>
+</tr>
+<tr>
+<td align="center">C. elegans (WS241)</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/ws241.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/ws241.genome</a></td>
+<td align="center">ws241</td>
+</tr>
+<tr>
+<td align="center">C. elegans (WS235)</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/ws235.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/ws235.genome</a></td>
+<td align="center">ws235</td>
+</tr>
+<tr>
+<td align="center">C. elegans (WS245)</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/WS245.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/WS245.genome</a></td>
+<td align="center">WS245</td>
+</tr>
+<tr>
+<td align="center">C. elegans (ce10)</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/ce10.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/ce10.genome</a></td>
+<td align="center">ce10</td>
+</tr>
+<tr>
+<td align="center">Chicken (galGal4)</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/galGal4.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/galGal4.genome</a></td>
+<td align="center">galGal4</td>
+</tr>
+<tr>
+<td align="center">Chicken (galGal5)</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/galGal5.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/galGal5.genome</a></td>
+<td align="center">galGal5</td>
+</tr>
+<tr>
+<td align="center">Chimp (panTro3)</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/panTro3.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/panTro3.genome</a></td>
+<td align="center">panTro3</td>
+</tr>
+<tr>
+<td align="center">Chimp (panTro5)</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.org.genomes/panTro5/panTro5.genome">https://s3.amazonaws.com/igv.org.genomes/panTro5/panTro5.genome</a></td>
+<td align="center">panTro5</td>
+</tr>
+<tr>
+<td align="center">Chimp (panTro6)</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.org.genomes/panTro6/panTro6.genome">https://s3.amazonaws.com/igv.org.genomes/panTro6/panTro6.genome</a></td>
+<td align="center">panTro6</td>
+</tr>
+<tr>
+<td align="center">Cat (felCat5)</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/felCat5.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/felCat5.genome</a></td>
+<td align="center">felCat5</td>
+</tr>
+<tr>
+<td align="center">Cow (bosTau7)</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/bosTau7.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/bosTau7.genome</a></td>
+<td align="center">bosTau7</td>
+</tr>
+<tr>
+<td align="center">E. coli K-12 MG1655 (NC_000913.2)</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/NC_000913.2.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/NC_000913.2.genome</a></td>
+<td align="center">NC_000913.2</td>
+</tr>
+<tr>
+<td align="center">E. coli K-12 (NC_000913.3)</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/NC_000913.3.gbk">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/NC_000913.3.gbk</a></td>
+<td align="center">NC_000913.3</td>
+</tr>
+<tr>
+<td align="center">Ferret (MusPutFur1.0)</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/MusPutFur1.0.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/MusPutFur1.0.genome</a></td>
+<td align="center">MusPutFur1.0</td>
+</tr>
+<tr>
+<td align="center">Francisella tularensis (NC_008601)</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/NC_008601.gbk">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/NC_008601.gbk</a></td>
+<td align="center">NC_008601</td>
+</tr>
+<tr>
+<td align="center">Glycine max (v8.0)</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/gmax8.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/gmax8.genome</a></td>
+<td align="center">gmax8</td>
+</tr>
+<tr>
+<td align="center">Glycine max (Wm82.a2.v1)</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/gmax10.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/gmax10.genome</a></td>
+<td align="center">gmax10</td>
+</tr>
+<tr>
+<td align="center">Helicobacter hepaticus</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/NC_004917.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/NC_004917.genome</a></td>
+<td align="center">NC_004917</td>
+</tr>
+<tr>
+<td align="center">HIV-1</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/NC_001802.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/NC_001802.genome</a></td>
+<td align="center">NC_001802</td>
+</tr>
+<tr>
+<td align="center">HIV-2</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/NC_001722.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/NC_001722.genome</a></td>
+<td align="center">NC_001722</td>
+</tr>
+<tr>
+<td align="center">Human Adenovirus C</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/NC_001405.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/NC_001405.genome</a></td>
+<td align="center">NC_001405</td>
+</tr>
+<tr>
+<td align="center">Human Herpesvirus 4, Type 1</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/HHV4_Type1.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/HHV4_Type1.genome</a></td>
+<td align="center">HHV4_Type1</td>
+</tr>
+<tr>
+<td align="center">Human Herpesvirus 4, Type 2</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/HHV4_Type2.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/HHV4_Type2.genome</a></td>
+<td align="center">HHV4_Type2</td>
+</tr>
+<tr>
+<td align="center">Human Mito (NC_012920)</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/NC_012920.1.gbk">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/NC_012920.1.gbk</a></td>
+<td align="center">NC_012920</td>
+</tr>
+<tr>
+<td align="center">Human respiratory synctial virus</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/M74568.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/M74568.genome</a></td>
+<td align="center">M74568</td>
+</tr>
+<tr>
+<td align="center">Macaca fascicularis (CE_1.0)</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/CE_1.0.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/CE_1.0.genome</a></td>
+<td align="center">CE_1.0</td>
+</tr>
+<tr>
+<td align="center">Macaca fascicularis (5.0)</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.org.genomes/Macaca_fascicularis_5.0/Macaca_fascicularis_5.0.genome">https://s3.amazonaws.com/igv.org.genomes/Macaca_fascicularis_5.0/Macaca_fascicularis_5.0.genome</a></td>
+<td align="center">GCF_000364345.1</td>
+</tr>
+<tr>
+<td align="center">Mouse (129S1&#x2F;SvImJ)</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/SvImJ.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/SvImJ.genome</a></td>
+<td align="center">129S1&#x2F;SvImJ</td>
+</tr>
+<tr>
+<td align="center">Mouse mm8</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/mm8.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/mm8.genome</a></td>
+<td align="center">mm8</td>
+</tr>
+<tr>
+<td align="center">Mycobacterium TB (CD1551)</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/NC_002755.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/NC_002755.genome</a></td>
+<td align="center">NC_002755</td>
+</tr>
+<tr>
+<td align="center">N. Meningitidis (FAM18)</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.broadinstitute.org/test/genomes/NC_008767.genome">https://s3.amazonaws.com/igv.broadinstitute.org/test/genomes/NC_008767.genome</a></td>
+<td align="center">NC_008767</td>
+</tr>
+<tr>
+<td align="center">N. Meningitidis (MC58)</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.broadinstitute.org/test/genomes/NC_003112.genome">https://s3.amazonaws.com/igv.broadinstitute.org/test/genomes/NC_003112.genome</a></td>
+<td align="center">NC_003112</td>
+</tr>
+<tr>
+<td align="center">N. Meningitidis (Z2491)</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.broadinstitute.org/test/genomes/NC_003116.genome">https://s3.amazonaws.com/igv.broadinstitute.org/test/genomes/NC_003116.genome</a></td>
+<td align="center">NC_003116</td>
+</tr>
+<tr>
+<td align="center">P. falciparum 3D7 (V9.0)</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/Pf3D7_v9.0.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/Pf3D7_v9.0.genome</a></td>
+<td align="center">Pf3D7_v9.0</td>
+</tr>
+<tr>
+<td align="center">Plasmodium (3D7 V24)</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/PlasmoDB_24.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/PlasmoDB_24.genome</a></td>
+<td align="center">Plasmodium_24</td>
+</tr>
+<tr>
+<td align="center">Rabbit (oryCun2.0)</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/oryCun2.0.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/oryCun2.0.genome</a></td>
+<td align="center">oryCun2.0</td>
+</tr>
+<tr>
+<td align="center">Rat (rn5)</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/rn5.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/rn5.genome</a></td>
+<td align="center">rn5</td>
+</tr>
+<tr>
+<td align="center">Rhesus (rheMac3)</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/rheMac3.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/rheMac3.genome</a></td>
+<td align="center">rheMac3</td>
+</tr>
+<tr>
+<td align="center">Rhesus (rheMac8)</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/rheMac8.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/rheMac8.genome</a></td>
+<td align="center">rheMac8</td>
+</tr>
+<tr>
+<td align="center">Rhesus (Mmul_10&#x2F;rheMac10)</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.org.genomes/rheMac10/rheMac10.genome">https://s3.amazonaws.com/igv.org.genomes/rheMac10/rheMac10.genome</a></td>
+<td align="center">rheMac10</td>
+</tr>
+<tr>
+<td align="center">S. cerevisiae (Y55)</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/Y55.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/Y55.genome</a></td>
+<td align="center">Y55</td>
+</tr>
+<tr>
+<td align="center">S. pombe (ASM294v2)</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/ASM294v2.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/ASM294v2.genome</a></td>
+<td align="center">ASM294v2</td>
+</tr>
+<tr>
+<td align="center">S. sclerotiorum (sclerotiorum)</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/sclerotiorum.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/sclerotiorum.genome</a></td>
+<td align="center">sclerotiorum</td>
+</tr>
+<tr>
+<td align="center">Salmonella enterica str. 14028S</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/NC_016856.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/NC_016856.genome</a></td>
+<td align="center">NC_016856</td>
+</tr>
+<tr>
+<td align="center">Salmo salar (ICSASG_v2)</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/GCF_000233375.1.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/GCF_000233375.1.genome</a></td>
+<td align="center">GCF_000233375.1</td>
+</tr>
+<tr>
+<td align="center">Sheep (Ovis Aries v3.1)</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/oviAri3.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/oviAri3.genome</a></td>
+<td align="center">oviAri3</td>
+</tr>
+<tr>
+<td align="center">Sus Scrofa (Sscrofa10.2&#x2F;susScr3)</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/susScr3.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/susScr3.genome</a></td>
+<td align="center">susScr3</td>
+</tr>
+<tr>
+<td align="center">T. brucei (427 v4.2)</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/tb427_4.2.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/tb427_4.2.genome</a></td>
+<td align="center">tb427_4.2</td>
+</tr>
+<tr>
+<td align="center">T. brucei (927 v5.0)</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/tbrucei927_5.0.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/tbrucei927_5.0.genome</a></td>
+<td align="center">tbrucei927_5.0</td>
+</tr>
+<tr>
+<td align="center">T. brucei gambiense</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/tbgambi.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/tbgambi.genome</a></td>
+<td align="center">tbgambi</td>
+</tr>
+<tr>
+<td align="center">Tomato (2.31)</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/SL2.31.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/SL2.31.genome</a></td>
+<td align="center">SL2.31</td>
+</tr>
+<tr>
+<td align="center">Tomato (2.40)</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/SL2.40.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/SL2.40.genome</a></td>
+<td align="center">SL2.40</td>
+</tr>
+<tr>
+<td align="center">Trout (CCAF000000000)</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/CCAF000000000.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/CCAF000000000.genome</a></td>
+<td align="center">CCAF000000000</td>
+</tr>
+<tr>
+<td align="center">V. vitifera</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/vvinifera.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/vvinifera.genome</a></td>
+<td align="center">vvitifera</td>
+</tr>
+<tr>
+<td align="center">X. tropicalis v9.0</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/xenTro9.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/xenTro9.genome</a></td>
+<td align="center">xenTro9</td>
+</tr>
+<tr>
+<td align="center">X. laevis (7.1)</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/laevis_7.1.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/laevis_7.1.genome</a></td>
+<td align="center">laevis_7.1</td>
+</tr>
+<tr>
+<td align="center">Zea mays (AGPv3.31)</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.broadinstitute.org/genomes/AGPv3.31.genome">https://s3.amazonaws.com/igv.broadinstitute.org/genomes/AGPv3.31.genome</a></td>
+<td align="center">AGPv3.31</td>
+</tr>
+<tr>
+<td align="center">C. reinhardtii (CC-503 v5.5)</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.org.genomes/Creinhardtii_CC-503_v5.0/2019-03-21_Creinhardtii_CC-503_v5.5.genome">https://s3.amazonaws.com/igv.org.genomes/Creinhardtii_CC-503_v5.0/2019-03-21_Creinhardtii_CC-503_v5.5.genome</a></td>
+<td align="center">2019-03-21_Creinhardtii_CC-503_v5.5</td>
+</tr>
+<tr>
+<td align="center">C. reinhardtii (CC-503 v5.6)</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.org.genomes/C.reinhardtii_CC-503_v5.6+/2019-03-21_Creinhardtii_CC-503_v5.6.genome">https://s3.amazonaws.com/igv.org.genomes/C.reinhardtii_CC-503_v5.6+/2019-03-21_Creinhardtii_CC-503_v5.6.genome</a></td>
+<td align="center">2019-03-21_Creinhardtii_CC-503_v5.6</td>
+</tr>
+<tr>
+<td align="center">C. reinhardtii (CC-503 v5.6 Cp+Mt v4.4)</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.org.genomes/Creinhardtii_CC-503_v5.6/2019-03-21_Creinhardtii_CC-503_v5.6_Cp%2BMt_v4.4.genome">https://s3.amazonaws.com/igv.org.genomes/Creinhardtii_CC-503_v5.6/2019-03-21_Creinhardtii_CC-503_v5.6_Cp%2BMt_v4.4.genome</a></td>
+<td align="center">2019-03-21_Creinhardtii_CC-503_v5.6_Cp+Mt_v4.4</td>
+</tr>
+<tr>
+<td align="center">Ixodes scapularis JCVI_ISG_i3_1.0 (GCA_000208615.1)</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.org.genomes/tick/GCA_000208615.1/GCA_000208615.1.genome">https://s3.amazonaws.com/igv.org.genomes/tick/GCA_000208615.1/GCA_000208615.1.genome</a></td>
+<td align="center">GCA_000208615.1</td>
+</tr>
+<tr>
+<td align="center">Ixodes scapularis ISE6_asm2.2_deduplicated (GCA_002892825.2)</td>
+<td align="center"><a href="https://s3.amazonaws.com/igv.org.genomes/tick/GCA_000208615.1/GCA_000208615.1.genome">https://s3.amazonaws.com/igv.org.genomes/tick/GCA_000208615.1/GCA_000208615.1.genome</a></td>
+<td align="center">GCA_002892825.2</td>
+</tr>
+</tbody></table>
 <hr>
-<h1 id="文章更新记录"><a href="#文章更新记录" class="headerlink" title="文章更新记录"></a>文章更新记录</h1><h2 id="2025-03-25"><a href="#2025-03-25" class="headerlink" title="2025.03.25"></a>2025.03.25</h2><ol>
+<h1 id="文章更新记录"><a href="#文章更新记录" class="headerlink" title="文章更新记录"></a>文章更新记录</h1><h2 id="2025-03-26"><a href="#2025-03-26" class="headerlink" title="2025.03.26"></a>2025.03.26</h2><ol>
 <li><code>参数说明</code>中id和name的说明有误，已更正。</li>
+<li>更新<code>JSON示例</code>为官方示例。</li>
 <li>新增<code>IGV的BLAT</code>相关信息。</li>
 </ol>
 ]]></content>
@@ -351,6 +909,33 @@
       <tags>
         <tag>IGV</tag>
         <tag>BLAT</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Illumina测序产生的重复序列</title>
+    <url>/2023/06/21/Illumina%E6%B5%8B%E5%BA%8F%E4%BA%A7%E7%94%9F%E7%9A%84%E9%87%8D%E5%A4%8D%E5%BA%8F%E5%88%97/</url>
+    <content><![CDATA[<p>Illumina的Patterned Flow Cell产生重复序列</p>
+<span id="more"></span>
+
+<h1 id="QC-Fail-Sequencing内容"><a href="#QC-Fail-Sequencing内容" class="headerlink" title="QC Fail Sequencing内容"></a>QC Fail Sequencing内容</h1><p><strong>以下内容摘录并翻译自QC Fail Sequencing，完整内容请查看：</strong><br><a href="https://sequencing.qcfail.com/articles/illumina-patterned-flow-cells-generate-duplicated-sequences/">Illumina Patterned Flow Cells Generate Duplicated Sequences</a></p>
+<h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p>Illumina最近的一项创新是有序的流动槽，它首次应用在HiSeq X，随后也应用于HiSeq 3000和HiSeq 4000测序仪。通过规律化排列数十亿个固定大小的纳米孔，使其在流动槽中均匀分布，能够产生更高密度的DNA簇（可以更有效地利用Flow Cell表面积，增加数据产出，减少成本，降低运行时间）。<br>虽然有以上这些优点，但有证据表明，与早期设计（Nonpatterned Flow Cell）相比，Patterned Flow Cell会产生更多的重复序列。  </p>
+<h2 id="症状"><a href="#症状" class="headerlink" title="症状"></a>症状</h2><p>使用 HiSeq 4000和HiSeq 2500（用的是Nonpatterned Flow Cell）对同一个Hi-C文库进行测序。测序后，数据使用 HiCUP 分析。<br>与预期一致，HiSeq 4000产出的原始Reads数是383M， 远多于HiSeq 2500的257M。<br>然而，同一文库的这两次测序之间的重复序列比例存在显着差异。经过去重处理后，HiSeq 2500只有 <strong>2%</strong> 的原始序列被过滤，这与HiSeq 4000去除了 <strong>33%</strong> 形成鲜明对比。<br><img src="https://pic.imgdb.cn/item/6492ad6b1ddac507ccd24753.png" alt="duplicates_graph"><br>经过HiCUP流程分析后，用不同测序仪测序的两个样本最后都剩余55M Reads，HiSeq 4000原本增加的数据产出被抵消了。  </p>
+<h2 id="诊断"><a href="#诊断" class="headerlink" title="诊断"></a>诊断</h2><p>在研究两台测序仪之间的差异之前，为了排除这种可能性：即HiSeq 4000测到的重复序列比例增加，仅仅是因为它测到了更多di-tags（一般测序文库里的DNA Fragments），即给定样本被测序的次数越多，测到重复序列的可能性就越高（也就是测序数据量较高，文库复杂度较低时，出现的Dup率高的情况）。为了确认这一点，对HiSeq 4000的FASTQ文件随机抽样，缩小到与 HiSeq 2500相同的Reads数量。然后还是用HiCUP流程分析，这次HiSeq 4000数据中的 <strong>25%</strong> 在去重步骤中被过滤掉，仍然远远超过HiSeq 2500的 <strong>2%</strong> 。<br>为了查证产生重复序列的可能原因，我们分析了流动槽上重复序列的空间分布。对于两台测序仪，重复序列都是均一形式分布，没有呈现出明显的“热点”区域。虽然重复序列没有分布在流动槽的特定区域，但一般来说，重复序列仍然可能与其拷贝有位置相关关系。为了验证这一假设，我们找到重复序列的两个拷贝序列，并记录它们的位置是在1还是2个Tiles上（Illumina数据可以通过Reads ID知道该Read&#x2F;cluster的坐标，包括Lane、Tile、X、Y，就可以判断两条Reads是否来源于同一个Tile）。值得注意的是，HiSeq 2500的重复序列有 <strong>1%</strong> 来自同一个Tile，而HiSeq 4000是 <strong>92%</strong> 。这种重复序列的位置接近性，说明在HiSeq 4000上观察到的重复序列主要是测序仪特有的Sequencing artefacts。<br><img src="https://pic.imgdb.cn/item/6492b8a91ddac507cce7f2ed.png" alt="one_two_tile_graph"><br>为了进一步表现这种二维距离，我们提取了只来自1个Tile的重复序列，然后记录了同一重复序列之间的相对位置（还是基于Illumina数据的Reads ID中含有的坐标信息）。下图将这些序列的相对距离展示为密度图（对于每个重复序列，其中一条序列被指定为原点，图中显示了“其他重复序列”与原点的相对位置）。<br><img src="https://pic.imgdb.cn/item/6492bada1ddac507ccebfb32.png" alt="relative_position_of_duplicates"><br>HiSeq 2500 除了靠近原点的高密度区域外，在整个图上的是均匀分布的。而HiSeq 4000 原点周围的密度升高更为明显，几乎所有其他重复序列都集中在原点区域。我们猜测远离原点的那些重复序列是来源于真实的生物学重复（biological duplicates）或实验导致的PCR重复（experimental PCR duplicates）。而那些接近原点的重复序列更有可能是由测序仪导致的（optical duplicates）。这再次说明了HiSeq 4000产生了更多的duplication artefacts。<br>然后，我们研究了HiSeq 4000上的重复序列是否仅出现在相邻的纳米孔，或流动槽中同一局部区域中的某些纳米孔。虽然我们无法获得FASTQ坐标系与特定某个纳米孔的直接关联信息，但可以通过紧邻原点创建该区域的密度图来可视化HiSeq 4000流动槽。该图清楚地表明，在原点周围的多个孔中发现了重复序列，并且随着远离原点，这种趋势会减小。而HiSeq 2500数据中，正如预期，看不到纳米孔图案分布特征。<br><img src="https://pic.imgdb.cn/item/6492c0061ddac507ccf6128c.png" alt="duplicates_patterned_flowcell-1"><br><img src="https://pic.imgdb.cn/item/6492c0471ddac507ccf693ca.png" alt="duplicates_unordered_flowcell-1">  </p>
+<h2 id="预防"><a href="#预防" class="headerlink" title="预防"></a>预防</h2><p>其他研究者已经讨论过Patterned Flow Cell有产生更多重复序列的倾向性。在最近发表在 CRUK-CI Core Genomics 博客上的一篇<a href="http://core-genomics.blogspot.co.uk/2016/05/increased-read-duplication-on-patterned.html">文章</a>中，James Hadfield 报告说，来自一个簇的文库分子可能会返回到周围的溶液中，然后作为相邻flow cell（应该是nanowell？）中第二个簇的种子。有人提出，可以通过增加上机文库浓度来最大程度地减少这些重新播种（re-seeding）事件，但是代价是会产生没有用的多克隆簇（指的应该是文库的experimental PCR duplicates？）。因此，需要在这两个相互竞争的问题之间取得平衡，使特异的有效的序列数量最大化。我们直接与Illumina讨论了这个问题，Illumina同意这一策略，并建议patterned flowcell测序仪可能需要逐个测序仪地进行校准，以确定最佳上机浓度。  </p>
+<h1 id="更多相关信息"><a href="#更多相关信息" class="headerlink" title="更多相关信息"></a>更多相关信息</h1><h2 id="Patterned-和-Nonpatterned-Flow-Cell"><a href="#Patterned-和-Nonpatterned-Flow-Cell" class="headerlink" title="Patterned 和 Nonpatterned Flow Cell"></a>Patterned 和 Nonpatterned Flow Cell</h2><p>这篇Illumina的官方文档，比较清楚地说明了Patterned 和 Nonpatterned Flow Cell在测序时的一些区别。<br><a href="https://www.illumina.com/content/dam/illumina-marketing/documents/products/technotes/hiseq-x-percent-pf-technical-note-770-2014-043.pdf">Calculating Percent Passing Filter for Patterned and Nonpatterned Flow Cells</a>  </p>
+<h2 id="RTA软件"><a href="#RTA软件" class="headerlink" title="RTA软件"></a>RTA软件</h2><p>Patterned Flow Cell通过规律排布纳米孔，使测序芯片产生更多的簇，更多数据；同时也通过升级RTA（Real Time Analysis）软件，减少了从图像到序列转换的分析时间。<br><a href="https://www.illumina.com/content/dam/illumina-marketing/documents/products/appnotes/novaseq-hiseq-q30-app-note-770-2017-010.pdf">NovaSeq™ 6000 System Quality Scores and RTA3 Software</a>  </p>
+<h2 id="过滤optical-duplicates序列"><a href="#过滤optical-duplicates序列" class="headerlink" title="过滤optical duplicates序列"></a>过滤optical duplicates序列</h2><p>在<a href="https://sequencing.qcfail.com/articles/illumina-patterned-flow-cells-generate-duplicated-sequences/">Illumina Patterned Flow Cells Generate Duplicated Sequences</a>原文的Mitigation部分（没翻译这部分，有兴趣请看原文）有提到Picard过滤optical duplicates的方法。<br>目前Picard已经被整合到了GATK中，相关模块和参数是MarkDuplicates (Picard)的–OPTICAL_DUPLICATE_PIXEL_DISTANCE。<br>GATK 4.4.0.0的<a href="https://gatk.broadinstitute.org/hc/en-us/articles/13832748517275-MarkDuplicates-Picard-#--OPTICAL_DUPLICATE_PIXEL_DISTANCE">MarkDuplicates (Picard)</a>说明文档中有写：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">For the patterned flowcell models, 2500 is moreappropriate. </span><br><span class="line">For other platforms and models, users should experiment to find what works best.</span><br></pre></td></tr></table></figure>
+<p>使用Patterned Flow Cell的测序平台，推荐–OPTICAL_DUPLICATE_PIXEL_DISTANCE参数设置为2500，但其实默认参数是100。<br>所以最好在分析前确认测序芯片类型，然后设置合适的参数。</p>
+]]></content>
+      <categories>
+        <category>Log</category>
+      </categories>
+      <tags>
+        <tag>Illumina</tag>
+        <tag>Duplicate</tag>
+        <tag>测序原理</tag>
+        <tag>QC Fail Sequencing</tag>
       </tags>
   </entry>
   <entry>
@@ -379,36 +964,9 @@
       </categories>
       <tags>
         <tag>Illumina</tag>
+        <tag>测序原理</tag>
+        <tag>QC Fail Sequencing</tag>
         <tag>Index Hopping</tag>
-        <tag>测序原理</tag>
-        <tag>QC Fail Sequencing</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Illumina测序产生的重复序列</title>
-    <url>/2023/06/21/Illumina%E6%B5%8B%E5%BA%8F%E4%BA%A7%E7%94%9F%E7%9A%84%E9%87%8D%E5%A4%8D%E5%BA%8F%E5%88%97/</url>
-    <content><![CDATA[<p>Illumina的Patterned Flow Cell产生重复序列</p>
-<span id="more"></span>
-
-<h1 id="QC-Fail-Sequencing内容"><a href="#QC-Fail-Sequencing内容" class="headerlink" title="QC Fail Sequencing内容"></a>QC Fail Sequencing内容</h1><p><strong>以下内容摘录并翻译自QC Fail Sequencing，完整内容请查看：</strong><br><a href="https://sequencing.qcfail.com/articles/illumina-patterned-flow-cells-generate-duplicated-sequences/">Illumina Patterned Flow Cells Generate Duplicated Sequences</a></p>
-<h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p>Illumina最近的一项创新是有序的流动槽，它首次应用在HiSeq X，随后也应用于HiSeq 3000和HiSeq 4000测序仪。通过规律化排列数十亿个固定大小的纳米孔，使其在流动槽中均匀分布，能够产生更高密度的DNA簇（可以更有效地利用Flow Cell表面积，增加数据产出，减少成本，降低运行时间）。<br>虽然有以上这些优点，但有证据表明，与早期设计（Nonpatterned Flow Cell）相比，Patterned Flow Cell会产生更多的重复序列。  </p>
-<h2 id="症状"><a href="#症状" class="headerlink" title="症状"></a>症状</h2><p>使用 HiSeq 4000和HiSeq 2500（用的是Nonpatterned Flow Cell）对同一个Hi-C文库进行测序。测序后，数据使用 HiCUP 分析。<br>与预期一致，HiSeq 4000产出的原始Reads数是383M， 远多于HiSeq 2500的257M。<br>然而，同一文库的这两次测序之间的重复序列比例存在显着差异。经过去重处理后，HiSeq 2500只有 <strong>2%</strong> 的原始序列被过滤，这与HiSeq 4000去除了 <strong>33%</strong> 形成鲜明对比。<br><img src="https://pic.imgdb.cn/item/6492ad6b1ddac507ccd24753.png" alt="duplicates_graph"><br>经过HiCUP流程分析后，用不同测序仪测序的两个样本最后都剩余55M Reads，HiSeq 4000原本增加的数据产出被抵消了。  </p>
-<h2 id="诊断"><a href="#诊断" class="headerlink" title="诊断"></a>诊断</h2><p>在研究两台测序仪之间的差异之前，为了排除这种可能性：即HiSeq 4000测到的重复序列比例增加，仅仅是因为它测到了更多di-tags（一般测序文库里的DNA Fragments），即给定样本被测序的次数越多，测到重复序列的可能性就越高（也就是测序数据量较高，文库复杂度较低时，出现的Dup率高的情况）。为了确认这一点，对HiSeq 4000的FASTQ文件随机抽样，缩小到与 HiSeq 2500相同的Reads数量。然后还是用HiCUP流程分析，这次HiSeq 4000数据中的 <strong>25%</strong> 在去重步骤中被过滤掉，仍然远远超过HiSeq 2500的 <strong>2%</strong> 。<br>为了查证产生重复序列的可能原因，我们分析了流动槽上重复序列的空间分布。对于两台测序仪，重复序列都是均一形式分布，没有呈现出明显的“热点”区域。虽然重复序列没有分布在流动槽的特定区域，但一般来说，重复序列仍然可能与其拷贝有位置相关关系。为了验证这一假设，我们找到重复序列的两个拷贝序列，并记录它们的位置是在1还是2个Tiles上（Illumina数据可以通过Reads ID知道该Read&#x2F;cluster的坐标，包括Lane、Tile、X、Y，就可以判断两条Reads是否来源于同一个Tile）。值得注意的是，HiSeq 2500的重复序列有 <strong>1%</strong> 来自同一个Tile，而HiSeq 4000是 <strong>92%</strong> 。这种重复序列的位置接近性，说明在HiSeq 4000上观察到的重复序列主要是测序仪特有的Sequencing artefacts。<br><img src="https://pic.imgdb.cn/item/6492b8a91ddac507cce7f2ed.png" alt="one_two_tile_graph"><br>为了进一步表现这种二维距离，我们提取了只来自1个Tile的重复序列，然后记录了同一重复序列之间的相对位置（还是基于Illumina数据的Reads ID中含有的坐标信息）。下图将这些序列的相对距离展示为密度图（对于每个重复序列，其中一条序列被指定为原点，图中显示了“其他重复序列”与原点的相对位置）。<br><img src="https://pic.imgdb.cn/item/6492bada1ddac507ccebfb32.png" alt="relative_position_of_duplicates"><br>HiSeq 2500 除了靠近原点的高密度区域外，在整个图上的是均匀分布的。而HiSeq 4000 原点周围的密度升高更为明显，几乎所有其他重复序列都集中在原点区域。我们猜测远离原点的那些重复序列是来源于真实的生物学重复（biological duplicates）或实验导致的PCR重复（experimental PCR duplicates）。而那些接近原点的重复序列更有可能是由测序仪导致的（optical duplicates）。这再次说明了HiSeq 4000产生了更多的duplication artefacts。<br>然后，我们研究了HiSeq 4000上的重复序列是否仅出现在相邻的纳米孔，或流动槽中同一局部区域中的某些纳米孔。虽然我们无法获得FASTQ坐标系与特定某个纳米孔的直接关联信息，但可以通过紧邻原点创建该区域的密度图来可视化HiSeq 4000流动槽。该图清楚地表明，在原点周围的多个孔中发现了重复序列，并且随着远离原点，这种趋势会减小。而HiSeq 2500数据中，正如预期，看不到纳米孔图案分布特征。<br><img src="https://pic.imgdb.cn/item/6492c0061ddac507ccf6128c.png" alt="duplicates_patterned_flowcell-1"><br><img src="https://pic.imgdb.cn/item/6492c0471ddac507ccf693ca.png" alt="duplicates_unordered_flowcell-1">  </p>
-<h2 id="预防"><a href="#预防" class="headerlink" title="预防"></a>预防</h2><p>其他研究者已经讨论过Patterned Flow Cell有产生更多重复序列的倾向性。在最近发表在 CRUK-CI Core Genomics 博客上的一篇<a href="http://core-genomics.blogspot.co.uk/2016/05/increased-read-duplication-on-patterned.html">文章</a>中，James Hadfield 报告说，来自一个簇的文库分子可能会返回到周围的溶液中，然后作为相邻flow cell（应该是nanowell？）中第二个簇的种子。有人提出，可以通过增加上机文库浓度来最大程度地减少这些重新播种（re-seeding）事件，但是代价是会产生没有用的多克隆簇（指的应该是文库的experimental PCR duplicates？）。因此，需要在这两个相互竞争的问题之间取得平衡，使特异的有效的序列数量最大化。我们直接与Illumina讨论了这个问题，Illumina同意这一策略，并建议patterned flowcell测序仪可能需要逐个测序仪地进行校准，以确定最佳上机浓度。  </p>
-<h1 id="更多相关信息"><a href="#更多相关信息" class="headerlink" title="更多相关信息"></a>更多相关信息</h1><h2 id="Patterned-和-Nonpatterned-Flow-Cell"><a href="#Patterned-和-Nonpatterned-Flow-Cell" class="headerlink" title="Patterned 和 Nonpatterned Flow Cell"></a>Patterned 和 Nonpatterned Flow Cell</h2><p>这篇Illumina的官方文档，比较清楚地说明了Patterned 和 Nonpatterned Flow Cell在测序时的一些区别。<br><a href="https://www.illumina.com/content/dam/illumina-marketing/documents/products/technotes/hiseq-x-percent-pf-technical-note-770-2014-043.pdf">Calculating Percent Passing Filter for Patterned and Nonpatterned Flow Cells</a>  </p>
-<h2 id="RTA软件"><a href="#RTA软件" class="headerlink" title="RTA软件"></a>RTA软件</h2><p>Patterned Flow Cell通过规律排布纳米孔，使测序芯片产生更多的簇，更多数据；同时也通过升级RTA（Real Time Analysis）软件，减少了从图像到序列转换的分析时间。<br><a href="https://www.illumina.com/content/dam/illumina-marketing/documents/products/appnotes/novaseq-hiseq-q30-app-note-770-2017-010.pdf">NovaSeq™ 6000 System Quality Scores and RTA3 Software</a>  </p>
-<h2 id="过滤optical-duplicates序列"><a href="#过滤optical-duplicates序列" class="headerlink" title="过滤optical duplicates序列"></a>过滤optical duplicates序列</h2><p>在<a href="https://sequencing.qcfail.com/articles/illumina-patterned-flow-cells-generate-duplicated-sequences/">Illumina Patterned Flow Cells Generate Duplicated Sequences</a>原文的Mitigation部分（没翻译这部分，有兴趣请看原文）有提到Picard过滤optical duplicates的方法。<br>目前Picard已经被整合到了GATK中，相关模块和参数是MarkDuplicates (Picard)的–OPTICAL_DUPLICATE_PIXEL_DISTANCE。<br>GATK 4.4.0.0的<a href="https://gatk.broadinstitute.org/hc/en-us/articles/13832748517275-MarkDuplicates-Picard-#--OPTICAL_DUPLICATE_PIXEL_DISTANCE">MarkDuplicates (Picard)</a>说明文档中有写：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">For the patterned flowcell models, 2500 is moreappropriate. </span><br><span class="line">For other platforms and models, users should experiment to find what works best.</span><br></pre></td></tr></table></figure>
-<p>使用Patterned Flow Cell的测序平台，推荐–OPTICAL_DUPLICATE_PIXEL_DISTANCE参数设置为2500，但其实默认参数是100。<br>所以最好在分析前确认测序芯片类型，然后设置合适的参数。</p>
-]]></content>
-      <categories>
-        <category>Log</category>
-      </categories>
-      <tags>
-        <tag>Illumina</tag>
-        <tag>测序原理</tag>
-        <tag>QC Fail Sequencing</tag>
-        <tag>Duplicate</tag>
       </tags>
   </entry>
   <entry>
@@ -458,6 +1016,46 @@
       </tags>
   </entry>
   <entry>
+    <title>MySQL操作</title>
+    <url>/2023/05/22/MySQL%E6%93%8D%E4%BD%9C/</url>
+    <content><![CDATA[<p>MySQL数据库的一些常用操作命令</p>
+<span id="more"></span>
+
+
+<h1 id="数据库操作"><a href="#数据库操作" class="headerlink" title="数据库操作"></a>数据库操作</h1><h2 id="mysql连接-x2F-登录"><a href="#mysql连接-x2F-登录" class="headerlink" title="mysql连接&#x2F;登录"></a>mysql连接&#x2F;登录</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">mysql -u root -p</span><br></pre></td></tr></table></figure>
+<h2 id="查看mysql中的数据库"><a href="#查看mysql中的数据库" class="headerlink" title="查看mysql中的数据库"></a>查看mysql中的数据库</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">show databases;</span><br></pre></td></tr></table></figure>
+<h2 id="选择-x2F-进入某个数据库"><a href="#选择-x2F-进入某个数据库" class="headerlink" title="选择&#x2F;进入某个数据库"></a>选择&#x2F;进入某个数据库</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">use &lt;数据库名&gt;;</span><br></pre></td></tr></table></figure>
+<h2 id="查看数据库中的表格"><a href="#查看数据库中的表格" class="headerlink" title="查看数据库中的表格"></a>查看数据库中的表格</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">show tables;</span><br></pre></td></tr></table></figure>
+<h2 id="新建数据库"><a href="#新建数据库" class="headerlink" title="新建数据库"></a>新建数据库</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">create database &lt;数据库名&gt;;</span><br><span class="line">CREATE DATABASE IF NOT EXISTS RUNOOB DEFAULT CHARSET utf8 COLLATE utf8_general_ci;</span><br></pre></td></tr></table></figure>
+<h2 id="删除数据库"><a href="#删除数据库" class="headerlink" title="删除数据库"></a>删除数据库</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">drop database &lt;数据库名&gt;;</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="表格操作"><a href="#表格操作" class="headerlink" title="表格操作"></a>表格操作</h1><h2 id="查找"><a href="#查找" class="headerlink" title="查找"></a>查找</h2><p>WHERE 子句的字符串比较是不区分大小写的。 你可以使用 BINARY关键字来区分大小写<br>SELECT * from runoob_tbl WHERE runoob_author&#x3D;’菜鸟教程’;<br>SELECT * from runoob_tbl WHERE BINARY runoob_author&#x3D;’runoob.com’;</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select * from 表名 where 列名 = &quot;列的名字&quot;;</span><br></pre></td></tr></table></figure>
+<h2 id="更新"><a href="#更新" class="headerlink" title="更新"></a>更新</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">update 表名称 set 列名称=新值 where 更新条件;</span><br></pre></td></tr></table></figure>
+<h2 id="字符串批量修改"><a href="#字符串批量修改" class="headerlink" title="字符串批量修改"></a>字符串批量修改</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">UPDATE table_name SET field=REPLACE(field, &#x27;old-string&#x27;, &#x27;new-string&#x27;);</span><br></pre></td></tr></table></figure>
+<h2 id="删除"><a href="#删除" class="headerlink" title="删除"></a>删除</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">delete from 表名称 where 删除条件;</span><br></pre></td></tr></table></figure>
+<h2 id="新增"><a href="#新增" class="headerlink" title="新增"></a>新增</h2><p>如果数据是字符型，必须使用单引号或者双引号，如：”value”</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">insert into 表名 (&quot;列名1&quot;,&quot;列名2&quot;) values (&quot;第一列内容&quot;, &quot;第二列内容&quot;);</span><br></pre></td></tr></table></figure>
+<h2 id="聚合查询"><a href="#聚合查询" class="headerlink" title="聚合查询"></a>聚合查询</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select count(*) from 表名;</span><br><span class="line">select count(id) from 表名;</span><br><span class="line">select max(&quot;列名&quot;) from 表名;</span><br></pre></td></tr></table></figure>
+<h2 id="新建表格"><a href="#新建表格" class="headerlink" title="新建表格"></a>新建表格</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">create table 表名 （列名 列类型）;</span><br></pre></td></tr></table></figure>
+<h2 id="删除表格"><a href="#删除表格" class="headerlink" title="删除表格"></a>删除表格</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">drop table 表名;</span><br></pre></td></tr></table></figure>
+<h2 id="表格新增列"><a href="#表格新增列" class="headerlink" title="表格新增列"></a>表格新增列</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">alter table 表名 add column 列名 数据类型 约束;</span><br></pre></td></tr></table></figure>
+<h2 id="表格删除列"><a href="#表格删除列" class="headerlink" title="表格删除列"></a>表格删除列</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">alter table 表名 drop 列名;</span><br></pre></td></tr></table></figure>
+<h2 id="修改列名"><a href="#修改列名" class="headerlink" title="修改列名"></a>修改列名</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">alter table 表名 change 原列名 新列名 数据类型 约束;</span><br></pre></td></tr></table></figure>
+
+<h1 id="参考来源"><a href="#参考来源" class="headerlink" title="参考来源"></a>参考来源</h1><ol>
+<li>菜鸟教程-MySQL教程 <a href="https://www.runoob.com/mysql/mysql-tutorial.html">https://www.runoob.com/mysql/mysql-tutorial.html</a></li>
+</ol>
+]]></content>
+      <categories>
+        <category>Log</category>
+      </categories>
+      <tags>
+        <tag>MySQL</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Linux配置Samba</title>
     <url>/2023/05/01/Linux%E9%85%8D%E7%BD%AESamba/</url>
     <content><![CDATA[<p>Linux系统配置Samba服务，Windows系统设置网络映射，实现共享目录</p>
@@ -497,46 +1095,6 @@
         <tag>Samba</tag>
         <tag>网络映射</tag>
         <tag>共享目录</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>MySQL操作</title>
-    <url>/2023/05/22/MySQL%E6%93%8D%E4%BD%9C/</url>
-    <content><![CDATA[<p>MySQL数据库的一些常用操作命令</p>
-<span id="more"></span>
-
-
-<h1 id="数据库操作"><a href="#数据库操作" class="headerlink" title="数据库操作"></a>数据库操作</h1><h2 id="mysql连接-x2F-登录"><a href="#mysql连接-x2F-登录" class="headerlink" title="mysql连接&#x2F;登录"></a>mysql连接&#x2F;登录</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">mysql -u root -p</span><br></pre></td></tr></table></figure>
-<h2 id="查看mysql中的数据库"><a href="#查看mysql中的数据库" class="headerlink" title="查看mysql中的数据库"></a>查看mysql中的数据库</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">show databases;</span><br></pre></td></tr></table></figure>
-<h2 id="选择-x2F-进入某个数据库"><a href="#选择-x2F-进入某个数据库" class="headerlink" title="选择&#x2F;进入某个数据库"></a>选择&#x2F;进入某个数据库</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">use &lt;数据库名&gt;;</span><br></pre></td></tr></table></figure>
-<h2 id="查看数据库中的表格"><a href="#查看数据库中的表格" class="headerlink" title="查看数据库中的表格"></a>查看数据库中的表格</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">show tables;</span><br></pre></td></tr></table></figure>
-<h2 id="新建数据库"><a href="#新建数据库" class="headerlink" title="新建数据库"></a>新建数据库</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">create database &lt;数据库名&gt;;</span><br><span class="line">CREATE DATABASE IF NOT EXISTS RUNOOB DEFAULT CHARSET utf8 COLLATE utf8_general_ci;</span><br></pre></td></tr></table></figure>
-<h2 id="删除数据库"><a href="#删除数据库" class="headerlink" title="删除数据库"></a>删除数据库</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">drop database &lt;数据库名&gt;;</span><br></pre></td></tr></table></figure>
-
-
-<h1 id="表格操作"><a href="#表格操作" class="headerlink" title="表格操作"></a>表格操作</h1><h2 id="查找"><a href="#查找" class="headerlink" title="查找"></a>查找</h2><p>WHERE 子句的字符串比较是不区分大小写的。 你可以使用 BINARY关键字来区分大小写<br>SELECT * from runoob_tbl WHERE runoob_author&#x3D;’菜鸟教程’;<br>SELECT * from runoob_tbl WHERE BINARY runoob_author&#x3D;’runoob.com’;</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select * from 表名 where 列名 = &quot;列的名字&quot;;</span><br></pre></td></tr></table></figure>
-<h2 id="更新"><a href="#更新" class="headerlink" title="更新"></a>更新</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">update 表名称 set 列名称=新值 where 更新条件;</span><br></pre></td></tr></table></figure>
-<h2 id="字符串批量修改"><a href="#字符串批量修改" class="headerlink" title="字符串批量修改"></a>字符串批量修改</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">UPDATE table_name SET field=REPLACE(field, &#x27;old-string&#x27;, &#x27;new-string&#x27;);</span><br></pre></td></tr></table></figure>
-<h2 id="删除"><a href="#删除" class="headerlink" title="删除"></a>删除</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">delete from 表名称 where 删除条件;</span><br></pre></td></tr></table></figure>
-<h2 id="新增"><a href="#新增" class="headerlink" title="新增"></a>新增</h2><p>如果数据是字符型，必须使用单引号或者双引号，如：”value”</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">insert into 表名 (&quot;列名1&quot;,&quot;列名2&quot;) values (&quot;第一列内容&quot;, &quot;第二列内容&quot;);</span><br></pre></td></tr></table></figure>
-<h2 id="聚合查询"><a href="#聚合查询" class="headerlink" title="聚合查询"></a>聚合查询</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select count(*) from 表名;</span><br><span class="line">select count(id) from 表名;</span><br><span class="line">select max(&quot;列名&quot;) from 表名;</span><br></pre></td></tr></table></figure>
-<h2 id="新建表格"><a href="#新建表格" class="headerlink" title="新建表格"></a>新建表格</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">create table 表名 （列名 列类型）;</span><br></pre></td></tr></table></figure>
-<h2 id="删除表格"><a href="#删除表格" class="headerlink" title="删除表格"></a>删除表格</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">drop table 表名;</span><br></pre></td></tr></table></figure>
-<h2 id="表格新增列"><a href="#表格新增列" class="headerlink" title="表格新增列"></a>表格新增列</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">alter table 表名 add column 列名 数据类型 约束;</span><br></pre></td></tr></table></figure>
-<h2 id="表格删除列"><a href="#表格删除列" class="headerlink" title="表格删除列"></a>表格删除列</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">alter table 表名 drop 列名;</span><br></pre></td></tr></table></figure>
-<h2 id="修改列名"><a href="#修改列名" class="headerlink" title="修改列名"></a>修改列名</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">alter table 表名 change 原列名 新列名 数据类型 约束;</span><br></pre></td></tr></table></figure>
-
-<h1 id="参考来源"><a href="#参考来源" class="headerlink" title="参考来源"></a>参考来源</h1><ol>
-<li>菜鸟教程-MySQL教程 <a href="https://www.runoob.com/mysql/mysql-tutorial.html">https://www.runoob.com/mysql/mysql-tutorial.html</a></li>
-</ol>
-]]></content>
-      <categories>
-        <category>Log</category>
-      </categories>
-      <tags>
-        <tag>MySQL</tag>
       </tags>
   </entry>
   <entry>
@@ -680,6 +1238,29 @@
       </tags>
   </entry>
   <entry>
+    <title>UCSC软件下载</title>
+    <url>/2025/03/26/UCSC%E8%BD%AF%E4%BB%B6%E4%B8%8B%E8%BD%BD/</url>
+    <content><![CDATA[<p>UCSC Jim Kent的BLAT和In-Silico PCR等软件下载</p>
+<span id="more"></span>
+
+<h1 id="Jim-Kent主页"><a href="#Jim-Kent主页" class="headerlink" title="Jim Kent主页"></a>Jim Kent主页</h1><p><a href="https://users.soe.ucsc.edu/~kent/">Jim Kent’s Web Page</a></p>
+<ul>
+<li>下载可执行文件：选<a href="http://hgwdev.cse.ucsc.edu/~kent/exe/">Executables</a></li>
+<li>下载源码：选<a href="http://hgwdev.cse.ucsc.edu/~kent/src">Source Code</a></li>
+</ul>
+<h1 id="Blat的使用说明"><a href="#Blat的使用说明" class="headerlink" title="Blat的使用说明"></a>Blat的使用说明</h1><p><a href="https://genome.ucsc.edu/goldenPath/help/blatSpec.html">Blat Suite Program Specifications and User Guide</a></p>
+<h1 id="关于Blat的常见问题"><a href="#关于Blat的常见问题" class="headerlink" title="关于Blat的常见问题"></a>关于Blat的常见问题</h1><p><a href="https://hgwdev-gs.gi.ucsc.edu/FAQ/FAQblat.html">Frequently Asked Questions: Blat</a></p>
+]]></content>
+      <categories>
+        <category>Log</category>
+      </categories>
+      <tags>
+        <tag>BLAT</tag>
+        <tag>UCSC</tag>
+        <tag>In-Silico PCR</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>VEP安装</title>
     <url>/2023/04/19/VEP%E5%AE%89%E8%A3%85/</url>
     <content><![CDATA[<p>VEP安装过程</p>
@@ -765,62 +1346,6 @@ cpan -i autodie
       </tags>
   </entry>
   <entry>
-    <title>bamdst软件Raw Reads错误导致比对率低</title>
-    <url>/2023/12/03/bamdst%E8%BD%AF%E4%BB%B6Raw-Reads%E9%94%99%E8%AF%AF%E5%AF%BC%E8%87%B4%E6%AF%94%E5%AF%B9%E7%8E%87%E4%BD%8E/</url>
-    <content><![CDATA[<p>bamdst的旧版本（21年9月，软件后来有更新，但版本号没变），统计的[Total] Raw Reads (All Reads)错误，导致某些情况下的比对率偏低，On Target Rate也会受影响。</p>
-<span id="more"></span>
-
-
-<h1 id="软件版本"><a href="#软件版本" class="headerlink" title="软件版本"></a>软件版本</h1><ul>
-<li><a href="https://github.com/shiquan/bamdst">bamdst</a> 1.0.9</li>
-</ul>
-<h1 id="问题定位"><a href="#问题定位" class="headerlink" title="问题定位"></a>问题定位</h1><ul>
-<li>bamdst把primary + secondary当作分母去算比对率了，Reads和Base都是。假如1条Reads在参考基因组上Multiple Mapping到了2个位置，分母是算+2的。导致当Multiple Mapping的Reads较多时，这个软件算出来的比对率（Read和Base）会偏低。<br><img src="https://pic.imgdb.cn/item/656c3e87c458853aefaab25b.png" alt="Bamdst错误结果"></li>
-<li>一般比对率，按Read算，是&#x3D;Mapped Reads &#x2F; (Clean R1 Reads + Clean R2 Reads) * 100</li>
-<li>这个样本是：4688627 &#x2F; （2344520 + 2344520）* 100 &#x3D; 99.99%。samtools flagstats算出的比对率就是99.99%。<br><img src="https://pic.imgdb.cn/item/656c3e87c458853aefaab2b0.png" alt="Samtools Flagstats结果"></li>
-<li>以上错误的比对率结果是调用21年9月安装的bamdst得到的。2019年12月有个Issue有提到这个问题：<a href="https://github.com/shiquan/bamdst/issues/18">Raw Reads (All reads) are a bit off</a>。</li>
-<li>以下是2023年11月重新安装的bamdst，算出来的Raw Reads是对的。</li>
-<li>但是这两个的软件版本都是1.0.9，Github上也没有Change Log，那就没法知道具体是什么时候修改成正确的了。<br> <img src="https://pic.imgdb.cn/item/656c3e87c458853aefaab319.png" alt="Bamdst正确结果"></li>
-</ul>
-<h1 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h1><ol>
-<li>如果bamdst太旧，建议重新从Github下载再编译安装bamdst。</li>
-<li>或者直接用samtools flagstats提取比对率。</li>
-</ol>
-]]></content>
-      <categories>
-        <category>Bug</category>
-      </categories>
-      <tags>
-        <tag>比对</tag>
-        <tag>Bamdst</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Xlsx转MySQL</title>
-    <url>/2023/04/21/Xlsx%E8%BD%ACMySQL/</url>
-    <content><![CDATA[<p>通过Python的openpyxl和MySQLdb模块，将.xlsx文件转为MySQL的Databse</p>
-<span id="more"></span>
-
-<h1 id="依赖"><a href="#依赖" class="headerlink" title="依赖"></a>依赖</h1><ul>
-<li>python 3.7.9  </li>
-<li>openpyxl模块 3.0.9  </li>
-<li>MySQLdb模块 2.1.1？</li>
-</ul>
-<h1 id="模块安装"><a href="#模块安装" class="headerlink" title="模块安装"></a>模块安装</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># openpyxl模块  </span><br><span class="line">python -m pip install openpyxl  </span><br><span class="line"># MySQLdb模块  </span><br><span class="line">python -m pip install mysqlclient  </span><br></pre></td></tr></table></figure>
-
-<h2 id="脚本"><a href="#脚本" class="headerlink" title="脚本"></a>脚本</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># python</span><br><span class="line"># -*- encoding: utf-8 -*-</span><br><span class="line"># Useage: 将xlsx文件导入为mysql的databse</span><br><span class="line"></span><br><span class="line">import os</span><br><span class="line">import sys</span><br><span class="line">import re</span><br><span class="line">import datetime</span><br><span class="line">import argparse</span><br><span class="line">import openpyxl</span><br><span class="line">import MySQLdb</span><br><span class="line"></span><br><span class="line">Charset = &quot;utf8&quot;</span><br><span class="line"></span><br><span class="line">def Xlsx2MySQLdb(Xlsx, User, Password):</span><br><span class="line">	Work_Book = openpyxl.load_workbook(Xlsx)</span><br><span class="line">	Database = re.search(&quot;.*\/(\S+)\.xlsx&quot;, Xlsx).group(1) + &quot;_&quot; + datetime.datetime.now().strftime(&quot;%Y%m%d_%H%M%S&quot;)</span><br><span class="line">	List_Sheet = Work_Book.sheetnames</span><br><span class="line">	# 提示信息</span><br><span class="line">	Time_Stamp = datetime.datetime.now().strftime(&quot;%Y-%m-%d %H:%M:%S&quot;)</span><br><span class="line">	sys.stdout.write(&quot;*&quot; + Time_Stamp + &quot;* [运行信息]\n&quot;)</span><br><span class="line">	sys.stdout.write(&quot;[输入文件] &quot; + Xlsx + &quot;\n&quot;)</span><br><span class="line">	sys.stdout.write(&quot;[子表数量] &quot; + str(len(List_Sheet)) + &quot;\n&quot;)</span><br><span class="line">	sys.stdout.write(&quot;[子表名称] &quot; + &quot;、&quot;.join(List_Sheet) + &quot;\n&quot;)</span><br><span class="line">	sys.stdout.write(&quot;[数据库名] &quot; + Database + &quot;\n&quot;)</span><br><span class="line">	sys.stdout.write(&quot;[字符编码] &quot; + Charset + &quot;\n&quot;)</span><br><span class="line">	sys.stdout.write(&quot;[表头字段] 每个子表的第1行会作为数据库的列名\n&quot;)</span><br><span class="line">	sys.stdout.write(&quot;[数据类型] 所有内容都保存为TEXT，如需修改，请在MySQL自行修改\n\n&quot;)</span><br><span class="line"></span><br><span class="line">	# 连接MySQL</span><br><span class="line">	SQL_Host = &quot;localhost&quot;</span><br><span class="line">	SQL_Connection = MySQLdb.connect(host = SQL_Host, user = User, passwd = Password, charset = Charset)</span><br><span class="line">	Cursor = SQL_Connection.cursor()</span><br><span class="line">	# 创建数据库</span><br><span class="line">	Cursor.execute(&quot;create database if not exists &quot; + Database)</span><br><span class="line">	Cursor.execute(&quot;use &quot; + Database)</span><br><span class="line">	# 逐个子表处理</span><br><span class="line">	for Sheet in List_Sheet:</span><br><span class="line">		List_Header = []</span><br><span class="line">		List_Table_Header = []</span><br><span class="line">		Data_Type = &quot;TEXT&quot;</span><br><span class="line">		Work_Sheet = Work_Book[Sheet]</span><br><span class="line">		for col_n in range(1, Work_Sheet.max_column+1):</span><br><span class="line">			Header = str(Work_Sheet.cell(row=1, column=col_n).value)</span><br><span class="line">			List_Header.append(&quot;`&quot; + Header + &quot;`&quot;)</span><br><span class="line">			List_Table_Header.append(&quot;`&quot; + Header + &quot;`&quot; + &quot; &quot; + Data_Type)</span><br><span class="line">		# 创建数据表</span><br><span class="line">		Table_Header = &quot;, &quot;.join(List_Table_Header)</span><br><span class="line">		Cursor.execute(&quot;create table if not exists &quot; + Sheet + &quot; (&quot; + Table_Header + &quot;)&quot;)</span><br><span class="line">		# 逐行存入数据</span><br><span class="line">		Header = &quot;, &quot;.join(List_Header)</span><br><span class="line">		for row_n in range(2, Work_Sheet.max_row+1):</span><br><span class="line">			List_Value = []</span><br><span class="line">			for col_n in range(1, Work_Sheet.max_column+1):</span><br><span class="line">				Value = str(Work_Sheet.cell(row = row_n, column = col_n).value)</span><br><span class="line">				List_Value.append(&quot;\&quot;&quot; + Value + &quot;\&quot;&quot;)</span><br><span class="line">			Value = &quot;, &quot;.join(List_Value)</span><br><span class="line">			Cursor.execute(&quot;insert into &quot; + Sheet + &quot; (&quot; + Header + &quot;) values(&quot; + Value + &quot;)&quot;)</span><br><span class="line">			# 提交MyQSL操作</span><br><span class="line">			SQL_Connection.commit()</span><br><span class="line">	# 关闭连接</span><br><span class="line">	Cursor.close()</span><br><span class="line">	SQL_Connection.close()</span><br><span class="line">	# 关闭Xlsx</span><br><span class="line">	Work_Book.close()</span><br></pre></td></tr></table></figure>
-]]></content>
-      <categories>
-        <category>Log</category>
-      </categories>
-      <tags>
-        <tag>数据库</tag>
-        <tag>MySQL</tag>
-        <tag>Python</tag>
-        <tag>Excel</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Xlsx转MySQL报错</title>
     <url>/2023/04/21/Xlsx%E8%BD%ACMySQL%E6%8A%A5%E9%94%99/</url>
     <content><![CDATA[<p>写Xlsx转MySQL脚本过程中的一些报错信息</p>
@@ -852,6 +1377,37 @@ cpan -i autodie
         <tag>MySQL</tag>
         <tag>Python</tag>
         <tag>Excel</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>bamdst软件Raw Reads错误导致比对率低</title>
+    <url>/2023/12/03/bamdst%E8%BD%AF%E4%BB%B6Raw-Reads%E9%94%99%E8%AF%AF%E5%AF%BC%E8%87%B4%E6%AF%94%E5%AF%B9%E7%8E%87%E4%BD%8E/</url>
+    <content><![CDATA[<p>bamdst的旧版本（21年9月，软件后来有更新，但版本号没变），统计的[Total] Raw Reads (All Reads)错误，导致某些情况下的比对率偏低，On Target Rate也会受影响。</p>
+<span id="more"></span>
+
+
+<h1 id="软件版本"><a href="#软件版本" class="headerlink" title="软件版本"></a>软件版本</h1><ul>
+<li><a href="https://github.com/shiquan/bamdst">bamdst</a> 1.0.9</li>
+</ul>
+<h1 id="问题定位"><a href="#问题定位" class="headerlink" title="问题定位"></a>问题定位</h1><ul>
+<li>bamdst把primary + secondary当作分母去算比对率了，Reads和Base都是。假如1条Reads在参考基因组上Multiple Mapping到了2个位置，分母是算+2的。导致当Multiple Mapping的Reads较多时，这个软件算出来的比对率（Read和Base）会偏低。<br><img src="https://pic.imgdb.cn/item/656c3e87c458853aefaab25b.png" alt="Bamdst错误结果"></li>
+<li>一般比对率，按Read算，是&#x3D;Mapped Reads &#x2F; (Clean R1 Reads + Clean R2 Reads) * 100</li>
+<li>这个样本是：4688627 &#x2F; （2344520 + 2344520）* 100 &#x3D; 99.99%。samtools flagstats算出的比对率就是99.99%。<br><img src="https://pic.imgdb.cn/item/656c3e87c458853aefaab2b0.png" alt="Samtools Flagstats结果"></li>
+<li>以上错误的比对率结果是调用21年9月安装的bamdst得到的。2019年12月有个Issue有提到这个问题：<a href="https://github.com/shiquan/bamdst/issues/18">Raw Reads (All reads) are a bit off</a>。</li>
+<li>以下是2023年11月重新安装的bamdst，算出来的Raw Reads是对的。</li>
+<li>但是这两个的软件版本都是1.0.9，Github上也没有Change Log，那就没法知道具体是什么时候修改成正确的了。<br> <img src="https://pic.imgdb.cn/item/656c3e87c458853aefaab319.png" alt="Bamdst正确结果"></li>
+</ul>
+<h1 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h1><ol>
+<li>如果bamdst太旧，建议重新从Github下载再编译安装bamdst。</li>
+<li>或者直接用samtools flagstats提取比对率。</li>
+</ol>
+]]></content>
+      <categories>
+        <category>Bug</category>
+      </categories>
+      <tags>
+        <tag>比对</tag>
+        <tag>Bamdst</tag>
       </tags>
   </entry>
   <entry>
@@ -891,24 +1447,28 @@ cpan -i autodie
       </tags>
   </entry>
   <entry>
-    <title>ggplot2设置坐标轴字体颜色</title>
-    <url>/2023/05/24/ggplot2%E8%AE%BE%E7%BD%AE%E5%9D%90%E6%A0%87%E8%BD%B4%E5%AD%97%E4%BD%93%E9%A2%9C%E8%89%B2/</url>
-    <content><![CDATA[<p>通过ggplot2的theme()指定坐标轴的每个刻度标签的字体颜色</p>
+    <title>Xlsx转MySQL</title>
+    <url>/2023/04/21/Xlsx%E8%BD%ACMySQL/</url>
+    <content><![CDATA[<p>通过Python的openpyxl和MySQLdb模块，将.xlsx文件转为MySQL的Databse</p>
 <span id="more"></span>
 
-<h1 id="关键代码"><a href="#关键代码" class="headerlink" title="关键代码"></a>关键代码</h1><p>设置X轴：<code>theme(axis.text.x = element_text(colour = Data$Color))</code><br>设置Y轴：<code>theme(axis.text.y = element_text(colour = Data$Color))</code></p>
-<h1 id="需求说明"><a href="#需求说明" class="headerlink" title="需求说明"></a>需求说明</h1><p>有若干个样本都检出某个物种，需要画检出Reads数的柱状图，当前样本字体颜色和填充颜色为蓝色，其他样本为灰色。</p>
-<h1 id="完成示例"><a href="#完成示例" class="headerlink" title="完成示例"></a>完成示例</h1><p><img src="https://pic1.imgdb.cn/item/646db75d0d2dde5777e0998b.png" alt="坐标轴字体颜色"></p>
-<h1 id="代码示例"><a href="#代码示例" class="headerlink" title="代码示例"></a>代码示例</h1><figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>ggplot2<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">args<span class="operator">&lt;-</span>commandArgs<span class="punctuation">(</span><span class="built_in">T</span><span class="punctuation">)</span></span><br><span class="line"><span class="comment"># 数据表</span></span><br><span class="line">Reads_Table<span class="operator">=</span>args<span class="punctuation">[</span><span class="number">1</span><span class="punctuation">]</span></span><br><span class="line"><span class="comment"># 输出目录</span></span><br><span class="line">Result_Dir<span class="operator">=</span>args<span class="punctuation">[</span><span class="number">2</span><span class="punctuation">]</span></span><br><span class="line"><span class="comment"># 当前样本</span></span><br><span class="line">Plot_Sample <span class="operator">=</span> args<span class="punctuation">[</span><span class="number">3</span><span class="punctuation">]</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 读入数据表</span></span><br><span class="line">Data <span class="operator">=</span> read.table<span class="punctuation">(</span>Reads_Table<span class="punctuation">,</span> head<span class="operator">=</span><span class="built_in">T</span><span class="punctuation">,</span> sep<span class="operator">=</span><span class="string">&quot;\t&quot;</span><span class="punctuation">,</span> comment.char<span class="operator">=</span><span class="string">&quot;#&quot;</span><span class="punctuation">,</span> stringsAsFactors<span class="operator">=</span><span class="literal">FALSE</span><span class="punctuation">,</span> check.names<span class="operator">=</span><span class="literal">FALSE</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 设置其他样本和当前样本的分组、颜色信息</span></span><br><span class="line">List_Color <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;#808080&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#1e90ff&quot;</span><span class="punctuation">)</span></span><br><span class="line">Data<span class="operator">$</span>Group <span class="operator">=</span> <span class="built_in">rep</span><span class="punctuation">(</span><span class="string">&quot;Other Sample&quot;</span><span class="punctuation">,</span> nrow<span class="punctuation">(</span>Data<span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">Data<span class="operator">$</span>Group<span class="punctuation">[</span>with<span class="punctuation">(</span>Data<span class="punctuation">,</span> Sample<span class="operator">==</span>Plot_Sample<span class="punctuation">)</span><span class="punctuation">]</span> <span class="operator">=</span> <span class="string">&quot;This Sample&quot;</span></span><br><span class="line">Data<span class="operator">$</span>Color <span class="operator">=</span> <span class="built_in">rep</span><span class="punctuation">(</span>List_Color<span class="punctuation">[</span><span class="number">1</span><span class="punctuation">]</span><span class="punctuation">,</span> nrow<span class="punctuation">(</span>Data<span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">Data<span class="operator">$</span>Color<span class="punctuation">[</span>with<span class="punctuation">(</span>Data<span class="punctuation">,</span> Sample<span class="operator">==</span>Plot_Sample<span class="punctuation">)</span><span class="punctuation">]</span> <span class="operator">=</span> List_Color<span class="punctuation">[</span><span class="number">2</span><span class="punctuation">]</span></span><br><span class="line"><span class="keyword">if</span> <span class="punctuation">(</span>nrow<span class="punctuation">(</span>Data<span class="punctuation">)</span> <span class="operator">==</span> <span class="number">1</span><span class="punctuation">)</span><span class="punctuation">&#123;</span></span><br><span class="line">	List_Color <span class="operator">=</span> List_Color<span class="punctuation">[</span><span class="number">2</span><span class="punctuation">]</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 通用主题</span></span><br><span class="line">plot_font_size<span class="operator">=</span><span class="number">10</span></span><br><span class="line"><span class="keyword">if</span> <span class="punctuation">(</span>plot_font_size <span class="operator">&lt;</span> <span class="number">10</span><span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">	plot_font_size <span class="operator">=</span> <span class="number">10</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br><span class="line">universal_theme<span class="operator">=</span>theme_bw<span class="punctuation">(</span>base_size<span class="operator">=</span>plot_font_size<span class="punctuation">)</span><span class="operator">+</span></span><br><span class="line">	theme<span class="punctuation">(</span>axis.line<span class="operator">=</span>element_line<span class="punctuation">(</span>size<span class="operator">=</span><span class="number">0.5</span><span class="punctuation">,</span>colour<span class="operator">=</span><span class="string">&#x27;black&#x27;</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="operator">+</span></span><br><span class="line">	theme<span class="punctuation">(</span>axis.title.x<span class="operator">=</span>element_text<span class="punctuation">(</span>size<span class="operator">=</span>plot_font_size<span class="operator">-</span><span class="number">2</span><span class="punctuation">)</span><span class="punctuation">,</span>axis.title.y<span class="operator">=</span>element_text<span class="punctuation">(</span>size<span class="operator">=</span>plot_font_size<span class="operator">-</span><span class="number">2</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="operator">+</span></span><br><span class="line">	theme<span class="punctuation">(</span>axis.text.x<span class="operator">=</span>element_text<span class="punctuation">(</span>size<span class="operator">=</span>plot_font_size<span class="operator">-</span><span class="number">3</span><span class="punctuation">,</span>colour<span class="operator">=</span><span class="string">&#x27;black&#x27;</span><span class="punctuation">)</span><span class="punctuation">,</span>axis.text.y<span class="operator">=</span>element_text<span class="punctuation">(</span>size<span class="operator">=</span>plot_font_size<span class="operator">-</span><span class="number">3</span><span class="punctuation">,</span>colour<span class="operator">=</span><span class="string">&#x27;black&#x27;</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="operator">+</span></span><br><span class="line">	theme<span class="punctuation">(</span>legend.key.size<span class="operator">=</span>unit<span class="punctuation">(</span><span class="number">20</span><span class="punctuation">,</span><span class="string">&quot;pt&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span>legend.title<span class="operator">=</span>element_text<span class="punctuation">(</span>size<span class="operator">=</span>plot_font_size<span class="operator">-</span><span class="number">2</span><span class="punctuation">)</span><span class="punctuation">,</span>legend.text<span class="operator">=</span>element_text<span class="punctuation">(</span>size<span class="operator">=</span>plot_font_size<span class="operator">-</span><span class="number">3</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="operator">+</span></span><br><span class="line">	theme<span class="punctuation">(</span>panel.border<span class="operator">=</span>element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="operator">+</span></span><br><span class="line">	theme<span class="punctuation">(</span>plot.title<span class="operator">=</span>element_text<span class="punctuation">(</span>hjust<span class="operator">=</span><span class="number">0.5</span><span class="punctuation">,</span>size<span class="operator">=</span>plot_font_size<span class="punctuation">)</span><span class="punctuation">)</span><span class="operator">+</span></span><br><span class="line">	theme<span class="punctuation">(</span>legend.position<span class="operator">=</span><span class="string">&quot;none&quot;</span><span class="punctuation">)</span><span class="operator">+</span></span><br><span class="line">	theme<span class="punctuation">(</span>panel.grid<span class="operator">=</span>element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 画柱状图</span></span><br><span class="line">picture <span class="operator">=</span> ggplot<span class="punctuation">(</span>data<span class="operator">=</span>Data<span class="punctuation">,</span> aes<span class="punctuation">(</span>x<span class="operator">=</span>Sample<span class="punctuation">,</span> y<span class="operator">=</span>Reads<span class="punctuation">,</span> fill<span class="operator">=</span>Group<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">	geom_bar<span class="punctuation">(</span>stat<span class="operator">=</span><span class="string">&quot;identity&quot;</span><span class="punctuation">,</span> width<span class="operator">=</span><span class="number">0.7</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">	labs<span class="punctuation">(</span>x<span class="operator">=</span><span class="string">&quot;&quot;</span><span class="punctuation">,</span> y<span class="operator">=</span><span class="string">&quot;&quot;</span><span class="punctuation">,</span> title<span class="operator">=</span><span class="string">&quot;无乳链球菌&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">	scale_y_continuous<span class="punctuation">(</span>expand <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="number">0</span><span class="punctuation">,</span><span class="number">0</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">	scale_fill_manual<span class="punctuation">(</span>values <span class="operator">=</span> List_Color<span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">	universal_theme <span class="operator">+</span> </span><br><span class="line">	theme<span class="punctuation">(</span>axis.text.y <span class="operator">=</span> element_text<span class="punctuation">(</span>colour <span class="operator">=</span> rev<span class="punctuation">(</span>Data<span class="operator">$</span>Color<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">	coord_flip<span class="punctuation">(</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 保存图片</span></span><br><span class="line">output_png <span class="operator">=</span> paste<span class="punctuation">(</span>Result_Dir<span class="punctuation">,</span> <span class="string">&quot;/&quot;</span><span class="punctuation">,</span> <span class="string">&quot;无乳链球菌.png&quot;</span><span class="punctuation">,</span> sep<span class="operator">=</span><span class="string">&quot;&quot;</span><span class="punctuation">,</span> collapse<span class="operator">=</span><span class="string">&quot;&quot;</span><span class="punctuation">)</span></span><br><span class="line">ggsave<span class="punctuation">(</span>output_png<span class="punctuation">,</span> picture<span class="punctuation">,</span> width<span class="operator">=</span><span class="number">8</span><span class="punctuation">,</span> height<span class="operator">=</span><span class="number">10</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+<h1 id="依赖"><a href="#依赖" class="headerlink" title="依赖"></a>依赖</h1><ul>
+<li>python 3.7.9  </li>
+<li>openpyxl模块 3.0.9  </li>
+<li>MySQLdb模块 2.1.1？</li>
+</ul>
+<h1 id="模块安装"><a href="#模块安装" class="headerlink" title="模块安装"></a>模块安装</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># openpyxl模块  </span><br><span class="line">python -m pip install openpyxl  </span><br><span class="line"># MySQLdb模块  </span><br><span class="line">python -m pip install mysqlclient  </span><br></pre></td></tr></table></figure>
 
-<h1 id="警告信息"><a href="#警告信息" class="headerlink" title="警告信息"></a>警告信息</h1><p>使用以上代码画图，会出现警告信息。<br>这是因为用向量变量在element_text中指定颜色并不是官方支持的标准用法，算是个workaround。<br>目前是能正常使用的，但在将来的ggplot2版本不一定依然支持这样的用法。  </p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Warning message:</span><br><span class="line">Vectorized input to `element_text()` is not officially supported.</span><br><span class="line">Results may be unexpected or may change in future versions of ggplot2.</span><br></pre></td></tr></table></figure>]]></content>
+<h2 id="脚本"><a href="#脚本" class="headerlink" title="脚本"></a>脚本</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># python</span><br><span class="line"># -*- encoding: utf-8 -*-</span><br><span class="line"># Useage: 将xlsx文件导入为mysql的databse</span><br><span class="line"></span><br><span class="line">import os</span><br><span class="line">import sys</span><br><span class="line">import re</span><br><span class="line">import datetime</span><br><span class="line">import argparse</span><br><span class="line">import openpyxl</span><br><span class="line">import MySQLdb</span><br><span class="line"></span><br><span class="line">Charset = &quot;utf8&quot;</span><br><span class="line"></span><br><span class="line">def Xlsx2MySQLdb(Xlsx, User, Password):</span><br><span class="line">	Work_Book = openpyxl.load_workbook(Xlsx)</span><br><span class="line">	Database = re.search(&quot;.*\/(\S+)\.xlsx&quot;, Xlsx).group(1) + &quot;_&quot; + datetime.datetime.now().strftime(&quot;%Y%m%d_%H%M%S&quot;)</span><br><span class="line">	List_Sheet = Work_Book.sheetnames</span><br><span class="line">	# 提示信息</span><br><span class="line">	Time_Stamp = datetime.datetime.now().strftime(&quot;%Y-%m-%d %H:%M:%S&quot;)</span><br><span class="line">	sys.stdout.write(&quot;*&quot; + Time_Stamp + &quot;* [运行信息]\n&quot;)</span><br><span class="line">	sys.stdout.write(&quot;[输入文件] &quot; + Xlsx + &quot;\n&quot;)</span><br><span class="line">	sys.stdout.write(&quot;[子表数量] &quot; + str(len(List_Sheet)) + &quot;\n&quot;)</span><br><span class="line">	sys.stdout.write(&quot;[子表名称] &quot; + &quot;、&quot;.join(List_Sheet) + &quot;\n&quot;)</span><br><span class="line">	sys.stdout.write(&quot;[数据库名] &quot; + Database + &quot;\n&quot;)</span><br><span class="line">	sys.stdout.write(&quot;[字符编码] &quot; + Charset + &quot;\n&quot;)</span><br><span class="line">	sys.stdout.write(&quot;[表头字段] 每个子表的第1行会作为数据库的列名\n&quot;)</span><br><span class="line">	sys.stdout.write(&quot;[数据类型] 所有内容都保存为TEXT，如需修改，请在MySQL自行修改\n\n&quot;)</span><br><span class="line"></span><br><span class="line">	# 连接MySQL</span><br><span class="line">	SQL_Host = &quot;localhost&quot;</span><br><span class="line">	SQL_Connection = MySQLdb.connect(host = SQL_Host, user = User, passwd = Password, charset = Charset)</span><br><span class="line">	Cursor = SQL_Connection.cursor()</span><br><span class="line">	# 创建数据库</span><br><span class="line">	Cursor.execute(&quot;create database if not exists &quot; + Database)</span><br><span class="line">	Cursor.execute(&quot;use &quot; + Database)</span><br><span class="line">	# 逐个子表处理</span><br><span class="line">	for Sheet in List_Sheet:</span><br><span class="line">		List_Header = []</span><br><span class="line">		List_Table_Header = []</span><br><span class="line">		Data_Type = &quot;TEXT&quot;</span><br><span class="line">		Work_Sheet = Work_Book[Sheet]</span><br><span class="line">		for col_n in range(1, Work_Sheet.max_column+1):</span><br><span class="line">			Header = str(Work_Sheet.cell(row=1, column=col_n).value)</span><br><span class="line">			List_Header.append(&quot;`&quot; + Header + &quot;`&quot;)</span><br><span class="line">			List_Table_Header.append(&quot;`&quot; + Header + &quot;`&quot; + &quot; &quot; + Data_Type)</span><br><span class="line">		# 创建数据表</span><br><span class="line">		Table_Header = &quot;, &quot;.join(List_Table_Header)</span><br><span class="line">		Cursor.execute(&quot;create table if not exists &quot; + Sheet + &quot; (&quot; + Table_Header + &quot;)&quot;)</span><br><span class="line">		# 逐行存入数据</span><br><span class="line">		Header = &quot;, &quot;.join(List_Header)</span><br><span class="line">		for row_n in range(2, Work_Sheet.max_row+1):</span><br><span class="line">			List_Value = []</span><br><span class="line">			for col_n in range(1, Work_Sheet.max_column+1):</span><br><span class="line">				Value = str(Work_Sheet.cell(row = row_n, column = col_n).value)</span><br><span class="line">				List_Value.append(&quot;\&quot;&quot; + Value + &quot;\&quot;&quot;)</span><br><span class="line">			Value = &quot;, &quot;.join(List_Value)</span><br><span class="line">			Cursor.execute(&quot;insert into &quot; + Sheet + &quot; (&quot; + Header + &quot;) values(&quot; + Value + &quot;)&quot;)</span><br><span class="line">			# 提交MyQSL操作</span><br><span class="line">			SQL_Connection.commit()</span><br><span class="line">	# 关闭连接</span><br><span class="line">	Cursor.close()</span><br><span class="line">	SQL_Connection.close()</span><br><span class="line">	# 关闭Xlsx</span><br><span class="line">	Work_Book.close()</span><br></pre></td></tr></table></figure>
+]]></content>
       <categories>
         <category>Log</category>
       </categories>
       <tags>
-        <tag>ggplot2</tag>
-        <tag>画图</tag>
+        <tag>数据库</tag>
+        <tag>MySQL</tag>
+        <tag>Python</tag>
+        <tag>Excel</tag>
       </tags>
   </entry>
   <entry>
@@ -994,10 +1554,31 @@ cpan -i autodie
       </categories>
       <tags>
         <tag>R</tag>
-        <tag>画图</tag>
         <tag>clusterProfiler</tag>
         <tag>GO</tag>
         <tag>KEGG</tag>
+        <tag>画图</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>ggplot2设置坐标轴字体颜色</title>
+    <url>/2023/05/24/ggplot2%E8%AE%BE%E7%BD%AE%E5%9D%90%E6%A0%87%E8%BD%B4%E5%AD%97%E4%BD%93%E9%A2%9C%E8%89%B2/</url>
+    <content><![CDATA[<p>通过ggplot2的theme()指定坐标轴的每个刻度标签的字体颜色</p>
+<span id="more"></span>
+
+<h1 id="关键代码"><a href="#关键代码" class="headerlink" title="关键代码"></a>关键代码</h1><p>设置X轴：<code>theme(axis.text.x = element_text(colour = Data$Color))</code><br>设置Y轴：<code>theme(axis.text.y = element_text(colour = Data$Color))</code></p>
+<h1 id="需求说明"><a href="#需求说明" class="headerlink" title="需求说明"></a>需求说明</h1><p>有若干个样本都检出某个物种，需要画检出Reads数的柱状图，当前样本字体颜色和填充颜色为蓝色，其他样本为灰色。</p>
+<h1 id="完成示例"><a href="#完成示例" class="headerlink" title="完成示例"></a>完成示例</h1><p><img src="https://pic1.imgdb.cn/item/646db75d0d2dde5777e0998b.png" alt="坐标轴字体颜色"></p>
+<h1 id="代码示例"><a href="#代码示例" class="headerlink" title="代码示例"></a>代码示例</h1><figure class="highlight r"><table><tr><td class="code"><pre><span class="line">library<span class="punctuation">(</span>ggplot2<span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line">args<span class="operator">&lt;-</span>commandArgs<span class="punctuation">(</span><span class="built_in">T</span><span class="punctuation">)</span></span><br><span class="line"><span class="comment"># 数据表</span></span><br><span class="line">Reads_Table<span class="operator">=</span>args<span class="punctuation">[</span><span class="number">1</span><span class="punctuation">]</span></span><br><span class="line"><span class="comment"># 输出目录</span></span><br><span class="line">Result_Dir<span class="operator">=</span>args<span class="punctuation">[</span><span class="number">2</span><span class="punctuation">]</span></span><br><span class="line"><span class="comment"># 当前样本</span></span><br><span class="line">Plot_Sample <span class="operator">=</span> args<span class="punctuation">[</span><span class="number">3</span><span class="punctuation">]</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 读入数据表</span></span><br><span class="line">Data <span class="operator">=</span> read.table<span class="punctuation">(</span>Reads_Table<span class="punctuation">,</span> head<span class="operator">=</span><span class="built_in">T</span><span class="punctuation">,</span> sep<span class="operator">=</span><span class="string">&quot;\t&quot;</span><span class="punctuation">,</span> comment.char<span class="operator">=</span><span class="string">&quot;#&quot;</span><span class="punctuation">,</span> stringsAsFactors<span class="operator">=</span><span class="literal">FALSE</span><span class="punctuation">,</span> check.names<span class="operator">=</span><span class="literal">FALSE</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 设置其他样本和当前样本的分组、颜色信息</span></span><br><span class="line">List_Color <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="string">&quot;#808080&quot;</span><span class="punctuation">,</span> <span class="string">&quot;#1e90ff&quot;</span><span class="punctuation">)</span></span><br><span class="line">Data<span class="operator">$</span>Group <span class="operator">=</span> <span class="built_in">rep</span><span class="punctuation">(</span><span class="string">&quot;Other Sample&quot;</span><span class="punctuation">,</span> nrow<span class="punctuation">(</span>Data<span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">Data<span class="operator">$</span>Group<span class="punctuation">[</span>with<span class="punctuation">(</span>Data<span class="punctuation">,</span> Sample<span class="operator">==</span>Plot_Sample<span class="punctuation">)</span><span class="punctuation">]</span> <span class="operator">=</span> <span class="string">&quot;This Sample&quot;</span></span><br><span class="line">Data<span class="operator">$</span>Color <span class="operator">=</span> <span class="built_in">rep</span><span class="punctuation">(</span>List_Color<span class="punctuation">[</span><span class="number">1</span><span class="punctuation">]</span><span class="punctuation">,</span> nrow<span class="punctuation">(</span>Data<span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line">Data<span class="operator">$</span>Color<span class="punctuation">[</span>with<span class="punctuation">(</span>Data<span class="punctuation">,</span> Sample<span class="operator">==</span>Plot_Sample<span class="punctuation">)</span><span class="punctuation">]</span> <span class="operator">=</span> List_Color<span class="punctuation">[</span><span class="number">2</span><span class="punctuation">]</span></span><br><span class="line"><span class="keyword">if</span> <span class="punctuation">(</span>nrow<span class="punctuation">(</span>Data<span class="punctuation">)</span> <span class="operator">==</span> <span class="number">1</span><span class="punctuation">)</span><span class="punctuation">&#123;</span></span><br><span class="line">	List_Color <span class="operator">=</span> List_Color<span class="punctuation">[</span><span class="number">2</span><span class="punctuation">]</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 通用主题</span></span><br><span class="line">plot_font_size<span class="operator">=</span><span class="number">10</span></span><br><span class="line"><span class="keyword">if</span> <span class="punctuation">(</span>plot_font_size <span class="operator">&lt;</span> <span class="number">10</span><span class="punctuation">)</span> <span class="punctuation">&#123;</span></span><br><span class="line">	plot_font_size <span class="operator">=</span> <span class="number">10</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br><span class="line">universal_theme<span class="operator">=</span>theme_bw<span class="punctuation">(</span>base_size<span class="operator">=</span>plot_font_size<span class="punctuation">)</span><span class="operator">+</span></span><br><span class="line">	theme<span class="punctuation">(</span>axis.line<span class="operator">=</span>element_line<span class="punctuation">(</span>size<span class="operator">=</span><span class="number">0.5</span><span class="punctuation">,</span>colour<span class="operator">=</span><span class="string">&#x27;black&#x27;</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="operator">+</span></span><br><span class="line">	theme<span class="punctuation">(</span>axis.title.x<span class="operator">=</span>element_text<span class="punctuation">(</span>size<span class="operator">=</span>plot_font_size<span class="operator">-</span><span class="number">2</span><span class="punctuation">)</span><span class="punctuation">,</span>axis.title.y<span class="operator">=</span>element_text<span class="punctuation">(</span>size<span class="operator">=</span>plot_font_size<span class="operator">-</span><span class="number">2</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="operator">+</span></span><br><span class="line">	theme<span class="punctuation">(</span>axis.text.x<span class="operator">=</span>element_text<span class="punctuation">(</span>size<span class="operator">=</span>plot_font_size<span class="operator">-</span><span class="number">3</span><span class="punctuation">,</span>colour<span class="operator">=</span><span class="string">&#x27;black&#x27;</span><span class="punctuation">)</span><span class="punctuation">,</span>axis.text.y<span class="operator">=</span>element_text<span class="punctuation">(</span>size<span class="operator">=</span>plot_font_size<span class="operator">-</span><span class="number">3</span><span class="punctuation">,</span>colour<span class="operator">=</span><span class="string">&#x27;black&#x27;</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="operator">+</span></span><br><span class="line">	theme<span class="punctuation">(</span>legend.key.size<span class="operator">=</span>unit<span class="punctuation">(</span><span class="number">20</span><span class="punctuation">,</span><span class="string">&quot;pt&quot;</span><span class="punctuation">)</span><span class="punctuation">,</span>legend.title<span class="operator">=</span>element_text<span class="punctuation">(</span>size<span class="operator">=</span>plot_font_size<span class="operator">-</span><span class="number">2</span><span class="punctuation">)</span><span class="punctuation">,</span>legend.text<span class="operator">=</span>element_text<span class="punctuation">(</span>size<span class="operator">=</span>plot_font_size<span class="operator">-</span><span class="number">3</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="operator">+</span></span><br><span class="line">	theme<span class="punctuation">(</span>panel.border<span class="operator">=</span>element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">)</span><span class="operator">+</span></span><br><span class="line">	theme<span class="punctuation">(</span>plot.title<span class="operator">=</span>element_text<span class="punctuation">(</span>hjust<span class="operator">=</span><span class="number">0.5</span><span class="punctuation">,</span>size<span class="operator">=</span>plot_font_size<span class="punctuation">)</span><span class="punctuation">)</span><span class="operator">+</span></span><br><span class="line">	theme<span class="punctuation">(</span>legend.position<span class="operator">=</span><span class="string">&quot;none&quot;</span><span class="punctuation">)</span><span class="operator">+</span></span><br><span class="line">	theme<span class="punctuation">(</span>panel.grid<span class="operator">=</span>element_blank<span class="punctuation">(</span><span class="punctuation">)</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 画柱状图</span></span><br><span class="line">picture <span class="operator">=</span> ggplot<span class="punctuation">(</span>data<span class="operator">=</span>Data<span class="punctuation">,</span> aes<span class="punctuation">(</span>x<span class="operator">=</span>Sample<span class="punctuation">,</span> y<span class="operator">=</span>Reads<span class="punctuation">,</span> fill<span class="operator">=</span>Group<span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">	geom_bar<span class="punctuation">(</span>stat<span class="operator">=</span><span class="string">&quot;identity&quot;</span><span class="punctuation">,</span> width<span class="operator">=</span><span class="number">0.7</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">	labs<span class="punctuation">(</span>x<span class="operator">=</span><span class="string">&quot;&quot;</span><span class="punctuation">,</span> y<span class="operator">=</span><span class="string">&quot;&quot;</span><span class="punctuation">,</span> title<span class="operator">=</span><span class="string">&quot;无乳链球菌&quot;</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">	scale_y_continuous<span class="punctuation">(</span>expand <span class="operator">=</span> <span class="built_in">c</span><span class="punctuation">(</span><span class="number">0</span><span class="punctuation">,</span><span class="number">0</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">	scale_fill_manual<span class="punctuation">(</span>values <span class="operator">=</span> List_Color<span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">	universal_theme <span class="operator">+</span> </span><br><span class="line">	theme<span class="punctuation">(</span>axis.text.y <span class="operator">=</span> element_text<span class="punctuation">(</span>colour <span class="operator">=</span> rev<span class="punctuation">(</span>Data<span class="operator">$</span>Color<span class="punctuation">)</span><span class="punctuation">)</span><span class="punctuation">)</span> <span class="operator">+</span></span><br><span class="line">	coord_flip<span class="punctuation">(</span><span class="punctuation">)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 保存图片</span></span><br><span class="line">output_png <span class="operator">=</span> paste<span class="punctuation">(</span>Result_Dir<span class="punctuation">,</span> <span class="string">&quot;/&quot;</span><span class="punctuation">,</span> <span class="string">&quot;无乳链球菌.png&quot;</span><span class="punctuation">,</span> sep<span class="operator">=</span><span class="string">&quot;&quot;</span><span class="punctuation">,</span> collapse<span class="operator">=</span><span class="string">&quot;&quot;</span><span class="punctuation">)</span></span><br><span class="line">ggsave<span class="punctuation">(</span>output_png<span class="punctuation">,</span> picture<span class="punctuation">,</span> width<span class="operator">=</span><span class="number">8</span><span class="punctuation">,</span> height<span class="operator">=</span><span class="number">10</span><span class="punctuation">)</span></span><br></pre></td></tr></table></figure>
+
+<h1 id="警告信息"><a href="#警告信息" class="headerlink" title="警告信息"></a>警告信息</h1><p>使用以上代码画图，会出现警告信息。<br>这是因为用向量变量在element_text中指定颜色并不是官方支持的标准用法，算是个workaround。<br>目前是能正常使用的，但在将来的ggplot2版本不一定依然支持这样的用法。  </p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Warning message:</span><br><span class="line">Vectorized input to `element_text()` is not officially supported.</span><br><span class="line">Results may be unexpected or may change in future versions of ggplot2.</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Log</category>
+      </categories>
+      <tags>
+        <tag>画图</tag>
+        <tag>ggplot2</tag>
       </tags>
   </entry>
   <entry>
@@ -1079,36 +1660,6 @@ cpan -i autodie
       </tags>
   </entry>
   <entry>
-    <title>sambamba flagstat没有Primary Mapped Reads</title>
-    <url>/2023/11/05/sambamba-flagstat%E6%B2%A1%E6%9C%89Primary-Mapped-Reads/</url>
-    <content><![CDATA[<p>sambamba flagstat统计结果格式和samtools flagstat不一样，没有Primary Mapped Reads</p>
-<span id="more"></span>
-
-
-<h1 id="软件版本"><a href="#软件版本" class="headerlink" title="软件版本"></a>软件版本</h1><ul>
-<li>samtools 1.18</li>
-<li>sambamba 1.0.1</li>
-</ul>
-<h1 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h1><p>samtools flagstat与sambamba flagstat输出格式不一样，sambamba flagstat没有Primary Mapped Reads</p>
-<h1 id="结果示例"><a href="#结果示例" class="headerlink" title="结果示例"></a>结果示例</h1><h2 id="samtools-flagstat"><a href="#samtools-flagstat" class="headerlink" title="samtools flagstat"></a>samtools flagstat</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">4350490 + 0 in total (QC-passed reads + QC-failed reads)</span><br><span class="line">3501080 + 0 primary</span><br><span class="line">481096 + 0 secondary</span><br><span class="line">368314 + 0 supplementary</span><br><span class="line">0 + 0 duplicates</span><br><span class="line">0 + 0 primary duplicates</span><br><span class="line">4319560 + 0 mapped (99.29% : N/A)</span><br><span class="line">3470150 + 0 primary mapped (99.12% : N/A)</span><br><span class="line">3501080 + 0 paired in sequencing</span><br><span class="line">1750540 + 0 read1</span><br><span class="line">1750540 + 0 read2</span><br><span class="line">3469722 + 0 properly paired (99.10% : N/A)</span><br><span class="line">3470118 + 0 with itself and mate mapped</span><br><span class="line">32 + 0 singletons (0.00% : N/A)</span><br><span class="line">76 + 0 with mate mapped to a different chr</span><br><span class="line">20 + 0 with mate mapped to a different chr (mapQ&gt;=5)</span><br></pre></td></tr></table></figure>
-
-<h2 id="sambamba-flagstat"><a href="#sambamba-flagstat" class="headerlink" title="sambamba flagstat"></a>sambamba flagstat</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">4350490 + 0 in total (QC-passed reads + QC-failed reads)</span><br><span class="line">481096 + 0 secondary</span><br><span class="line">368314 + 0 supplementary</span><br><span class="line">0 + 0 duplicates</span><br><span class="line">4319560 + 0 mapped (99.29%:N/A)</span><br><span class="line">3501080 + 0 paired in sequencing</span><br><span class="line">1750540 + 0 read1</span><br><span class="line">1750540 + 0 read2</span><br><span class="line">3469722 + 0 properly paired (99.10%:N/A)</span><br><span class="line">3470118 + 0 with itself and mate mapped</span><br><span class="line">32 + 0 singletons (0.00%:N/A)</span><br><span class="line">76 + 0 with mate mapped to a different chr</span><br><span class="line">20 + 0 with mate mapped to a different chr (mapQ&gt;=5)</span><br></pre></td></tr></table></figure>
-
-<h1 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h1><ul>
-<li>samtools flagstat的primary mapped 等于 sambamba flagstat的mapped - secondary - supplementary</li>
-<li>samtools flagstat结果：3470150 + 0 primary mapped (99.12% : N&#x2F;A)</li>
-<li>sambamba flagstat结果：3470150 &#x3D; 4319560 - 481096 - 368314</li>
-</ul>
-]]></content>
-      <categories>
-        <category>Log</category>
-      </categories>
-      <tags>
-        <tag>Sambamba</tag>
-        <tag>Samtools</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>samtools的coverage和bedcov结果不一致</title>
     <url>/2023/11/05/samtools%E7%9A%84coverage%E5%92%8Cbedcov%E7%BB%93%E6%9E%9C%E4%B8%8D%E4%B8%80%E8%87%B4/</url>
     <content><![CDATA[<p>分别用samtools coverage和bedtools bedcov计算区域内的Reads数，得到的结果不一致。</p>
@@ -1153,6 +1704,36 @@ cpan -i autodie
         <category>Log</category>
       </categories>
       <tags>
+        <tag>Samtools</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>sambamba flagstat没有Primary Mapped Reads</title>
+    <url>/2023/11/05/sambamba-flagstat%E6%B2%A1%E6%9C%89Primary-Mapped-Reads/</url>
+    <content><![CDATA[<p>sambamba flagstat统计结果格式和samtools flagstat不一样，没有Primary Mapped Reads</p>
+<span id="more"></span>
+
+
+<h1 id="软件版本"><a href="#软件版本" class="headerlink" title="软件版本"></a>软件版本</h1><ul>
+<li>samtools 1.18</li>
+<li>sambamba 1.0.1</li>
+</ul>
+<h1 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h1><p>samtools flagstat与sambamba flagstat输出格式不一样，sambamba flagstat没有Primary Mapped Reads</p>
+<h1 id="结果示例"><a href="#结果示例" class="headerlink" title="结果示例"></a>结果示例</h1><h2 id="samtools-flagstat"><a href="#samtools-flagstat" class="headerlink" title="samtools flagstat"></a>samtools flagstat</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">4350490 + 0 in total (QC-passed reads + QC-failed reads)</span><br><span class="line">3501080 + 0 primary</span><br><span class="line">481096 + 0 secondary</span><br><span class="line">368314 + 0 supplementary</span><br><span class="line">0 + 0 duplicates</span><br><span class="line">0 + 0 primary duplicates</span><br><span class="line">4319560 + 0 mapped (99.29% : N/A)</span><br><span class="line">3470150 + 0 primary mapped (99.12% : N/A)</span><br><span class="line">3501080 + 0 paired in sequencing</span><br><span class="line">1750540 + 0 read1</span><br><span class="line">1750540 + 0 read2</span><br><span class="line">3469722 + 0 properly paired (99.10% : N/A)</span><br><span class="line">3470118 + 0 with itself and mate mapped</span><br><span class="line">32 + 0 singletons (0.00% : N/A)</span><br><span class="line">76 + 0 with mate mapped to a different chr</span><br><span class="line">20 + 0 with mate mapped to a different chr (mapQ&gt;=5)</span><br></pre></td></tr></table></figure>
+
+<h2 id="sambamba-flagstat"><a href="#sambamba-flagstat" class="headerlink" title="sambamba flagstat"></a>sambamba flagstat</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">4350490 + 0 in total (QC-passed reads + QC-failed reads)</span><br><span class="line">481096 + 0 secondary</span><br><span class="line">368314 + 0 supplementary</span><br><span class="line">0 + 0 duplicates</span><br><span class="line">4319560 + 0 mapped (99.29%:N/A)</span><br><span class="line">3501080 + 0 paired in sequencing</span><br><span class="line">1750540 + 0 read1</span><br><span class="line">1750540 + 0 read2</span><br><span class="line">3469722 + 0 properly paired (99.10%:N/A)</span><br><span class="line">3470118 + 0 with itself and mate mapped</span><br><span class="line">32 + 0 singletons (0.00%:N/A)</span><br><span class="line">76 + 0 with mate mapped to a different chr</span><br><span class="line">20 + 0 with mate mapped to a different chr (mapQ&gt;=5)</span><br></pre></td></tr></table></figure>
+
+<h1 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h1><ul>
+<li>samtools flagstat的primary mapped 等于 sambamba flagstat的mapped - secondary - supplementary</li>
+<li>samtools flagstat结果：3470150 + 0 primary mapped (99.12% : N&#x2F;A)</li>
+<li>sambamba flagstat结果：3470150 &#x3D; 4319560 - 481096 - 368314</li>
+</ul>
+]]></content>
+      <categories>
+        <category>Log</category>
+      </categories>
+      <tags>
+        <tag>Sambamba</tag>
         <tag>Samtools</tag>
       </tags>
   </entry>

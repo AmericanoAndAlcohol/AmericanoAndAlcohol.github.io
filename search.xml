@@ -939,6 +939,23 @@
       </tags>
   </entry>
   <entry>
+    <title>Linux命令行文本文件操作</title>
+    <url>/2023/05/22/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E6%96%87%E6%9C%AC%E6%96%87%E4%BB%B6%E6%93%8D%E4%BD%9C/</url>
+    <content><![CDATA[<p>Linux命令对文本文件的操作</p>
+<span id="more"></span>
+
+<h1 id="表头行转成列"><a href="#表头行转成列" class="headerlink" title="表头行转成列"></a>表头行转成列</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">head -1 *.txt | awk &#x27;&#123;for(i=1;i&lt;=NF;i++)a[NR,i]=$i&#125;END&#123;for(j=1;j&lt;=NF;j++)for(k=1;k&lt;=NR;k++)printf k==NR?a[k,j] RS:a[k,j] FS&#125;&#x27;|less -SN</span><br></pre></td></tr></table></figure>
+
+<h1 id="修改文件时间"><a href="#修改文件时间" class="headerlink" title="修改文件时间"></a>修改文件时间</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">touch -m -d &quot;20220411 1306&quot; File.txt</span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>Log</category>
+      </categories>
+      <tags>
+        <tag>Linux</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Illumina index hopping 原理</title>
     <url>/2023/06/27/Illumina-index-hopping-%E5%8E%9F%E7%90%86/</url>
     <content><![CDATA[<p>Illumina的Patterned Flow Cell使用了更易产生index hopping的化学反应。通过更谨慎的实验​​准备，可能改善这种情况，可以忽略对大多数下游应用的影响。</p>
@@ -970,23 +987,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Linux命令行文本文件操作</title>
-    <url>/2023/05/22/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E6%96%87%E6%9C%AC%E6%96%87%E4%BB%B6%E6%93%8D%E4%BD%9C/</url>
-    <content><![CDATA[<p>Linux命令对文本文件的操作</p>
-<span id="more"></span>
-
-<h1 id="表头行转成列"><a href="#表头行转成列" class="headerlink" title="表头行转成列"></a>表头行转成列</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">head -1 *.txt | awk &#x27;&#123;for(i=1;i&lt;=NF;i++)a[NR,i]=$i&#125;END&#123;for(j=1;j&lt;=NF;j++)for(k=1;k&lt;=NR;k++)printf k==NR?a[k,j] RS:a[k,j] FS&#125;&#x27;|less -SN</span><br></pre></td></tr></table></figure>
-
-<h1 id="修改文件时间"><a href="#修改文件时间" class="headerlink" title="修改文件时间"></a>修改文件时间</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">touch -m -d &quot;20220411 1306&quot; File.txt</span><br></pre></td></tr></table></figure>
-]]></content>
-      <categories>
-        <category>Log</category>
-      </categories>
-      <tags>
-        <tag>Linux</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Linux用户管理</title>
     <url>/2023/05/21/Linux%E7%94%A8%E6%88%B7%E7%AE%A1%E7%90%86/</url>
     <content><![CDATA[<p>Linux系统的用户查看、创建、目录权限</p>
@@ -1013,46 +1013,6 @@
       </categories>
       <tags>
         <tag>Linux</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>MySQL操作</title>
-    <url>/2023/05/22/MySQL%E6%93%8D%E4%BD%9C/</url>
-    <content><![CDATA[<p>MySQL数据库的一些常用操作命令</p>
-<span id="more"></span>
-
-
-<h1 id="数据库操作"><a href="#数据库操作" class="headerlink" title="数据库操作"></a>数据库操作</h1><h2 id="mysql连接-x2F-登录"><a href="#mysql连接-x2F-登录" class="headerlink" title="mysql连接&#x2F;登录"></a>mysql连接&#x2F;登录</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">mysql -u root -p</span><br></pre></td></tr></table></figure>
-<h2 id="查看mysql中的数据库"><a href="#查看mysql中的数据库" class="headerlink" title="查看mysql中的数据库"></a>查看mysql中的数据库</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">show databases;</span><br></pre></td></tr></table></figure>
-<h2 id="选择-x2F-进入某个数据库"><a href="#选择-x2F-进入某个数据库" class="headerlink" title="选择&#x2F;进入某个数据库"></a>选择&#x2F;进入某个数据库</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">use &lt;数据库名&gt;;</span><br></pre></td></tr></table></figure>
-<h2 id="查看数据库中的表格"><a href="#查看数据库中的表格" class="headerlink" title="查看数据库中的表格"></a>查看数据库中的表格</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">show tables;</span><br></pre></td></tr></table></figure>
-<h2 id="新建数据库"><a href="#新建数据库" class="headerlink" title="新建数据库"></a>新建数据库</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">create database &lt;数据库名&gt;;</span><br><span class="line">CREATE DATABASE IF NOT EXISTS RUNOOB DEFAULT CHARSET utf8 COLLATE utf8_general_ci;</span><br></pre></td></tr></table></figure>
-<h2 id="删除数据库"><a href="#删除数据库" class="headerlink" title="删除数据库"></a>删除数据库</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">drop database &lt;数据库名&gt;;</span><br></pre></td></tr></table></figure>
-
-
-<h1 id="表格操作"><a href="#表格操作" class="headerlink" title="表格操作"></a>表格操作</h1><h2 id="查找"><a href="#查找" class="headerlink" title="查找"></a>查找</h2><p>WHERE 子句的字符串比较是不区分大小写的。 你可以使用 BINARY关键字来区分大小写<br>SELECT * from runoob_tbl WHERE runoob_author&#x3D;’菜鸟教程’;<br>SELECT * from runoob_tbl WHERE BINARY runoob_author&#x3D;’runoob.com’;</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select * from 表名 where 列名 = &quot;列的名字&quot;;</span><br></pre></td></tr></table></figure>
-<h2 id="更新"><a href="#更新" class="headerlink" title="更新"></a>更新</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">update 表名称 set 列名称=新值 where 更新条件;</span><br></pre></td></tr></table></figure>
-<h2 id="字符串批量修改"><a href="#字符串批量修改" class="headerlink" title="字符串批量修改"></a>字符串批量修改</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">UPDATE table_name SET field=REPLACE(field, &#x27;old-string&#x27;, &#x27;new-string&#x27;);</span><br></pre></td></tr></table></figure>
-<h2 id="删除"><a href="#删除" class="headerlink" title="删除"></a>删除</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">delete from 表名称 where 删除条件;</span><br></pre></td></tr></table></figure>
-<h2 id="新增"><a href="#新增" class="headerlink" title="新增"></a>新增</h2><p>如果数据是字符型，必须使用单引号或者双引号，如：”value”</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">insert into 表名 (&quot;列名1&quot;,&quot;列名2&quot;) values (&quot;第一列内容&quot;, &quot;第二列内容&quot;);</span><br></pre></td></tr></table></figure>
-<h2 id="聚合查询"><a href="#聚合查询" class="headerlink" title="聚合查询"></a>聚合查询</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select count(*) from 表名;</span><br><span class="line">select count(id) from 表名;</span><br><span class="line">select max(&quot;列名&quot;) from 表名;</span><br></pre></td></tr></table></figure>
-<h2 id="新建表格"><a href="#新建表格" class="headerlink" title="新建表格"></a>新建表格</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">create table 表名 （列名 列类型）;</span><br></pre></td></tr></table></figure>
-<h2 id="删除表格"><a href="#删除表格" class="headerlink" title="删除表格"></a>删除表格</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">drop table 表名;</span><br></pre></td></tr></table></figure>
-<h2 id="表格新增列"><a href="#表格新增列" class="headerlink" title="表格新增列"></a>表格新增列</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">alter table 表名 add column 列名 数据类型 约束;</span><br></pre></td></tr></table></figure>
-<h2 id="表格删除列"><a href="#表格删除列" class="headerlink" title="表格删除列"></a>表格删除列</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">alter table 表名 drop 列名;</span><br></pre></td></tr></table></figure>
-<h2 id="修改列名"><a href="#修改列名" class="headerlink" title="修改列名"></a>修改列名</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">alter table 表名 change 原列名 新列名 数据类型 约束;</span><br></pre></td></tr></table></figure>
-
-<h1 id="参考来源"><a href="#参考来源" class="headerlink" title="参考来源"></a>参考来源</h1><ol>
-<li>菜鸟教程-MySQL教程 <a href="https://www.runoob.com/mysql/mysql-tutorial.html">https://www.runoob.com/mysql/mysql-tutorial.html</a></li>
-</ol>
-]]></content>
-      <categories>
-        <category>Log</category>
-      </categories>
-      <tags>
-        <tag>MySQL</tag>
       </tags>
   </entry>
   <entry>
@@ -1127,6 +1087,46 @@
         <tag>pbsv</tag>
         <tag>Sniffles</tag>
         <tag>cuteSV</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>MySQL操作</title>
+    <url>/2023/05/22/MySQL%E6%93%8D%E4%BD%9C/</url>
+    <content><![CDATA[<p>MySQL数据库的一些常用操作命令</p>
+<span id="more"></span>
+
+
+<h1 id="数据库操作"><a href="#数据库操作" class="headerlink" title="数据库操作"></a>数据库操作</h1><h2 id="mysql连接-x2F-登录"><a href="#mysql连接-x2F-登录" class="headerlink" title="mysql连接&#x2F;登录"></a>mysql连接&#x2F;登录</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">mysql -u root -p</span><br></pre></td></tr></table></figure>
+<h2 id="查看mysql中的数据库"><a href="#查看mysql中的数据库" class="headerlink" title="查看mysql中的数据库"></a>查看mysql中的数据库</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">show databases;</span><br></pre></td></tr></table></figure>
+<h2 id="选择-x2F-进入某个数据库"><a href="#选择-x2F-进入某个数据库" class="headerlink" title="选择&#x2F;进入某个数据库"></a>选择&#x2F;进入某个数据库</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">use &lt;数据库名&gt;;</span><br></pre></td></tr></table></figure>
+<h2 id="查看数据库中的表格"><a href="#查看数据库中的表格" class="headerlink" title="查看数据库中的表格"></a>查看数据库中的表格</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">show tables;</span><br></pre></td></tr></table></figure>
+<h2 id="新建数据库"><a href="#新建数据库" class="headerlink" title="新建数据库"></a>新建数据库</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">create database &lt;数据库名&gt;;</span><br><span class="line">CREATE DATABASE IF NOT EXISTS RUNOOB DEFAULT CHARSET utf8 COLLATE utf8_general_ci;</span><br></pre></td></tr></table></figure>
+<h2 id="删除数据库"><a href="#删除数据库" class="headerlink" title="删除数据库"></a>删除数据库</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">drop database &lt;数据库名&gt;;</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="表格操作"><a href="#表格操作" class="headerlink" title="表格操作"></a>表格操作</h1><h2 id="查找"><a href="#查找" class="headerlink" title="查找"></a>查找</h2><p>WHERE 子句的字符串比较是不区分大小写的。 你可以使用 BINARY关键字来区分大小写<br>SELECT * from runoob_tbl WHERE runoob_author&#x3D;’菜鸟教程’;<br>SELECT * from runoob_tbl WHERE BINARY runoob_author&#x3D;’runoob.com’;</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select * from 表名 where 列名 = &quot;列的名字&quot;;</span><br></pre></td></tr></table></figure>
+<h2 id="更新"><a href="#更新" class="headerlink" title="更新"></a>更新</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">update 表名称 set 列名称=新值 where 更新条件;</span><br></pre></td></tr></table></figure>
+<h2 id="字符串批量修改"><a href="#字符串批量修改" class="headerlink" title="字符串批量修改"></a>字符串批量修改</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">UPDATE table_name SET field=REPLACE(field, &#x27;old-string&#x27;, &#x27;new-string&#x27;);</span><br></pre></td></tr></table></figure>
+<h2 id="删除"><a href="#删除" class="headerlink" title="删除"></a>删除</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">delete from 表名称 where 删除条件;</span><br></pre></td></tr></table></figure>
+<h2 id="新增"><a href="#新增" class="headerlink" title="新增"></a>新增</h2><p>如果数据是字符型，必须使用单引号或者双引号，如：”value”</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">insert into 表名 (&quot;列名1&quot;,&quot;列名2&quot;) values (&quot;第一列内容&quot;, &quot;第二列内容&quot;);</span><br></pre></td></tr></table></figure>
+<h2 id="聚合查询"><a href="#聚合查询" class="headerlink" title="聚合查询"></a>聚合查询</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">select count(*) from 表名;</span><br><span class="line">select count(id) from 表名;</span><br><span class="line">select max(&quot;列名&quot;) from 表名;</span><br></pre></td></tr></table></figure>
+<h2 id="新建表格"><a href="#新建表格" class="headerlink" title="新建表格"></a>新建表格</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">create table 表名 （列名 列类型）;</span><br></pre></td></tr></table></figure>
+<h2 id="删除表格"><a href="#删除表格" class="headerlink" title="删除表格"></a>删除表格</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">drop table 表名;</span><br></pre></td></tr></table></figure>
+<h2 id="表格新增列"><a href="#表格新增列" class="headerlink" title="表格新增列"></a>表格新增列</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">alter table 表名 add column 列名 数据类型 约束;</span><br></pre></td></tr></table></figure>
+<h2 id="表格删除列"><a href="#表格删除列" class="headerlink" title="表格删除列"></a>表格删除列</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">alter table 表名 drop 列名;</span><br></pre></td></tr></table></figure>
+<h2 id="修改列名"><a href="#修改列名" class="headerlink" title="修改列名"></a>修改列名</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">alter table 表名 change 原列名 新列名 数据类型 约束;</span><br></pre></td></tr></table></figure>
+
+<h1 id="参考来源"><a href="#参考来源" class="headerlink" title="参考来源"></a>参考来源</h1><ol>
+<li>菜鸟教程-MySQL教程 <a href="https://www.runoob.com/mysql/mysql-tutorial.html">https://www.runoob.com/mysql/mysql-tutorial.html</a></li>
+</ol>
+]]></content>
+      <categories>
+        <category>Log</category>
+      </categories>
+      <tags>
+        <tag>MySQL</tag>
       </tags>
   </entry>
   <entry>
@@ -1238,6 +1238,64 @@
       </tags>
   </entry>
   <entry>
+    <title>Sentence Transformers癌种分类测试</title>
+    <url>/2025/03/30/Sentence-Transformers%E7%99%8C%E7%A7%8D%E5%88%86%E7%B1%BB%E6%B5%8B%E8%AF%95/</url>
+    <content><![CDATA[<p>paraphrase-multilingual-MiniLM-L12-v2和gte-Qwen2-7B-instruct用于癌种分类的测试</p>
+<span id="more"></span>
+
+
+<h1 id="模型下载"><a href="#模型下载" class="headerlink" title="模型下载"></a>模型下载</h1><ol>
+<li><p>paraphrase-multilingual-MiniLM-L12-v2<br> 参考：<a href="https://www.sbert.net/docs/sentence_transformer/pretrained_models.html#semantic-similarity-models">https://www.sbert.net/docs/sentence_transformer/pretrained_models.html#semantic-similarity-models</a>  </p>
+ <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 下载模型保存到本地</span><br><span class="line">from sentence_transformers import SentenceTransformer</span><br><span class="line">model = SentenceTransformer(&quot;sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2&quot;, cache_folder=&#x27;本地目录路径&#x27;)</span><br><span class="line"># 后续调用本地模型</span><br><span class="line">from sentence_transformers import SentenceTransformer</span><br><span class="line">model = SentenceTransformer(&#x27;本地目录路径&#x27;)</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>gte-Qwen2-7B-instruct<br> 参考：<a href="https://www.modelscope.cn/models/iic/gte_Qwen2-7B-instruct/">https://www.modelscope.cn/models/iic/gte_Qwen2-7B-instruct/</a><br> 提供了2种方法：SDK下载和Git下载。<br> 2种方法都试了，Git下载会出现.safetensors文件下载不全，导致报错：ERROR： safetensors_rust.SafetensorError: Error while deserializing header: HeaderTooLarge。  </p>
+ <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 下载模型保存到本地</span><br><span class="line">from modelscope import snapshot_download</span><br><span class="line">model = snapshot_download(&#x27;iic/gte_Qwen2-7B-instruct&#x27;, local_dir=&#x27;本地目录路径&#x27;)</span><br><span class="line"># 后续调用本地模型</span><br><span class="line">from sentence_transformers import SentenceTransformer</span><br><span class="line">model = SentenceTransformer(&#x27;本地目录路径&#x27;)</span><br></pre></td></tr></table></figure></li>
+</ol>
+<h1 id="测试数据"><a href="#测试数据" class="headerlink" title="测试数据"></a>测试数据</h1><ul>
+<li>输入：一些样本的临床信息和病理诊断。  </li>
+<li>目标：NCCN癌症分类，例如：非小细胞肺癌、直肠癌、结肠癌、胃癌等，共38种。</li>
+</ul>
+<h1 id="测试方法"><a href="#测试方法" class="headerlink" title="测试方法"></a>测试方法</h1><ul>
+<li>参考：<a href="https://www.sbert.net/docs/sentence_transformer/usage/semantic_textual_similarity.html">https://www.sbert.net/docs/sentence_transformer/usage/semantic_textual_similarity.html</a>  </li>
+<li>每个输入分别与目标计算相似性，取相似性最高的癌种作为预测结果，人工判断分类是否准确。  </li>
+<li>两个模型的测试数据和脚本一样，只替换调用的模型路径。</li>
+</ul>
+<h1 id="测试结果"><a href="#测试结果" class="headerlink" title="测试结果"></a>测试结果</h1><table>
+<thead>
+<tr>
+<th>模型</th>
+<th>模型大小</th>
+<th>运行时间</th>
+<th>准确率</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>paraphrase-multilingual-MiniLM-L12-v2</td>
+<td>458M</td>
+<td>14s</td>
+<td>71.42% (10&#x2F;14)</td>
+</tr>
+<tr>
+<td>gte-Qwen2-7B-instruct</td>
+<td>29G</td>
+<td>150s</td>
+<td>35.71% (5&#x2F;14)</td>
+</tr>
+</tbody></table>
+<ul>
+<li>gte-Qwen2-7B-instruct对于肺癌分类似乎偏向于“小细胞肺癌”，而不是“非小细胞肺癌”。输入信息中的肺鳞癌、肺腺癌都分成了“小细胞肺癌”；甚至有样本是写着“非小细胞肺癌”的，也分成了“小细胞肺癌”。  </li>
+<li>paraphrase-multilingual-MiniLM-L12-v2属于BERT模型，更擅长于擅长双向语义理解（如文本分类、语义匹配）；而gte-Qwen2-7B-instruct似乎是更接近GPT类模型，以生成任务为核心（如问答、对话），所以这个结果应该是合理的？</li>
+</ul>
+]]></content>
+      <categories>
+        <category>Log</category>
+      </categories>
+      <tags>
+        <tag>LLM</tag>
+        <tag>Sentence Transformers</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>UCSC软件下载</title>
     <url>/2025/03/26/UCSC%E8%BD%AF%E4%BB%B6%E4%B8%8B%E8%BD%BD/</url>
     <content><![CDATA[<p>UCSC Jim Kent的BLAT和In-Silico PCR等软件下载</p>
@@ -1346,6 +1404,31 @@ cpan -i autodie
       </tags>
   </entry>
   <entry>
+    <title>Xlsx转MySQL</title>
+    <url>/2023/04/21/Xlsx%E8%BD%ACMySQL/</url>
+    <content><![CDATA[<p>通过Python的openpyxl和MySQLdb模块，将.xlsx文件转为MySQL的Databse</p>
+<span id="more"></span>
+
+<h1 id="依赖"><a href="#依赖" class="headerlink" title="依赖"></a>依赖</h1><ul>
+<li>python 3.7.9  </li>
+<li>openpyxl模块 3.0.9  </li>
+<li>MySQLdb模块 2.1.1？</li>
+</ul>
+<h1 id="模块安装"><a href="#模块安装" class="headerlink" title="模块安装"></a>模块安装</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># openpyxl模块  </span><br><span class="line">python -m pip install openpyxl  </span><br><span class="line"># MySQLdb模块  </span><br><span class="line">python -m pip install mysqlclient  </span><br></pre></td></tr></table></figure>
+
+<h2 id="脚本"><a href="#脚本" class="headerlink" title="脚本"></a>脚本</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># python</span><br><span class="line"># -*- encoding: utf-8 -*-</span><br><span class="line"># Useage: 将xlsx文件导入为mysql的databse</span><br><span class="line"></span><br><span class="line">import os</span><br><span class="line">import sys</span><br><span class="line">import re</span><br><span class="line">import datetime</span><br><span class="line">import argparse</span><br><span class="line">import openpyxl</span><br><span class="line">import MySQLdb</span><br><span class="line"></span><br><span class="line">Charset = &quot;utf8&quot;</span><br><span class="line"></span><br><span class="line">def Xlsx2MySQLdb(Xlsx, User, Password):</span><br><span class="line">	Work_Book = openpyxl.load_workbook(Xlsx)</span><br><span class="line">	Database = re.search(&quot;.*\/(\S+)\.xlsx&quot;, Xlsx).group(1) + &quot;_&quot; + datetime.datetime.now().strftime(&quot;%Y%m%d_%H%M%S&quot;)</span><br><span class="line">	List_Sheet = Work_Book.sheetnames</span><br><span class="line">	# 提示信息</span><br><span class="line">	Time_Stamp = datetime.datetime.now().strftime(&quot;%Y-%m-%d %H:%M:%S&quot;)</span><br><span class="line">	sys.stdout.write(&quot;*&quot; + Time_Stamp + &quot;* [运行信息]\n&quot;)</span><br><span class="line">	sys.stdout.write(&quot;[输入文件] &quot; + Xlsx + &quot;\n&quot;)</span><br><span class="line">	sys.stdout.write(&quot;[子表数量] &quot; + str(len(List_Sheet)) + &quot;\n&quot;)</span><br><span class="line">	sys.stdout.write(&quot;[子表名称] &quot; + &quot;、&quot;.join(List_Sheet) + &quot;\n&quot;)</span><br><span class="line">	sys.stdout.write(&quot;[数据库名] &quot; + Database + &quot;\n&quot;)</span><br><span class="line">	sys.stdout.write(&quot;[字符编码] &quot; + Charset + &quot;\n&quot;)</span><br><span class="line">	sys.stdout.write(&quot;[表头字段] 每个子表的第1行会作为数据库的列名\n&quot;)</span><br><span class="line">	sys.stdout.write(&quot;[数据类型] 所有内容都保存为TEXT，如需修改，请在MySQL自行修改\n\n&quot;)</span><br><span class="line"></span><br><span class="line">	# 连接MySQL</span><br><span class="line">	SQL_Host = &quot;localhost&quot;</span><br><span class="line">	SQL_Connection = MySQLdb.connect(host = SQL_Host, user = User, passwd = Password, charset = Charset)</span><br><span class="line">	Cursor = SQL_Connection.cursor()</span><br><span class="line">	# 创建数据库</span><br><span class="line">	Cursor.execute(&quot;create database if not exists &quot; + Database)</span><br><span class="line">	Cursor.execute(&quot;use &quot; + Database)</span><br><span class="line">	# 逐个子表处理</span><br><span class="line">	for Sheet in List_Sheet:</span><br><span class="line">		List_Header = []</span><br><span class="line">		List_Table_Header = []</span><br><span class="line">		Data_Type = &quot;TEXT&quot;</span><br><span class="line">		Work_Sheet = Work_Book[Sheet]</span><br><span class="line">		for col_n in range(1, Work_Sheet.max_column+1):</span><br><span class="line">			Header = str(Work_Sheet.cell(row=1, column=col_n).value)</span><br><span class="line">			List_Header.append(&quot;`&quot; + Header + &quot;`&quot;)</span><br><span class="line">			List_Table_Header.append(&quot;`&quot; + Header + &quot;`&quot; + &quot; &quot; + Data_Type)</span><br><span class="line">		# 创建数据表</span><br><span class="line">		Table_Header = &quot;, &quot;.join(List_Table_Header)</span><br><span class="line">		Cursor.execute(&quot;create table if not exists &quot; + Sheet + &quot; (&quot; + Table_Header + &quot;)&quot;)</span><br><span class="line">		# 逐行存入数据</span><br><span class="line">		Header = &quot;, &quot;.join(List_Header)</span><br><span class="line">		for row_n in range(2, Work_Sheet.max_row+1):</span><br><span class="line">			List_Value = []</span><br><span class="line">			for col_n in range(1, Work_Sheet.max_column+1):</span><br><span class="line">				Value = str(Work_Sheet.cell(row = row_n, column = col_n).value)</span><br><span class="line">				List_Value.append(&quot;\&quot;&quot; + Value + &quot;\&quot;&quot;)</span><br><span class="line">			Value = &quot;, &quot;.join(List_Value)</span><br><span class="line">			Cursor.execute(&quot;insert into &quot; + Sheet + &quot; (&quot; + Header + &quot;) values(&quot; + Value + &quot;)&quot;)</span><br><span class="line">			# 提交MyQSL操作</span><br><span class="line">			SQL_Connection.commit()</span><br><span class="line">	# 关闭连接</span><br><span class="line">	Cursor.close()</span><br><span class="line">	SQL_Connection.close()</span><br><span class="line">	# 关闭Xlsx</span><br><span class="line">	Work_Book.close()</span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>Log</category>
+      </categories>
+      <tags>
+        <tag>数据库</tag>
+        <tag>MySQL</tag>
+        <tag>Python</tag>
+        <tag>Excel</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Xlsx转MySQL报错</title>
     <url>/2023/04/21/Xlsx%E8%BD%ACMySQL%E6%8A%A5%E9%94%99/</url>
     <content><![CDATA[<p>写Xlsx转MySQL脚本过程中的一些报错信息</p>
@@ -1444,31 +1527,6 @@ cpan -i autodie
       <tags>
         <tag>数据拆分</tag>
         <tag>bcl2fastq</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Xlsx转MySQL</title>
-    <url>/2023/04/21/Xlsx%E8%BD%ACMySQL/</url>
-    <content><![CDATA[<p>通过Python的openpyxl和MySQLdb模块，将.xlsx文件转为MySQL的Databse</p>
-<span id="more"></span>
-
-<h1 id="依赖"><a href="#依赖" class="headerlink" title="依赖"></a>依赖</h1><ul>
-<li>python 3.7.9  </li>
-<li>openpyxl模块 3.0.9  </li>
-<li>MySQLdb模块 2.1.1？</li>
-</ul>
-<h1 id="模块安装"><a href="#模块安装" class="headerlink" title="模块安装"></a>模块安装</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># openpyxl模块  </span><br><span class="line">python -m pip install openpyxl  </span><br><span class="line"># MySQLdb模块  </span><br><span class="line">python -m pip install mysqlclient  </span><br></pre></td></tr></table></figure>
-
-<h2 id="脚本"><a href="#脚本" class="headerlink" title="脚本"></a>脚本</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># python</span><br><span class="line"># -*- encoding: utf-8 -*-</span><br><span class="line"># Useage: 将xlsx文件导入为mysql的databse</span><br><span class="line"></span><br><span class="line">import os</span><br><span class="line">import sys</span><br><span class="line">import re</span><br><span class="line">import datetime</span><br><span class="line">import argparse</span><br><span class="line">import openpyxl</span><br><span class="line">import MySQLdb</span><br><span class="line"></span><br><span class="line">Charset = &quot;utf8&quot;</span><br><span class="line"></span><br><span class="line">def Xlsx2MySQLdb(Xlsx, User, Password):</span><br><span class="line">	Work_Book = openpyxl.load_workbook(Xlsx)</span><br><span class="line">	Database = re.search(&quot;.*\/(\S+)\.xlsx&quot;, Xlsx).group(1) + &quot;_&quot; + datetime.datetime.now().strftime(&quot;%Y%m%d_%H%M%S&quot;)</span><br><span class="line">	List_Sheet = Work_Book.sheetnames</span><br><span class="line">	# 提示信息</span><br><span class="line">	Time_Stamp = datetime.datetime.now().strftime(&quot;%Y-%m-%d %H:%M:%S&quot;)</span><br><span class="line">	sys.stdout.write(&quot;*&quot; + Time_Stamp + &quot;* [运行信息]\n&quot;)</span><br><span class="line">	sys.stdout.write(&quot;[输入文件] &quot; + Xlsx + &quot;\n&quot;)</span><br><span class="line">	sys.stdout.write(&quot;[子表数量] &quot; + str(len(List_Sheet)) + &quot;\n&quot;)</span><br><span class="line">	sys.stdout.write(&quot;[子表名称] &quot; + &quot;、&quot;.join(List_Sheet) + &quot;\n&quot;)</span><br><span class="line">	sys.stdout.write(&quot;[数据库名] &quot; + Database + &quot;\n&quot;)</span><br><span class="line">	sys.stdout.write(&quot;[字符编码] &quot; + Charset + &quot;\n&quot;)</span><br><span class="line">	sys.stdout.write(&quot;[表头字段] 每个子表的第1行会作为数据库的列名\n&quot;)</span><br><span class="line">	sys.stdout.write(&quot;[数据类型] 所有内容都保存为TEXT，如需修改，请在MySQL自行修改\n\n&quot;)</span><br><span class="line"></span><br><span class="line">	# 连接MySQL</span><br><span class="line">	SQL_Host = &quot;localhost&quot;</span><br><span class="line">	SQL_Connection = MySQLdb.connect(host = SQL_Host, user = User, passwd = Password, charset = Charset)</span><br><span class="line">	Cursor = SQL_Connection.cursor()</span><br><span class="line">	# 创建数据库</span><br><span class="line">	Cursor.execute(&quot;create database if not exists &quot; + Database)</span><br><span class="line">	Cursor.execute(&quot;use &quot; + Database)</span><br><span class="line">	# 逐个子表处理</span><br><span class="line">	for Sheet in List_Sheet:</span><br><span class="line">		List_Header = []</span><br><span class="line">		List_Table_Header = []</span><br><span class="line">		Data_Type = &quot;TEXT&quot;</span><br><span class="line">		Work_Sheet = Work_Book[Sheet]</span><br><span class="line">		for col_n in range(1, Work_Sheet.max_column+1):</span><br><span class="line">			Header = str(Work_Sheet.cell(row=1, column=col_n).value)</span><br><span class="line">			List_Header.append(&quot;`&quot; + Header + &quot;`&quot;)</span><br><span class="line">			List_Table_Header.append(&quot;`&quot; + Header + &quot;`&quot; + &quot; &quot; + Data_Type)</span><br><span class="line">		# 创建数据表</span><br><span class="line">		Table_Header = &quot;, &quot;.join(List_Table_Header)</span><br><span class="line">		Cursor.execute(&quot;create table if not exists &quot; + Sheet + &quot; (&quot; + Table_Header + &quot;)&quot;)</span><br><span class="line">		# 逐行存入数据</span><br><span class="line">		Header = &quot;, &quot;.join(List_Header)</span><br><span class="line">		for row_n in range(2, Work_Sheet.max_row+1):</span><br><span class="line">			List_Value = []</span><br><span class="line">			for col_n in range(1, Work_Sheet.max_column+1):</span><br><span class="line">				Value = str(Work_Sheet.cell(row = row_n, column = col_n).value)</span><br><span class="line">				List_Value.append(&quot;\&quot;&quot; + Value + &quot;\&quot;&quot;)</span><br><span class="line">			Value = &quot;, &quot;.join(List_Value)</span><br><span class="line">			Cursor.execute(&quot;insert into &quot; + Sheet + &quot; (&quot; + Header + &quot;) values(&quot; + Value + &quot;)&quot;)</span><br><span class="line">			# 提交MyQSL操作</span><br><span class="line">			SQL_Connection.commit()</span><br><span class="line">	# 关闭连接</span><br><span class="line">	Cursor.close()</span><br><span class="line">	SQL_Connection.close()</span><br><span class="line">	# 关闭Xlsx</span><br><span class="line">	Work_Book.close()</span><br></pre></td></tr></table></figure>
-]]></content>
-      <categories>
-        <category>Log</category>
-      </categories>
-      <tags>
-        <tag>数据库</tag>
-        <tag>MySQL</tag>
-        <tag>Python</tag>
-        <tag>Excel</tag>
       </tags>
   </entry>
   <entry>

@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  
+  <meta name="keywords" content="bioinfomatics,生物信息">
+  
+  
+  <meta name="description" content="bioinfomatics 生物信息">
+  
+  <title>
+    GRC patch解释 |
+    
+    A Blog
+  </title>
+  <!-- Icon -->
+  
+    <link rel="shortcut icon" href="/images/K_Letter_White.svg">
+    
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <main class="content">
+    <section class="outer">
+  <article id="post-GRC-patch解释" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+      
+  
+  <h1 class="article-title" itemprop="name">
+    GRC patch解释
+  </h1>
+  
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2025/04/09/GRC-patch%E8%A7%A3%E9%87%8A/" class="article-date">
+  <time datetime="2025-04-09T14:06:17.000Z" itemprop="datePublished">2025-04-09</time>
+</a>
+      
+<div class="article-category">
+  <a class="article-category-link" href="/categories/Log/">Log</a>
+</div>
+
+    </div>
+    
+
+    
+    
+<div class="tocbot"></div>
+
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+      
+        <p>NBCI BLAST可能会出现序列名称带有“PATCHES XXX”，例如“Homo sapiens chromosome 1 genomic patch of type NOVEL, GRCh38.p14 PATCHES HSCHR1_12_CTG3”。UCSC In-Silico PCR会出现类似“chr1_jh636052_fix”的序列名称。</p>
+<span id="more"></span>
+
+
+<h1 id="NCBI解释"><a href="#NCBI解释" class="headerlink" title="NCBI解释"></a>NCBI解释</h1><p><a target="_blank" rel="noopener" href="https://www.ncbi.nlm.nih.gov/grc/help/patches/">Introduction to Patches - Genome Reference Consortium (nih.gov)</a></p>
+<h2 id="FIX-patches"><a href="#FIX-patches" class="headerlink" title="FIX patches"></a>FIX patches</h2><p>Fix patches represent changes to existing assembly sequences. These are generally error corrections (addressed by approaches such as base changes, component replacements&#x2F;updates, switch point updates or tiling path changes) or assembly improvements, such as the extension of sequence into gaps. A fix patch scaffold represents a preview of what the assembly will look like at the next major (coordinate changing) release. When the next major release occurs, the accessions for the fix patch scaffolds will be deprecated and the changes will be found in the chromosomes.  </p>
+<h2 id="NOVEL-patches"><a href="#NOVEL-patches" class="headerlink" title="NOVEL patches"></a>NOVEL patches</h2><p>Novel patches represent the addition of new alternate loci to the assembly. These are alternate sequence representations of sequence found on the chromosomes. When the next major release occurs, the accessions for the novel patch scaffolds will persist, and the scaffolds will be known as alternate loci. At that time, the scaffolds will move from the PATCHES assembly unit to the relevant alternate loci assembly unit.  </p>
+<h1 id="UCSC解释"><a href="#UCSC解释" class="headerlink" title="UCSC解释"></a>UCSC解释</h1><p><a target="_blank" rel="noopener" href="https://genome-euro.ucsc.edu/cgi-bin/hgc?hgsid=288501639_qiVujGucScr6PP2A0uSsy4QqAfaW&db=hg19&c=chr1&l=142600000&r=147000000&o=145592292&t=145833117&g=fixSeqLiftOverPsl&i=chr1_jh636052_fix">hg19 Human: Reference Assembly Fix Patch Sequence Alignments (chr1_jh636052_fix) (ucsc.edu)</a><br>This track shows alignments of fix patch sequences to main chromosome sequences in the reference genome assembly. When errors are corrected in the reference genome assembly, the Genome Reference Consortium (GRC) adds fix patch sequences containing the corrected regions. This strikes a balance between providing the most complete and correct genome sequence, while maintaining stable chromosome coordinates for the original assembly sequences.<br>Fix patches are often associated with incident reports displayed in the GRC Incidents track.  </p>
+<h1 id="DeepSeek-R1解释"><a href="#DeepSeek-R1解释" class="headerlink" title="DeepSeek-R1解释"></a>DeepSeek-R1解释</h1><p><strong>Genome Reference Consortium (GRC) 的 Patches 详解</strong><br>GRC 负责维护和更新参考基因组（如人类基因组），以反映科学界对基因组结构的最新理解。由于技术进步或新发现，参考基因组需要定期修正和补充。为此，GRC 引入了两种类型的补丁（Patches）：<strong>FIX patches</strong> 和 <strong>NOVEL patches</strong>。以下是它们的详细解释：  </p>
+<hr>
+<h2 id="1-FIX-Patches（修正补丁）"><a href="#1-FIX-Patches（修正补丁）" class="headerlink" title="1. FIX Patches（修正补丁）"></a><strong>1. FIX Patches（修正补丁）</strong></h2><p><strong>定义与作用</strong>  </p>
+<ul>
+<li>FIX patches 是对现有染色体序列的直接<strong>修正或改进</strong>，目的是修复错误或填补已知缺口。  </li>
+<li>修正类型包括：  <ul>
+<li><strong>碱基错误纠正</strong>（如测序错误的单碱基修改）。  </li>
+<li><strong>组件替换&#x2F;更新</strong>（替换不准确的序列片段）。  </li>
+<li><strong>路径调整</strong>（优化序列的拼接方式）。  </li>
+<li><strong>填补缺口</strong>（通过新数据延伸原有序列，减少未测序区域）。</li>
+</ul>
+</li>
+</ul>
+<p><strong>特点与生命周期</strong>  </p>
+<ul>
+<li>FIX patches 以独立支架（scaffold）形式发布，作为<strong>临时预览</strong>，展示下次主版本（major release）的预期变更。  </li>
+<li><strong>主版本发布后</strong>：  <ul>
+<li>FIX patches 的变更会整合到染色体主序列中，其原始 accession 编号（如 <code>KI270752.1</code>）会被弃用。  </li>
+<li>用户需切换到新版染色体坐标，旧补丁不再独立存在。</li>
+</ul>
+</li>
+</ul>
+<p><strong>示例</strong><br>若原染色体 2 号某区域存在缺口，FIX patch 可能新增一段序列填补该缺口。下次主版本中，这段序列将直接合并到染色体 2，原补丁编号失效。</p>
+<hr>
+<h2 id="2-NOVEL-Patches（新异源补丁）"><a href="#2-NOVEL-Patches（新异源补丁）" class="headerlink" title="2. NOVEL Patches（新异源补丁）"></a><strong>2. NOVEL Patches（新异源补丁）</strong></h2><p><strong>定义与作用</strong>  </p>
+<ul>
+<li>NOVEL patches 代表染色体某些区域的<strong>替代序列</strong>（alternate loci），反映群体中的遗传多样性或复杂区域的不同单倍型。  </li>
+<li>例如：人类主要组织相容性复合体（MHC）区域高度多态，NOVEL patches 可提供不同单倍型的序列版本。</li>
+</ul>
+<p><strong>特点与生命周期</strong>  </p>
+<ul>
+<li>NOVEL patches 以独立支架形式发布，但<strong>不会整合到主染色体</strong>中，而是作为替代位点保留。  </li>
+<li><strong>主版本发布后</strong>：  <ul>
+<li>其 accession 编号（如 <code>KI270757.1</code>）会保留，但分类从“补丁”调整为“替代位点”（alternate loci）。  </li>
+<li>移至专门的“替代位点集合”（如 <code>ALT_REF_LOCI_1</code>），供研究者按需使用。</li>
+</ul>
+</li>
+</ul>
+<p><strong>示例</strong><br>若染色体 17 号某区域存在两种常见结构变异，NOVEL patch 可为每种变异提供独立序列。主版本发布后，这些序列作为替代位点与主染色体并存。</p>
+<hr>
+<h2 id="核心区别"><a href="#核心区别" class="headerlink" title="核心区别"></a><strong>核心区别</strong></h2><table>
+<thead>
+<tr>
+<th>特征</th>
+<th>FIX Patches</th>
+<th>NOVEL Patches</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>目的</strong></td>
+<td>修正错误、填补缺口</td>
+<td>提供替代序列（遗传多样性）</td>
+</tr>
+<tr>
+<td><strong>主版本后状态</strong></td>
+<td>整合到染色体，原编号失效</td>
+<td>保留为替代位点，编号不变</td>
+</tr>
+<tr>
+<td><strong>数据归属</strong></td>
+<td>最终归属主序列</td>
+<td>长期独立存在，补充主序列</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="为何需要-Patches？"><a href="#为何需要-Patches？" class="headerlink" title="为何需要 Patches？"></a><strong>为何需要 Patches？</strong></h2><ul>
+<li><strong>持续改进</strong>：在不破坏现有坐标系统的前提下（非主版本期间），及时修正错误或添加新数据。  </li>
+<li><strong>兼容性</strong>：研究者可提前预览变更，同时保持旧版本数据的稳定性。  </li>
+<li><strong>多样性管理</strong>：通过替代位点支持复杂区域的遗传变异研究（如免疫相关基因）。</li>
+</ul>
+<hr>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a><strong>总结</strong></h2><p>FIX 和 NOVEL patches 是 GRC 维护参考基因组的核心工具，前者确保准确性，后者反映多样性。两者协同工作，使参考基因组成为动态更新的资源，既稳定又适应科学进步。用户需注意主版本更新时的数据迁移规则，以正确引用最新或替代序列。</p>
+<h1 id="总结-1"><a href="#总结-1" class="headerlink" title="总结"></a>总结</h1><p>GRC会不定期以major或minor的形式对参考基因组进行更新。major表示基因组原序列碱基或坐标有相对较大的改动，会提供新的编号，如GRCh37、GRCh38等；minor则是patch的形式，如GRCh38.p13等，其基因组原序列无变动，主要是新增了fix patch和noval patch两种，其中fix patch是对原基因组序列的更新和修正，其内容会在下一次major中并入，noval patch则是新的单倍体型。<a target="_blank" rel="noopener" href="https://wenlongshen.github.io/2020/03/26/Reference-Genome/">关于人类基因组的一些说明</a>  </p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+<ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/BLAST/" rel="tag">BLAST</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/In-Silico-PCR/" rel="tag">In-Silico PCR</a></li></ul>
+
+    </footer>
+
+  </div>
+
+  
+  
+<nav class="article-nav">
+  
+  
+  <a href="/2025/04/09/fastp%E7%89%88%E6%9C%AC%E5%B7%AE%E5%BC%82%E5%AF%BC%E8%87%B4%E6%AF%94%E5%AF%B9%E7%8E%87%E4%B8%8B%E9%99%8D/" class="article-nav-link">
+    <strong class="article-nav-caption">后一篇</strong>
+    <div class="article-nav-title">fastp版本差异导致比对率下降</div>
+  </a>
+  
+</nav>
+
+  
+
+  
+  
+<div class="vcomments" id="vcomments"></div>
+
+<script src="https://unpkg.com/valine/dist/Valine.min.js"></script>
+
+<script>
+  new Valine({
+    el: '#vcomments',
+    appId: 'AbTah7Q6uUUamYA9gZ0ANnav-9Nh9j0Va',
+    appKey: 'Ue6meFW6ZFZ6VHHH8DIpct5h',
+    notify: 'false',
+    verify: 'true',
+    avatar: 'identicon',
+    pageSize: '10',
+    placeholder: '说点什么'
+  })
+</script>
+
+  
+  
+
+</article>
+</section>
+    <footer class="footer">
+  <div class="outer">
+    <ul class="list-inline">
+      <li>A Blog &copy; 2025</li>
+      
+        <li>
+          
+            <a href="https://beian.miit.gov.cn/" target="_blank"></a>
+            
+        </li>
+      
+      <li>Powered by <a href="http://hexo.io/" target="_blank">Hexo</a></li>
+      <li>theme  <a target="_blank" rel="noopener" href="https://github.com/zhwangart/hexo-theme-ocean">Ocean</a></li>
+    </ul>
+    <p><ul class="list-inline">
+  
+  <li><i class="fe fe-smile-alt tooltip" data-tooltip="UV"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+  <li><i class="fe fe-bookmark tooltip" data-tooltip="PV"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul></p>
+  </div>
+</footer>
+  </main>
+  <aside class="sidebar">
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/K_Letter.svg" alt="A Blog"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">首页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">关于</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="搜索">
+        <i class="fe fe-search"></i>
+        搜索
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto',
+  });
+</script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+
+</html>
